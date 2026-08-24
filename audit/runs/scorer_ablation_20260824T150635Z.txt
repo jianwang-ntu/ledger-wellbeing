@@ -1,0 +1,30 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 12003.70it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  incumbent_centroid             held_out=0.504 control=0.860 additive=True
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11144.42it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  incumbent_shrunk_lda           held_out=0.544 control=0.864 additive=True
+Loading weights:   0%|          | 0/100 [00:00<?, ?it/s]Loading weights: 100%|██████████| 100/100 [00:00<00:00, 7733.86it/s]
+[1mDistilBertModel LOAD REPORT[0m from: distilbert-base-uncased-finetuned-sst-2-english
+Key                   | Status     |  | 
+----------------------+------------+--+-
+pre_classifier.bias   | UNEXPECTED |  | 
+classifier.weight     | UNEXPECTED |  | 
+classifier.bias       | UNEXPECTED |  | 
+pre_classifier.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  sst2_body_centroid             held_out=0.672 control=0.584 additive=True

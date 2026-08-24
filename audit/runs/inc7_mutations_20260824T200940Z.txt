@@ -1,0 +1,16 @@
+CAUGHT  ship a build that fails an enforced ceiling  ->  test_no_build_is_claimed_shippable_while_breaching_an_enforced_ceiling
+CAUGHT  hide a build that passes every enforced ceiling  ->  test_shippable_list_agrees_with_the_flags
+CAUGHT  drop one breached ceiling from would_fail_web_target_on  ->  test_a_shippable_build_still_publishes_every_ceiling_it_breaches
+CAUGHT  disclose a web failure the build does not have  ->  test_a_shippable_build_still_publishes_every_ceiling_it_breaches
+CAUGHT  erase every web-target failure  ->  test_no_build_here_would_have_shipped_to_a_browser
+CAUGHT  report invents its own enforcement set  ->  test_the_report_enforces_exactly_the_targets_ceilings
+CAUGHT  quietly unenforce CEIL-2 in the report  ->  test_the_report_enforces_exactly_the_targets_ceilings
+CAUGHT  claim the selected build now fits the web latency ceiling  ->  test_the_selected_build_misses_the_web_latency_ceiling_too
+CAUGHT  claim the size probe was blind  ->  test_the_report_agrees_it_was_not_blind
+CAUGHT  meet CEIL-2 by deleting 265 vocabulary entries  ->  test_vocabulary_is_intact
+CAUGHT  re-serialize the tokenizer pretty-printed  ->  test_the_directory_meets_ceil_2
+CAUGHT  erase the old vocabulary size from SIZE_BUDGET.md  ->  test_the_vocabulary_growth_is_not_erased
+CAUGHT  raise CEIL-2 to 4 MiB  ->  test_ceil_2_is_still_2_mib
+CAUGHT  leave the staged tokenizer backup on disk
+
+14/14 mutations caught

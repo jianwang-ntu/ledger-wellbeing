@@ -1,0 +1,42 @@
+........................................ [ 19%]
+............FF.....................................s.................... [ 54%]
+................ss.....sss.......s..ss.................................. [ 89%]
+......................                                                   [100%]
+=================================== FAILURES ===================================
+_ TestOfflineIsEnforcedInCode.test_the_engine_imports_offline_before_transformers _
+
+self = <test_egress.TestOfflineIsEnforcedInCode object at 0x7f50bc02fb10>
+
+    def test_the_engine_imports_offline_before_transformers(self):
+        source = (ROOT / "ledger" / "app" / "engine.py").read_text()
+>       assert source.index("from ledger.app import offline") < source.index("transformers")
+E       assert 1422 < 1006
+E        +  where 1422 = <built-in method index of str object at 0x3a777800>('from ledger.app import offline')
+E        +    where <built-in method index of str object at 0x3a777800> = '"""The end-to-end path: text in, an explained and stored observation out.\n\n    text → deterministic crisis route → ...    bias=float(self.bias[k]),\n                additivity_residual=residual,\n            ))\n        return results\n'.index
+E        +  and   1006 = <built-in method index of str object at 0x3a777800>('transformers')
+E        +    where <built-in method index of str object at 0x3a777800> = '"""The end-to-end path: text in, an explained and stored observation out.\n\n    text → deterministic crisis route → ...    bias=float(self.bias[k]),\n                additivity_residual=residual,\n            ))\n        return results\n'.index
+
+tests/test_egress.py:133: AssertionError
+__ TestOfflineIsEnforcedInCode.test_the_tokenizer_is_loaded_local_files_only ___
+
+self = <test_egress.TestOfflineIsEnforcedInCode object at 0x7f50bbfe3a80>
+
+    def test_the_tokenizer_is_loaded_local_files_only(self):
+        source = (ROOT / "ledger" / "app" / "engine.py").read_text()
+>       assert "local_files_only=True" in source
+E       assert 'local_files_only=True' in '"""The end-to-end path: text in, an explained and stored observation out.\n\n    text → deterministic crisis route → ...    bias=float(self.bias[k]),\n                additivity_residual=residual,\n            ))\n        return results\n'
+
+tests/test_egress.py:137: AssertionError
+=============================== warnings summary ===============================
+tests/test_compact_tokenizer.py::TestEncodeOutputIsUnchanged::test_encode_matches_the_recorded_fingerprint
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+tests/test_compact_tokenizer.py::TestEncodeOutputIsUnchanged::test_encode_matches_the_recorded_fingerprint
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_egress.py::TestOfflineIsEnforcedInCode::test_the_engine_imports_offline_before_transformers
+FAILED tests/test_egress.py::TestOfflineIsEnforcedInCode::test_the_tokenizer_is_loaded_local_files_only
+2 failed, 195 passed, 9 skipped, 2 warnings, 32 subtests passed in 12.63s
+<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

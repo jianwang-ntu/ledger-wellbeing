@@ -1,0 +1,186 @@
+{
+ "caught": 30,
+ "total": 30,
+ "results": [
+  {
+   "mutation": "crisis routing stops blocking the model",
+   "file": "ledger/safety/crisis_router.py",
+   "guard": "tests/test_engine.py::TestTheModelIsNotInTheCrisisPath",
+   "caught": true
+  },
+  {
+   "mutation": "an acute entry is scored anyway",
+   "file": "ledger/app/engine.py",
+   "guard": "tests/test_engine.py::TestTheModelIsNotInTheCrisisPath",
+   "caught": true
+  },
+  {
+   "mutation": "the crisis path returns no helplines",
+   "file": "ledger/safety/resources.py",
+   "guard": "tests/test_engine.py::TestTheModelIsNotInTheCrisisPath::test_an_acute_entry_still_returns_reachable_help",
+   "caught": true
+  },
+  {
+   "mutation": "structural tokens are silently dropped instead of bucketed",
+   "file": "ledger/app/spans.py",
+   "guard": "tests/test_spans.py::TestPartition",
+   "caught": true
+  },
+  {
+   "mutation": "a token is counted in every span it overlaps",
+   "file": "ledger/app/spans.py",
+   "guard": "tests/test_spans.py::TestPartition",
+   "caught": true
+  },
+  {
+   "mutation": "padding tokens are attributed",
+   "file": "ledger/app/spans.py",
+   "guard": "tests/test_spans.py::TestPartition",
+   "caught": true
+  },
+  {
+   "mutation": "scrypt cost is lowered to something a laptop can brute-force",
+   "file": "ledger/store/crypto.py",
+   "guard": "tests/test_store.py::TestTheKdfIsNotQuietlyWeakened",
+   "caught": true
+  },
+  {
+   "mutation": "a record that fails authentication is skipped rather than raising",
+   "file": "ledger/store/crypto.py",
+   "guard": "tests/test_store.py::TestTampering",
+   "caught": true
+  },
+  {
+   "mutation": "record position is no longer bound into the AAD",
+   "file": "ledger/store/crypto.py",
+   "guard": "tests/test_store.py::TestTampering::test_a_record_cannot_be_moved_to_another_position",
+   "caught": true
+  },
+  {
+   "mutation": "wipe unlinks without overwriting",
+   "file": "ledger/store/journal.py",
+   "guard": "tests/test_store.py::TestWipe",
+   "caught": true
+  },
+  {
+   "mutation": "the store file is created world-readable",
+   "file": "ledger/store/journal.py",
+   "guard": "tests/test_store.py::TestRoundTrip::test_file_is_owner_only",
+   "caught": true
+  },
+  {
+   "mutation": "entries are appended as plaintext json",
+   "file": "ledger/store/journal.py",
+   "guard": "tests/test_store.py::TestNoPlaintextOnDisk",
+   "caught": true
+  },
+  {
+   "mutation": "the usable-AUC floor is lowered until activation passes",
+   "file": "ledger/app/evidence.py",
+   "guard": "tests/test_engine.py::TestWhatTheEngineClaims",
+   "caught": true
+  },
+  {
+   "mutation": "the report stops flagging an unestablished dimension",
+   "file": "ledger/app/report.py",
+   "guard": "tests/test_report.py::TestUnestablishedDimensionsAreLabelled",
+   "caught": true
+  },
+  {
+   "mutation": "the report drops the non-diagnostic contract",
+   "file": "ledger/app/report.py",
+   "guard": "tests/test_report.py::TestTheContract",
+   "caught": true
+  },
+  {
+   "mutation": "the report starts naming a condition",
+   "file": "ledger/app/report.py",
+   "guard": "tests/test_report.py::TestNoClinicalLanguage",
+   "caught": true
+  },
+  {
+   "mutation": "the report claims the three listed spans are the whole score",
+   "file": "ledger/app/report.py",
+   "guard": "tests/test_report.py::TestWhatTheReportShows::test_it_does_not_claim_the_LISTED_contributions_are_the_whole_sum",
+   "caught": true
+  },
+  {
+   "mutation": "the head starts describing itself as trained",
+   "file": "ledger/app/engine.py",
+   "guard": "tests/test_engine.py::TestWhatTheEngineClaims::test_the_head_is_never_described_as_trained",
+   "caught": true
+  },
+  {
+   "mutation": "the application imports transformers again",
+   "file": "ledger/app/engine.py",
+   "guard": "tests/test_engine.py::TestTheApplicationRunsWithoutTransformers",
+   "caught": true
+  },
+  {
+   "mutation": "the tokenizer stops padding to the measured length",
+   "file": "ledger/app/local_tokenizer.py",
+   "guard": "tests/test_local_tokenizer.py::TestTheTokenizerItself",
+   "caught": true
+  },
+  {
+   "mutation": "the egress instrument calls every destination loopback",
+   "file": "export/egress_audit.py",
+   "guard": "tests/test_egress.py::TestTheInstrumentCanFail",
+   "caught": true
+  },
+  {
+   "mutation": "the additivity tolerance is widened in code",
+   "file": "ledger/app/engine.py",
+   "guard": "tests/test_spans.py::TestTheToleranceIsOneNumber",
+   "caught": true
+  },
+  {
+   "mutation": "the app and the export pipeline disagree about the tolerance",
+   "file": "export/verify.py",
+   "guard": "tests/test_spans.py::TestTheToleranceIsOneNumber",
+   "caught": true
+  },
+  {
+   "mutation": "the egress report hides a non-loopback call",
+   "file": "artifacts/egress_audit.json",
+   "guard": "tests/test_egress.py::TestTheMeasurementPassed::test_no_non_loopback_call_was_recorded",
+   "caught": true
+  },
+  {
+   "mutation": "the egress report passes without exercising the app",
+   "file": "artifacts/egress_audit.json",
+   "guard": "tests/test_egress.py::TestTheMeasurementPassed::test_the_application_was_actually_exercised",
+   "caught": true
+  },
+  {
+   "mutation": "the egress report describes itself as a packet capture",
+   "file": "artifacts/egress_audit.json",
+   "guard": "tests/test_egress.py::TestTheMeasurementPassed::test_the_report_states_what_it_does_not_cover",
+   "caught": true
+  },
+  {
+   "mutation": "the span measurement hides a partition failure",
+   "file": "artifacts/span_additivity.json",
+   "guard": "tests/test_spans.py::TestMeasuredAdditivity::test_the_partition_held_on_every_probe_entry",
+   "caught": true
+  },
+  {
+   "mutation": "the span measurement raises its recorded tolerance",
+   "file": "artifacts/span_additivity.json",
+   "guard": "tests/test_spans.py::TestMeasuredAdditivity",
+   "caught": true
+  },
+  {
+   "mutation": "tokenizer parity hides a mismatch",
+   "file": "artifacts/tokenizer_parity.json",
+   "guard": "tests/test_local_tokenizer.py::TestParityWasMeasured::test_not_one_token_differs",
+   "caught": true
+  },
+  {
+   "mutation": "tokenizer parity compares a handful of strings and calls it done",
+   "file": "artifacts/tokenizer_parity.json",
+   "guard": "tests/test_local_tokenizer.py::TestParityWasMeasured::test_the_comparison_covered_the_probe_set_and_every_anchor",
+   "caught": true
+  }
+ ]
+}

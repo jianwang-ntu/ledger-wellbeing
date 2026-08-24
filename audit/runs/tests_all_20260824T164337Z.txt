@@ -1,0 +1,45 @@
+test_the_hypotheses_are_recorded_with_the_numbers (test_scorer_ablation.TestTheFindingIsWhereAReaderWillSeeIt.test_the_hypotheses_are_recorded_with_the_numbers)
+The cross-encoder scores depend on the hypothesis wording. Recording it ... <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+ok
+test_a_null_selection_leaves_the_scorer_alone (test_scorer_ablation.TestTheRepositoryHonoursTheOutcome.test_a_null_selection_leaves_the_scorer_alone)
+Option B closed means the head does not change on the strength of it. ... skipped 'a scorer was selected; this guard does not apply'
+test_c4_additivity_is_not_advertised_after_a_non_additive_selection (test_scorer_ablation.TestTheRepositoryHonoursTheOutcome.test_c4_additivity_is_not_advertised_after_a_non_additive_selection) ... skipped 'no non-additive scorer was adopted'
+test_every_model_this_ablation_downloads_is_attributed (test_scorer_ablation.TestTheRepositoryHonoursTheOutcome.test_every_model_this_ablation_downloads_is_attributed) ... ok
+test_baseline_reference_block_is_not_hand_written (test_scorer_ablation.TestTheTwoRunsAgree.test_baseline_reference_block_is_not_hand_written) ... ok
+test_baseline_reproduces_the_increment_3_incumbent (test_scorer_ablation.TestTheTwoRunsAgree.test_baseline_reproduces_the_increment_3_incumbent) ... ok
+test_thresholds_are_the_ones_increment_3_fixed (test_scorer_ablation.TestTheTwoRunsAgree.test_thresholds_are_the_ones_increment_3_fixed) ... ok
+test_no_unreadable_variant_is_selected (test_size_feasible_scorer.TestAnUnreadableRowIsNotReadThrough.test_no_unreadable_variant_is_selected) ... skipped 'nothing selected'
+test_readable_set_matches_the_controls (test_size_feasible_scorer.TestAnUnreadableRowIsNotReadThrough.test_readable_set_matches_the_controls) ... ok
+test_the_best_held_out_number_in_the_table_is_not_quoted_as_a_result (test_size_feasible_scorer.TestAnUnreadableRowIsNotReadThrough.test_the_best_held_out_number_in_the_table_is_not_quoted_as_a_result)
+The highest held-out AUC among the non-reference rows belongs to a row ... ok
+test_an_undeclared_licence_is_never_a_selection_candidate (test_size_feasible_scorer.TestLicenceIsAGateNotAPreference.test_an_undeclared_licence_is_never_a_selection_candidate) ... ok
+test_every_measured_model_records_a_licence_field (test_size_feasible_scorer.TestLicenceIsAGateNotAPreference.test_every_measured_model_records_a_licence_field) ... ok
+test_every_model_this_run_downloads_is_attributed (test_size_feasible_scorer.TestLicenceIsAGateNotAPreference.test_every_model_this_run_downloads_is_attributed) ... ok
+test_the_licence_exclusion_is_recorded_with_its_reason (test_size_feasible_scorer.TestLicenceIsAGateNotAPreference.test_the_licence_exclusion_is_recorded_with_its_reason) ... ok
+test_ceil_1_is_still_32_mib (test_size_feasible_scorer.TestNoCeilingMoved.test_ceil_1_is_still_32_mib) ... ok
+test_ceilings_in_the_artifact_are_the_ones_in_common (test_size_feasible_scorer.TestNoCeilingMoved.test_ceilings_in_the_artifact_are_the_ones_in_common) ... ok
+test_shippability_is_recomputable_for_every_row (test_size_feasible_scorer.TestNoCeilingMoved.test_shippability_is_recomputable_for_every_row) ... ok
+test_a_selection_is_the_highest_usable_shippable_auc (test_size_feasible_scorer.TestSelectionRequiresBothHalves.test_a_selection_is_the_highest_usable_shippable_auc) ... skipped 'nothing selected'
+test_a_selection_must_satisfy_every_criterion (test_size_feasible_scorer.TestSelectionRequiresBothHalves.test_a_selection_must_satisfy_every_criterion) ... skipped 'nothing selected'
+test_a_shippable_row_that_does_not_separate_is_not_adopted (test_size_feasible_scorer.TestSelectionRequiresBothHalves.test_a_shippable_row_that_does_not_separate_is_not_adopted)
+nli_xtremedistil_h256 fits. That is not a reason to ship it. ... ok
+test_nothing_selected_means_nothing_adopted (test_size_feasible_scorer.TestSelectionRequiresBothHalves.test_nothing_selected_means_nothing_adopted) ... ok
+test_selection_rule_is_a_tightening_not_a_loosening (test_size_feasible_scorer.TestSelectionRequiresBothHalves.test_selection_rule_is_a_tightening_not_a_loosening) ... ok
+test_expectations_were_recorded_before_the_measurement (test_size_feasible_scorer.TestTheCandidateListWasClosedBeforeTheRun.test_expectations_were_recorded_before_the_measurement)
+A pre-registered expectation that turns out wrong is information. ... ok
+test_the_artifact_matches_the_script (test_size_feasible_scorer.TestTheCandidateListWasClosedBeforeTheRun.test_the_artifact_matches_the_script) ... ok
+test_a_closed_option_b_is_written_where_a_reader_will_see_it (test_size_feasible_scorer.TestTheOutcomeIsHonouredInTheRepository.test_a_closed_option_b_is_written_where_a_reader_will_see_it) ... ok
+test_a_null_selection_invokes_r4_by_name (test_size_feasible_scorer.TestTheOutcomeIsHonouredInTheRepository.test_a_null_selection_invokes_r4_by_name) ... ok
+test_a_null_selection_leaves_common_on_the_incumbent (test_size_feasible_scorer.TestTheOutcomeIsHonouredInTheRepository.test_a_null_selection_leaves_common_on_the_incumbent) ... ok
+test_readme_makes_no_in_browser_claim_the_measurements_do_not_support (test_size_feasible_scorer.TestTheOutcomeIsHonouredInTheRepository.test_readme_makes_no_in_browser_claim_the_measurements_do_not_support) ... ok
+test_the_budget_records_the_increment (test_size_feasible_scorer.TestTheOutcomeIsHonouredInTheRepository.test_the_budget_records_the_increment) ... ok
+test_baseline_reproduces_increments_3_and_4 (test_size_feasible_scorer.TestTheThreeRunsAgree.test_baseline_reproduces_increments_3_and_4) ... ok
+test_thresholds_are_the_ones_increment_3_fixed (test_size_feasible_scorer.TestTheThreeRunsAgree.test_thresholds_are_the_ones_increment_3_fixed) ... ok
+test_upper_reference_reproduces_increment_4s_selection (test_size_feasible_scorer.TestTheThreeRunsAgree.test_upper_reference_reproduces_increment_4s_selection) ... ok
+
+----------------------------------------------------------------------
+Ran 73 tests in 4.263s
+
+OK (skipped=8)
+<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

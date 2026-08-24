@@ -1,0 +1,29 @@
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+{
+ "builds": {
+  "fp32": {
+   "path": "ledger_scorer_fp32_single.onnx",
+   "bytes": 90323579,
+   "sha256": "f8d3ad066c64f64b5efc74644530f4b88e76ec3281676fc63b1d041d1e3fec75",
+   "scope": "reference build"
+  },
+  "int8_full": {
+   "path": "ledger_scorer_int8.onnx",
+   "bytes": 22840664,
+   "sha256": "a388164a5e969355125beead1ffd53b0c562d6668fd587c7d32cb463549eda78",
+   "scope": "all quantizable ops (MatMul const-B + embedding Gather)",
+   "compression_vs_fp32": 3.955
+  },
+  "int8_embed": {
+   "path": "ledger_scorer_int8embed.onnx",
+   "bytes": 54571189,
+   "sha256": "5c0f6d09d5172075881255118e45a1884b916a7e37806f40a23c09c9ca6e6cb8",
+   "scope": "embedding Gather only; every MatMul left fp32",
+   "compression_vs_fp32": 1.655
+  }
+ },
+ "method": "onnxruntime.quantization.quantize_dynamic, QInt8, per_channel=True",
+ "activations": "left in float32 (dynamic quantization) - no calibration data used",
+ "elapsed_s": 3.71
+}

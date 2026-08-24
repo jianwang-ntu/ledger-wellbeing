@@ -1,0 +1,16 @@
+test_normalise_is_idempotent (test_crisis_router.Determinism.test_normalise_is_idempotent) ... ok
+test_router_makes_no_network_or_model_call (test_crisis_router.Determinism.test_router_makes_no_network_or_model_call)
+Static proof: the safety package imports nothing that can do I/O. ... ok
+test_same_input_same_decision (test_crisis_router.Determinism.test_same_input_same_decision) ... ok
+test_acute_always_returns_reachable_help (test_crisis_router.MustFire.test_acute_always_returns_reachable_help) ... ok
+test_obfuscated_phrases_still_fire (test_crisis_router.MustFire.test_obfuscated_phrases_still_fire) ... ok
+test_plain_phrases_fire_acute (test_crisis_router.MustFire.test_plain_phrases_fire_acute) ... ok
+test_prompt_injection_cannot_suppress (test_crisis_router.MustFire.test_prompt_injection_cannot_suppress)
+The router has no instruction-following surface, so this must hold. ... ok
+test_benign_entries_do_not_trigger (test_crisis_router.MustNotFire.test_benign_entries_do_not_trigger) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.002s
+
+OK
+unittest_rc=0

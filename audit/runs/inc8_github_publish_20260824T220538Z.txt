@@ -1,0 +1,21 @@
+[identity] status=200 login=jianwang-ntu
+
+PLAN
+  1. GET  /repos/jianwang-ntu/ledger-wellbeing         idempotency check
+  2. POST /user/repos                        create public repo (only if absent)
+  3. git push -u origin main                 push /data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project
+  4. GET  /repos/jianwang-ntu/ledger-wellbeing/commits/main   read the pushed sha back
+  Reversibility: a public repository can be deleted, but a push is
+  effectively public the moment it lands. This is authorised by
+  plan.md 'What the competition actually requires': the submission IS
+  a public GitHub repository with functioning source code.
+
+[idempotency_check] status=404 already_exists=False
+[create] status=201 html_url=https://github.com/jianwang-ntu/ledger-wellbeing
+[local_head] sha=ec02e1b73e295fe9b99650b61a353698a5241a13
+[push] ok=True stderr= * [new branch]      main -> main
+[read_back] status=200 remote_sha=ec02e1b73e29 matches_local=True
+[read_back_tree] files=75 missing=none
+[read_back_visibility] private=False public=True
+
+verified=True  https://github.com/jianwang-ntu/ledger-wellbeing

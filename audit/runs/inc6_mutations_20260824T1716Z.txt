@@ -1,0 +1,25 @@
+Build increment 6 - mutation verification of the new guards
+Run 2026-08-24T17:16Z. Method: apply one edit to a restored tree, run the full
+suite, restore. "CAUGHT" means the suite reported a failure.
+
+CAUGHT: M1  raise CEIL-1 to 210 MiB (would make the current build "fit")
+CAUGHT: M2  raise CEIL-2 to 4 MiB (the ceiling that actually fails this increment)
+CAUGHT: M3  drop CEIL-2 from the desktop enforcement map
+CAUGHT: M4  drop CEIL-4 from the desktop enforcement map
+CAUGHT: M5  flip DELIVERY_TARGET back to web without re-measuring
+CAUGHT: M6  pin BASE_MODEL to MoritzLaurer/MiniLM-L6-mnli (undeclared licence, no ablation selected it)
+CAUGHT: M7  pin BASE_MODEL to paraphrase-MiniLM-L3-v2 (a candidate increment 5 declined)
+CAUGHT: M8  shrink ORT_RUNTIME_FLOOR_BYTES to the JS entry point alone
+CAUGHT: M9  delete would_fail_web_target_on from every build in verify_report.json
+CAUGHT: M10 report an additivity residual of 0.5 as attribution_identity_holds=true
+CAUGHT: M11 stop emitting model_sha256 from web/bench_wasm.mjs
+CAUGHT: M12 have a bench claim a sha256 that is not the model on disk
+
+MUTATIONS 12/12 caught.
+
+Note on M6/M7: these are the mutations that matter most, because increment 6 is
+the first time this project moved BASE_MODEL. tests/pin_invariant.py permits a
+move only to a model some ablation SELECTED, and only once every adoption blocker
+that ablation recorded has stopped being enforced. M6 fails the first condition
+(nothing selected it) and M7 fails it too (increment 5 put it up as a candidate
+and declined it), so neither is reachable by changing the delivery target.

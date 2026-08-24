@@ -1,0 +1,95 @@
+STEP 1 build_model 17:05:34Z
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10145.44it/s]
+[1mRobertaModel LOAD REPORT[0m from: sentence-transformers/nli-distilroberta-base-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:02<00:00,  2.50s/it]Writing model shards: 100%|██████████| 1/1 [00:02<00:00,  2.50s/it]
+{
+ "base_model": "sentence-transformers/nli-distilroberta-base-v2",
+ "base_revision": "cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d",
+ "encoder_parameters": 82118400,
+ "hidden_size": 768,
+ "num_hidden_layers": 6,
+ "head_version": "anchor_v0",
+ "head_is_trained": false,
+ "head_note": "Zero-shot anchor head. No gradient step has been taken on any corpus. Nothing produced from this checkpoint may be described as fine-tuned.",
+ "dimensions": [
+  "low_mood",
+  "anxiety",
+  "sleep_disruption",
+  "social_withdrawal",
+  "activation"
+ ],
+ "tokenizer_bytes": 3559258,
+ "elapsed_s": 3.41
+}
+STEP 2 export_onnx 17:05:43Z
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11438.61it/s]
+/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/export_onnx.py:41: UserWarning: # 'dynamic_axes' is not recommended when dynamo=True, and may lead to 'torch._dynamo.exc.UserError: Constraints violated.' Supply the 'dynamic_shapes' argument instead if export is unsuccessful.
+  torch.onnx.export(
+W0825 01:05:48.124000 1045490 site-packages/torch/onnx/_internal/exporter/_compat.py:125] Setting ONNX exporter to use operator set version 18 because the requested opset_version 17 is a lower version than we have implementations for. Automatic version conversion will be performed, which may not be successful at converting to the requested version. If version conversion is unsuccessful, the opset version of the exported model will be kept at 18. Please consider setting opset_version >=18 to leverage latest ONNX features
+W0825 01:05:48.734000 1045490 site-packages/torch/onnx/_internal/exporter/_schemas.py:455] Missing annotation for parameter 'input' from (input, rois, spatial_scale: 'float', pooled_height: 'int', pooled_width: 'int', sampling_ratio: 'int' = -1, aligned: 'bool' = False). Treating as an Input.
+W0825 01:05:48.735000 1045490 site-packages/torch/onnx/_internal/exporter/_schemas.py:455] Missing annotation for parameter 'rois' from (input, rois, spatial_scale: 'float', pooled_height: 'int', pooled_width: 'int', sampling_ratio: 'int' = -1, aligned: 'bool' = False). Treating as an Input.
+W0825 01:05:48.735000 1045490 site-packages/torch/onnx/_internal/exporter/_schemas.py:455] Missing annotation for parameter 'input' from (input, boxes, output_size: 'Sequence[int]', spatial_scale: 'float' = 1.0). Treating as an Input.
+W0825 01:05:48.736000 1045490 site-packages/torch/onnx/_internal/exporter/_schemas.py:455] Missing annotation for parameter 'boxes' from (input, boxes, output_size: 'Sequence[int]', spatial_scale: 'float' = 1.0). Treating as an Input.
+/data/wj/anaconda/lib/python3.13/copyreg.py:99: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  return cls.__new__(cls, *args)
+/data/wj/anaconda/lib/python3.13/site-packages/torch/onnx/_internal/exporter/_onnx_program.py:460: UserWarning: # The axis name: batch will not be used, since it shares the same shape constraints with another axis: batch.
+  rename_mapping = _dynamic_shapes.create_rename_mapping(
+/data/wj/anaconda/lib/python3.13/site-packages/torch/onnx/_internal/exporter/_onnx_program.py:460: UserWarning: # The axis name: sequence will not be used, since it shares the same shape constraints with another axis: sequence.
+  rename_mapping = _dynamic_shapes.create_rename_mapping(
+The model version conversion is not supported by the onnxscript version converter and fallback is enabled. The model will be converted using the onnx C API (target version: 17).
+[torch.onnx] Obtain model graph for `LedgerScorer([...]` with `torch.export.export(..., strict=False)`...
+[torch.onnx] Obtain model graph for `LedgerScorer([...]` with `torch.export.export(..., strict=False)`... ✅
+[torch.onnx] Run decomposition...
+[torch.onnx] Run decomposition... ✅
+[torch.onnx] Translate the graph into ONNX...
+[torch.onnx] Translate the graph into ONNX... ✅
+{
+ "exporter": "dynamo",
+ "opset": 17,
+ "path": "artifacts/onnx/ledger_scorer_fp32.onnx",
+ "bytes": 54175,
+ "sha256": "66f1d21e10dc99d24f3ee17286089fd7208b49ee1304274563bf3ff0627bfba9",
+ "max_length_traced": 256,
+ "dynamic_axes": [
+  "batch",
+  "sequence"
+ ],
+ "elapsed_s": 7.19
+}
+STEP 3 quantize 17:05:56Z
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+{
+ "builds": {
+  "fp32": {
+   "path": "ledger_scorer_fp32_single.onnx",
+   "bytes": 326177397,
+   "sha256": "45f0bf27f0788b9d56b667b227e7eb1c045a74c67c9004d00830fd71554d3cae",
+   "scope": "reference build"
+  },
+  "int8_full": {
+   "path": "ledger_scorer_int8.onnx",
+   "bytes": 81997245,
+   "sha256": "d05d155910feb5dfed5884856f9d0cb2a3061c450c12ae1e99728b470e27d0cf",
+   "scope": "all quantizable ops (MatMul const-B + embedding Gather)",
+   "compression_vs_fp32": 3.978
+  },
+  "int8_embed": {
+   "path": "ledger_scorer_int8embed.onnx",
+   "bytes": 209181357,
+   "sha256": "952471d51eba07365b0b62f6ddefbe580e2f838d997a654dabc4813716da00e9",
+   "scope": "embedding Gather only; every MatMul left fp32",
+   "compression_vs_fp32": 1.559
+  }
+ },
+ "method": "onnxruntime.quantization.quantize_dynamic, QInt8, per_channel=True",
+ "activations": "left in float32 (dynamic quantization) - no calibration data used",
+ "elapsed_s": 12.78
+}
+DONE 17:06:09Z

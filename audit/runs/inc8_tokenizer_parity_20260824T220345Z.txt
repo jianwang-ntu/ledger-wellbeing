@@ -1,0 +1,27 @@
+{
+ "measured_at_utc": "2026-08-24T22:03:45Z",
+ "defect": "DEFECT-INC8-001",
+ "question": "Does the application's transformers-free tokenizer encode identically to the path every prior measurement was run through?",
+ "protocol": "elementwise, no tolerance; identical to R7-2",
+ "max_length": 256,
+ "encodings": {
+  "texts_compared": 114,
+  "mismatches": [],
+  "pass": true
+ },
+ "head_bias": {
+  "dimensions": [
+   "low_mood",
+   "anxiety",
+   "sleep_disruption",
+   "social_withdrawal",
+   "activation"
+  ],
+  "max_abs_delta_before_float32_cast": 2.4513013840987696e-08,
+  "max_abs_delta_after_float32_cast": 0.0,
+  "bit_identical_after_cast": true,
+  "pass": true,
+  "note": "head.pt stores a float32 cast of the same calibration offsets, so reading them from build_report.json and casting to float32 reproduces the shipped bias exactly and needs no torch."
+ },
+ "verdict": "PASS"
+}

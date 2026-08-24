@@ -1,0 +1,90 @@
+{
+ "caught": 14,
+ "total": 14,
+ "results": [
+  {
+   "mutation": "ship a build that fails an enforced ceiling",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_no_build_is_claimed_shippable_while_breaching_an_enforced_ceiling",
+   "caught": true
+  },
+  {
+   "mutation": "hide a build that passes every enforced ceiling",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_shippable_list_agrees_with_the_flags",
+   "caught": true
+  },
+  {
+   "mutation": "drop one breached ceiling from would_fail_web_target_on",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_a_shippable_build_still_publishes_every_ceiling_it_breaches",
+   "caught": true
+  },
+  {
+   "mutation": "disclose a web failure the build does not have",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_a_shippable_build_still_publishes_every_ceiling_it_breaches",
+   "caught": true
+  },
+  {
+   "mutation": "erase every web-target failure",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_no_build_here_would_have_shipped_to_a_browser",
+   "caught": true
+  },
+  {
+   "mutation": "report invents its own enforcement set",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_the_report_enforces_exactly_the_targets_ceilings",
+   "caught": true
+  },
+  {
+   "mutation": "quietly unenforce CEIL-2 in the report",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_the_report_enforces_exactly_the_targets_ceilings",
+   "caught": true
+  },
+  {
+   "mutation": "claim the selected build now fits the web latency ceiling",
+   "file": "artifacts/verify_report.json",
+   "guard": "test_the_selected_build_misses_the_web_latency_ceiling_too",
+   "caught": true
+  },
+  {
+   "mutation": "claim the size probe was blind",
+   "file": "artifacts/compact_tokenizer.json",
+   "guard": "test_the_report_agrees_it_was_not_blind",
+   "caught": true
+  },
+  {
+   "mutation": "meet CEIL-2 by deleting 265 vocabulary entries",
+   "file": "artifacts/tokenizer/tokenizer.json",
+   "guard": "test_vocabulary_is_intact",
+   "caught": true
+  },
+  {
+   "mutation": "re-serialize the tokenizer pretty-printed",
+   "file": "artifacts/tokenizer/tokenizer.json",
+   "guard": "test_the_directory_meets_ceil_2",
+   "caught": true
+  },
+  {
+   "mutation": "erase the old vocabulary size from SIZE_BUDGET.md",
+   "file": "export/SIZE_BUDGET.md",
+   "guard": "test_the_vocabulary_growth_is_not_erased",
+   "caught": true
+  },
+  {
+   "mutation": "raise CEIL-2 to 4 MiB",
+   "file": "export/common.py",
+   "guard": "test_ceil_2_is_still_2_mib",
+   "caught": true
+  },
+  {
+   "mutation": "leave the staged tokenizer backup on disk",
+   "file": "artifacts/tokenizer/tokenizer.json.orig",
+   "guard": "test_no_leftover_backup_is_inflating_or_hiding_the_measurement",
+   "caught": true
+  }
+ ]
+}

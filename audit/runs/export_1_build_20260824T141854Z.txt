@@ -1,0 +1,28 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11240.98it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.17it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.17it/s]
+{
+ "base_model": "sentence-transformers/all-MiniLM-L6-v2",
+ "base_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+ "encoder_parameters": 22713216,
+ "hidden_size": 384,
+ "num_hidden_layers": 6,
+ "head_version": "anchor_v0",
+ "head_is_trained": false,
+ "head_note": "Zero-shot anchor head. No gradient step has been taken on any corpus. Nothing produced from this checkpoint may be described as fine-tuned.",
+ "dimensions": [
+  "low_mood",
+  "anxiety",
+  "sleep_disruption",
+  "social_withdrawal",
+  "activation"
+ ],
+ "tokenizer_bytes": 712213,
+ "elapsed_s": 2.47
+}

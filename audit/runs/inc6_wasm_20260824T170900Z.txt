@@ -1,0 +1,12 @@
+make_bench_input 17:08:49Z
+{
+ "real_tokens": 62,
+ "padded_to": 256,
+ "builds": [
+  "fp32",
+  "int8_full",
+  "int8_embed"
+ ]
+}
+wasm int8_embed 17:08:56Z
+rc=0 17:09:26Z

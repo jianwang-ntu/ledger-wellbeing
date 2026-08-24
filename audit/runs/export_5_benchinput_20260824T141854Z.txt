@@ -1,0 +1,9 @@
+{
+ "real_tokens": 62,
+ "padded_to": 256,
+ "builds": [
+  "fp32",
+  "int8_full",
+  "int8_embed"
+ ]
+}

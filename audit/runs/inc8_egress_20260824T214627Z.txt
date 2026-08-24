@@ -1,0 +1,39 @@
+{
+ "measured_at_utc": "2026-08-24T21:46:33Z",
+ "rule": "R8-3, export/INCREMENT_8_PREREGISTRATION.md",
+ "scope": "process-level: socket calls made by this Python process",
+ "not_in_scope": [
+  "subprocesses",
+  "native libraries opening sockets without the socket module",
+  "kernel-level sends",
+  "a packet-level capture, which is strictly stronger and needs privileges this environment does not have"
+ ],
+ "instrumented": [
+  "socket.socket.connect",
+  "socket.socket.connect_ex",
+  "socket.socket.sendto",
+  "socket.socket.sendmsg",
+  "socket.create_connection",
+  "socket.getaddrinfo",
+  "socket.gethostbyname",
+  "socket.gethostbyname_ex"
+ ],
+ "offline_env_applied": {
+  "HF_HUB_OFFLINE": "1",
+  "TRANSFORMERS_OFFLINE": "1",
+  "HF_HUB_DISABLE_TELEMETRY": "1"
+ },
+ "application_exercise": {
+  "entries_added": 5,
+  "entries_scored": 4,
+  "entries_routed_to_help": 2,
+  "entries_read_back": 5,
+  "report_chars": 3288,
+  "wiped": true,
+  "store_removed": true
+ },
+ "exercise_error": null,
+ "socket_calls_total": 0,
+ "socket_calls_loopback": 0,
+ "verdict": "PASS"
+}

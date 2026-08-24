@@ -5,7 +5,7 @@ A client-side longitudinal well-being instrument, built for
 
 > **Status: in progress.** This README records only what is built and has been
 > run. Claims about parts that do not exist yet are not made here. Every claim
-> below is backed by a checked-in artifact under `../audit/`.
+> below is backed by a checked-in artifact under `audit/`.
 >
 > As of build increment 8 there is a working application. As of build increment
 > 7 there is a shippable model build. Neither of those makes the score good —
@@ -42,19 +42,19 @@ it, written before the measurement.
 
 | Component | State | Runtime evidence |
 |---|---|---|
-| `ledger/safety/` — deterministic crisis router | **built, tested** | `../audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `../audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
+| `ledger/safety/` — deterministic crisis router | **built, tested** | `audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
 | `ledger/model/` — encoder + additive attribution head | **built** | `artifacts/verify_report.json` |
 | `export/` — ONNX export, int8 quantization, verification | **built; clears every enforced ceiling since increment 7** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
 | In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — fails 4 of 6 ceilings on the current body, including latency at 845.98 ms | `artifacts/wasm/bench_int8_embed.json`, `export/SIZE_BUDGET.md` |
 | Desktop target with the 0.880 scorer | **built, measured and ADOPTED** since increment 7 — CEIL-2 met at 1.484 MiB vs 2.000 MiB, `verify.py` exits 0, `int8_embed` selected | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
 | `ledger/store/` — encrypted local journal, one-click wipe | **built, tested** | `tests/test_store.py` (25 guards), `docs/limitations.md` §7.2–7.3 |
-| `ledger/app/` — entry → route → score → per-span attribution → store → report | **built, runs end to end** | `../audit/runs/inc8_cli_demo_*.txt`, `artifacts/span_additivity.json` |
+| `ledger/app/` — entry → route → score → per-span attribution → store → report | **built, runs end to end** | `audit/runs/inc8_cli_demo_*.txt`, `artifacts/span_additivity.json` |
 | Zero egress | **measured on the running application**: 0 socket calls of any kind | `artifacts/egress_audit.json`, `docs/limitations.md` §7.1 |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
 | A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
-| CLI front-end (`python -m ledger.app.cli`) | **built** | `../audit/runs/inc8_cli_demo_*.txt` |
+| CLI front-end (`python -m ledger.app.cli`) | **built** | `audit/runs/inc8_cli_demo_*.txt` |
 | Visual UI / accessibility audit (plan.md C6) | **not built** — a CLI is not a designed interface | `docs/limitations.md` §7.4 |
 | 4-minute submission video | **not produced**, and will not be faked | — |
 

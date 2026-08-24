@@ -1,0 +1,180 @@
+{
+ "measured_at_utc": "2026-08-24T14:21:15Z",
+ "machine": {
+  "cpu": "AMD EPYC 9654 96-Core Processor",
+  "python": "3.13.9",
+  "onnxruntime": "1.29.0",
+  "os": "Linux-5.15.0-170-generic-x86_64-with-glibc2.35"
+ },
+ "probe_set": {
+  "n": 64,
+  "padded_to_tokens": 256,
+  "source": "export/common.py:probe_entries - seeded recombination of the anchor sentences in this repository; a numerical probe, not an evaluation set. No accuracy claim is made from it."
+ },
+ "reference_build": {
+  "name": "fp32",
+  "bytes": 90323579,
+  "attribution_identity_max_residual": 2.3865140974521637e-07,
+  "latency_native_ort_cpu_1thread": {
+   "p50_ms": 62.265,
+   "p95_ms": 62.536,
+   "runs": 50
+  },
+  "latency_wasm_1thread": {
+   "p50_ms": 227.441,
+   "p95_ms": 254.681
+  }
+ },
+ "tokenizer_bytes": 712213,
+ "ort_runtime_floor_bytes": 11865354,
+ "candidate_builds": {
+  "int8_full": {
+   "bytes": 22840664,
+   "MiB": 21.78,
+   "cold_first_load_bytes": 35418231,
+   "cold_first_load_MiB": 33.78,
+   "vs_fp32_per_dimension": {
+    "low_mood": {
+     "pearson_r": 0.993761,
+     "max_abs_score_delta": 0.029436
+    },
+    "anxiety": {
+     "pearson_r": 0.996363,
+     "max_abs_score_delta": 0.02545
+    },
+    "sleep_disruption": {
+     "pearson_r": 0.994814,
+     "max_abs_score_delta": 0.040429
+    },
+    "social_withdrawal": {
+     "pearson_r": 0.993882,
+     "max_abs_score_delta": 0.036513
+    },
+    "activation": {
+     "pearson_r": 0.994415,
+     "max_abs_score_delta": 0.032512
+    }
+   },
+   "attribution_identity_max_residual": 2.2962922230362892e-07,
+   "latency_native_ort_cpu_1thread": {
+    "p50_ms": 27.259,
+    "p95_ms": 27.507,
+    "runs": 50
+   },
+   "latency_wasm_1thread": {
+    "p50_ms": 117.064,
+    "p95_ms": 123.782,
+    "session_load_ms": 233.29
+   },
+   "wasm_vs_native_ort_max_abs_logit_diff": 0.013271,
+   "ceiling_checks": {
+    "CEIL_1_int8_model_bytes": {
+     "measured": 22840664,
+     "ceiling": 33554432,
+     "pass": true
+    },
+    "CEIL_2_tokenizer_bytes": {
+     "measured": 712213,
+     "ceiling": 2097152,
+     "pass": true
+    },
+    "CEIL_3_cold_payload_bytes": {
+     "measured": 35418231,
+     "ceiling": 67108864,
+     "pass": true
+    },
+    "CEIL_4_p95_latency_ms_wasm": {
+     "measured": 123.782,
+     "ceiling": 500.0,
+     "pass": true
+    },
+    "CEIL_5_min_pearson_r": {
+     "measured": 0.993761,
+     "ceiling": 0.99,
+     "pass": true
+    },
+    "CEIL_5_max_abs_score_delta": {
+     "measured": 0.040429,
+     "ceiling": 0.02,
+     "pass": false
+    }
+   },
+   "clears_every_ceiling": false
+  },
+  "int8_embed": {
+   "bytes": 54571189,
+   "MiB": 52.04,
+   "cold_first_load_bytes": 67148756,
+   "cold_first_load_MiB": 64.04,
+   "vs_fp32_per_dimension": {
+    "low_mood": {
+     "pearson_r": 0.999772,
+     "max_abs_score_delta": 0.007027
+    },
+    "anxiety": {
+     "pearson_r": 0.999844,
+     "max_abs_score_delta": 0.005151
+    },
+    "sleep_disruption": {
+     "pearson_r": 0.999813,
+     "max_abs_score_delta": 0.009437
+    },
+    "social_withdrawal": {
+     "pearson_r": 0.999746,
+     "max_abs_score_delta": 0.006797
+    },
+    "activation": {
+     "pearson_r": 0.999737,
+     "max_abs_score_delta": 0.005739
+    }
+   },
+   "attribution_identity_max_residual": 2.3283064365386963e-07,
+   "latency_native_ort_cpu_1thread": {
+    "p50_ms": 61.628,
+    "p95_ms": 61.743,
+    "runs": 50
+   },
+   "latency_wasm_1thread": {
+    "p50_ms": 227.176,
+    "p95_ms": 236.107,
+    "session_load_ms": 377.07
+   },
+   "wasm_vs_native_ort_max_abs_logit_diff": 4.7684e-07,
+   "ceiling_checks": {
+    "CEIL_1_int8_model_bytes": {
+     "measured": 54571189,
+     "ceiling": 33554432,
+     "pass": false
+    },
+    "CEIL_2_tokenizer_bytes": {
+     "measured": 712213,
+     "ceiling": 2097152,
+     "pass": true
+    },
+    "CEIL_3_cold_payload_bytes": {
+     "measured": 67148756,
+     "ceiling": 67108864,
+     "pass": false
+    },
+    "CEIL_4_p95_latency_ms_wasm": {
+     "measured": 236.107,
+     "ceiling": 500.0,
+     "pass": true
+    },
+    "CEIL_5_min_pearson_r": {
+     "measured": 0.999737,
+     "ceiling": 0.99,
+     "pass": true
+    },
+    "CEIL_5_max_abs_score_delta": {
+     "measured": 0.009437,
+     "ceiling": 0.02,
+     "pass": true
+    }
+   },
+   "clears_every_ceiling": false
+  }
+ },
+ "shippable_builds": [],
+ "verdict": "NO BUILD CLEARS EVERY CEILING - see SIZE_BUDGET.md fallback rule"
+}

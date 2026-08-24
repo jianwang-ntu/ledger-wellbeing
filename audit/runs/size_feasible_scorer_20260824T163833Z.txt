@@ -1,0 +1,93 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 8640.96it/s]
+[1mBertModel LOAD REPORT[0m from: MoritzLaurer/xtremedistil-l6-h256-zeroshot-v1.1-all-33
+Key               | Status     |  | 
+------------------+------------+--+-
+classifier.bias   | UNEXPECTED |  | 
+classifier.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_xtremedistil_h256            H=256  L=6   held_out=0.504 control=0.628 int8emb=  25.91Mi ships=True
+Loading weights:   0%|          | 0/55 [00:00<?, ?it/s]Loading weights: 100%|██████████| 55/55 [00:00<00:00, 9342.19it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/paraphrase-MiniLM-L3-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_paraphrase_minilm_l3         H=384  L=3   held_out=0.592 control=0.792 int8emb=  32.24Mi ships=False
+Loading weights:   0%|          | 0/198 [00:00<?, ?it/s]Loading weights: 100%|██████████| 198/198 [00:00<00:00, 9524.53it/s]
+[1mDebertaV2Model LOAD REPORT[0m from: cross-encoder/nli-deberta-v3-xsmall
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+pooler.dense.bias               | UNEXPECTED |  | 
+classifier.bias                 | UNEXPECTED |  | 
+classifier.weight               | UNEXPECTED |  | 
+deberta.embeddings.position_ids | UNEXPECTED |  | 
+pooler.dense.weight             | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_deberta_v3_xsmall_body       H=384  L=12  held_out=0.608 control=0.648 int8emb= 128.90Mi ships=False
+Loading weights:   0%|          | 0/198 [00:00<?, ?it/s]Loading weights: 100%|██████████| 198/198 [00:00<00:00, 10203.49it/s]
+[1mDebertaV2Model LOAD REPORT[0m from: MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33
+Key                 | Status     |  | 
+--------------------+------------+--+-
+classifier.weight   | UNEXPECTED |  | 
+pooler.dense.bias   | UNEXPECTED |  | 
+classifier.bias     | UNEXPECTED |  | 
+pooler.dense.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_deberta_v3_xsmall_zeroshot   H=384  L=12  held_out=0.616 control=0.644 int8emb= 128.90Mi ships=False
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10814.66it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  incumbent_centroid               H=384  L=6   held_out=0.504 control=0.860 int8emb=  52.55Mi ships=False
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10182.03it/s]
+[1mRobertaModel LOAD REPORT[0m from: sentence-transformers/nli-distilroberta-base-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_sbert_768_reference          H=768  L=6   held_out=0.880 control=0.916 int8emb= 201.68Mi ships=False
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 21717.94it/s]
+[1mBertModel LOAD REPORT[0m from: MoritzLaurer/MiniLM-L6-mnli
+Key                          | Status     |  | 
+-----------------------------+------------+--+-
+bert.embeddings.position_ids | UNEXPECTED |  | 
+classifier.bias              | UNEXPECTED |  | 
+classifier.weight            | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_minilm_l6_mnli_unlicensed    H=384  L=6   held_out=0.728 control=0.516 int8emb=  52.55Mi ships=False
+
+variant                          model                                                         H   L  held_out  control   int8emb     cold  ships
+nli_xtremedistil_h256            MoritzLaurer/xtremedistil-l6-h256-zeroshot-v1.1-all-33      256   6     0.504    0.628   25.91Mi   37.2Mi   True
+nli_paraphrase_minilm_l3         sentence-transformers/paraphrase-MiniLM-L3-v2               384   3     0.592    0.792   32.24Mi   43.6Mi  False
+nli_deberta_v3_xsmall_body       cross-encoder/nli-deberta-v3-xsmall                         384  12     0.608    0.648  128.90Mi  140.2Mi  False
+nli_deberta_v3_xsmall_zeroshot   MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33         384  12     0.616    0.644  128.90Mi  140.2Mi  False
+incumbent_centroid               sentence-transformers/all-MiniLM-L6-v2                      384   6     0.504    0.860   52.55Mi   63.9Mi  False
+nli_sbert_768_reference          sentence-transformers/nli-distilroberta-base-v2             768   6     0.880    0.916  201.68Mi  213.0Mi  False
+nli_minilm_l6_mnli_unlicensed    MoritzLaurer/MiniLM-L6-mnli                                 384   6     0.728    0.516   52.55Mi   63.9Mi  False
+
+per-dimension held-out AUC
+  nli_xtremedistil_h256            low_=0.840  anxi=0.240  slee=0.240  soci=0.560  acti=0.640
+  nli_paraphrase_minilm_l3         low_=0.880  anxi=0.320  slee=0.320  soci=0.760  acti=0.680
+  nli_deberta_v3_xsmall_body       low_=0.720  anxi=0.640  slee=0.360  soci=0.880  acti=0.440
+  nli_deberta_v3_xsmall_zeroshot   low_=0.960  anxi=0.760  slee=0.480  soci=0.360  acti=0.520
+  incumbent_centroid               low_=0.960  anxi=0.240  slee=0.360  soci=0.560  acti=0.400
+  nli_sbert_768_reference          low_=1.000  anxi=0.880  slee=0.960  soci=0.960  acti=0.600
+  nli_minilm_l6_mnli_unlicensed    low_=1.000  anxi=0.240  slee=0.720  soci=0.960  acti=0.720
+
+NO SELECTION. Option B is CLOSED at hidden <= 384: no entailment-supervised bi-encoder in the fixed candidate list is READABLE, USABLE and SHIPPABLE at once. These separate and do not fit: ['nli_sbert_768_reference']. These fit and do not separate: ['nli_xtremedistil_h256']. R4-CEIL-001 therefore does not close by shrinking the scorer, and plan.md R-4 is the answer: a local desktop app, which keeps the zero-egress claim and drops the in-browser claim rather than fudging it. No ceiling is edited to reach a different conclusion.

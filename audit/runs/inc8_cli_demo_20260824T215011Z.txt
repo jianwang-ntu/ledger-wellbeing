@@ -1,0 +1,143 @@
+### ledger init
+created /tmp/tmp.AevNl6YOES/journal.enc
+The passphrase is not stored anywhere. If it is lost, the journal is gone.
+
+### ledger add  (ordinary entry)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 216, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 208, in main
+    return args.func(args)
+           ~~~~~~~~~^^^^^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 82, in cmd_add
+    analysis = engine.analyse(text, region=args.region, granularity=args.granularity)
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 216, in analyse
+    dimensions = self._score(text, granularity)
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 226, in _score
+    encoded = self.tokenizer(
+              ^^^^^^^^^^^^^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 136, in tokenizer
+    from transformers import AutoTokenizer
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2207, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2441, in _get_module
+    raise e
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2439, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/models/auto/tokenization_auto.py", line 38, in <module>
+    from .auto_factory import _LazyAutoMapping
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/models/auto/auto_factory.py", line 43, in <module>
+    from ...generation import GenerationMixin
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2207, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2441, in _get_module
+    raise e
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2439, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/generation/utils.py", line 53, in <module>
+    from .candidate_generator import (
+    ...<10 lines>...
+    )
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/generation/candidate_generator.py", line 28, in <module>
+    from sklearn.metrics import roc_curve
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/__init__.py", line 73, in <module>
+    from .base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/base.py", line 20, in <module>
+    from .utils._missing import is_scalar_nan
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/__init__.py", line 9, in <module>
+    from ._chunking import gen_batches, gen_even_slices
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_chunking.py", line 11, in <module>
+    from ._param_validation import Interval, validate_params
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_param_validation.py", line 17, in <module>
+    from .validation import _is_arraylike_not_scalar
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/validation.py", line 21, in <module>
+    from ..utils._array_api import _asarray_with_order, _is_numpy_namespace, get_namespace
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_array_api.py", line 20, in <module>
+    from .fixes import parse_version
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/fixes.py", line 421, in <module>
+    import pyarrow
+  File "/data/wj/anaconda/lib/python3.13/site-packages/pyarrow/__init__.py", line 61, in <module>
+    import pyarrow.lib as _lib
+ImportError: /lib/x86_64-linux-gnu/libstdc++.so.6: version `CXXABI_1.3.15' not found (required by /data/wj/anaconda/lib/python3.13/site-packages/pyarrow/../../../libarrow.so.2100)
+
+### ledger add  (a better day)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 216, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 208, in main
+    return args.func(args)
+           ~~~~~~~~~^^^^^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/cli.py", line 82, in cmd_add
+    analysis = engine.analyse(text, region=args.region, granularity=args.granularity)
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 216, in analyse
+    dimensions = self._score(text, granularity)
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 226, in _score
+    encoded = self.tokenizer(
+              ^^^^^^^^^^^^^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/ledger/app/engine.py", line 136, in tokenizer
+    from transformers import AutoTokenizer
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2207, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2441, in _get_module
+    raise e
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2439, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/models/auto/tokenization_auto.py", line 38, in <module>
+    from .auto_factory import _LazyAutoMapping
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/models/auto/auto_factory.py", line 43, in <module>
+    from ...generation import GenerationMixin
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2207, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2441, in _get_module
+    raise e
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/utils/import_utils.py", line 2439, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/generation/utils.py", line 53, in <module>
+    from .candidate_generator import (
+    ...<10 lines>...
+    )
+  File "/data/wj/anaconda/lib/python3.13/site-packages/transformers/generation/candidate_generator.py", line 28, in <module>
+    from sklearn.metrics import roc_curve
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/__init__.py", line 73, in <module>
+    from .base import clone  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/base.py", line 20, in <module>
+    from .utils._missing import is_scalar_nan
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/__init__.py", line 9, in <module>
+    from ._chunking import gen_batches, gen_even_slices
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_chunking.py", line 11, in <module>
+    from ._param_validation import Interval, validate_params
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_param_validation.py", line 17, in <module>
+    from .validation import _is_arraylike_not_scalar
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/validation.py", line 21, in <module>
+    from ..utils._array_api import _asarray_with_order, _is_numpy_namespace, get_namespace
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/_array_api.py", line 20, in <module>
+    from .fixes import parse_version
+  File "/data/wj/anaconda/lib/python3.13/site-packages/sklearn/utils/fixes.py", line 421, in <module>
+    import pyarrow
+  File "/data/wj/anaconda/lib/python3.13/site-packages/pyarrow/__init__.py", line 61, in <module>
+    import pyarrow.lib as _lib
+ImportError: /lib/x86_64-linux-gnu/libstdc++.so.6: version `CXXABI_1.3.15' not found (required by /data/wj/anaconda/lib/python3.13/site-packages/pyarrow/../../../libarrow.so.2100)

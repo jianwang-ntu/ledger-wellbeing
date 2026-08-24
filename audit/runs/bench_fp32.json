@@ -1,0 +1,35 @@
+{
+ "build": "fp32",
+ "model_path": "artifacts/onnx/ledger_scorer_fp32_single.onnx",
+ "runtime": "onnxruntime-web WASM (node host)",
+ "onnxruntime_web_version": "1.23.0",
+ "node_version": "v22.22.1",
+ "threads": 1,
+ "simd": true,
+ "sequence_length": 256,
+ "real_tokens": 62,
+ "session_load_ms": 421.1,
+ "runs": 30,
+ "p50_ms": 227.441,
+ "p95_ms": 254.681,
+ "min_ms": 226.41,
+ "max_ms": 254.796,
+ "wasm_vs_native_ort_max_abs_logit_diff": 5.9605e-7,
+ "logits_wasm": [
+  0.409579,
+  0.851916,
+  -0.041571,
+  -0.625695,
+  0.521319
+ ],
+ "attribution_sum_without_bias": [
+  -1.143594,
+  0.349128,
+  -0.560921,
+  -0.079031,
+  0.567116
+ ],
+ "attribution_identity_residual": 8.8825e-8,
+ "attribution_identity_note": "max_k | logit_k - (sum_i token_attr[i,k] + bias_k) |, measured in the WASM runtime",
+ "caveat": "Node host, not a browser. Same wasm binary and kernels; excludes browser fetch, Cache API and main-thread contention."
+}

@@ -1,0 +1,24 @@
+test_normalise_is_idempotent (test_crisis_router.Determinism.test_normalise_is_idempotent) ... ok
+test_router_makes_no_network_or_model_call (test_crisis_router.Determinism.test_router_makes_no_network_or_model_call)
+Static proof: the safety package imports nothing that can do I/O. ... ok
+test_same_input_same_decision (test_crisis_router.Determinism.test_same_input_same_decision) ... ok
+test_acute_always_returns_reachable_help (test_crisis_router.MustFire.test_acute_always_returns_reachable_help) ... ok
+test_obfuscated_phrases_still_fire (test_crisis_router.MustFire.test_obfuscated_phrases_still_fire) ... ok
+test_plain_phrases_fire_acute (test_crisis_router.MustFire.test_plain_phrases_fire_acute) ... ok
+test_prompt_injection_cannot_suppress (test_crisis_router.MustFire.test_prompt_injection_cannot_suppress)
+The router has no instruction-following surface, so this must hold. ... ok
+test_benign_entries_do_not_trigger (test_crisis_router.MustNotFire.test_benign_entries_do_not_trigger) ... ok
+test_native_runtime (test_export_pipeline.TestAttributionIdentitySurvivesExport.test_native_runtime) ... ok
+test_wasm_runtime (test_export_pipeline.TestAttributionIdentitySurvivesExport.test_wasm_runtime) ... ok
+test_declared_ceilings_match_the_budget_document (test_export_pipeline.TestCeilingsAreHonoured.test_declared_ceilings_match_the_budget_document)
+common.CEILINGS is what the pipeline enforces; SIZE_BUDGET.md is what we published. ... ok
+test_no_build_is_claimed_shippable_while_breaching_a_ceiling (test_export_pipeline.TestCeilingsAreHonoured.test_no_build_is_claimed_shippable_while_breaching_a_ceiling) ... ok
+test_pass_flags_are_recomputable_from_the_measurements (test_export_pipeline.TestCeilingsAreHonoured.test_pass_flags_are_recomputable_from_the_measurements) ... ok
+test_shippable_list_agrees_with_the_flags (test_export_pipeline.TestCeilingsAreHonoured.test_shippable_list_agrees_with_the_flags) ... ok
+test_build_report_says_untrained (test_export_pipeline.TestNothingClaimsToBeTrained.test_build_report_says_untrained) ... ok
+test_readme_does_not_claim_a_finetune (test_export_pipeline.TestNothingClaimsToBeTrained.test_readme_does_not_claim_a_finetune) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.003s
+
+OK

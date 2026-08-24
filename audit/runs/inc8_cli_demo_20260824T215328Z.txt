@@ -1,0 +1,190 @@
+### ledger init
+created /tmp/tmp.tRyFlmESxR/journal.enc
+The passphrase is not stored anywhere. If it is lost, the journal is gone.
+
+### ledger add  (ordinary entry)
+
+Ledger is not a medical device and does not diagnose. It reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. It does not replace professional care.
+
+Low-mood language                  0.60
+    -0.002  "I did not answer when my sister called."
+    -0.266  "I lay awake until nearly four again, then d..."
+    -0.331  "The review meeting went fine in the end."
+
+Anxious / worried language         0.68
+    +0.499  "I lay awake until nearly four again, then d..."
+    +0.090  "I did not answer when my sister called."
+    -0.042  "The review meeting went fine in the end."
+
+Sleep-disruption language          0.70
+    +0.594  "I lay awake until nearly four again, then d..."
+    +0.297  "I did not answer when my sister called."
+    -0.055  "The review meeting went fine in the end."
+
+Withdrawal-from-others language    0.47
+    +0.172  "I did not answer when my sister called."
+    -0.139  "The review meeting went fine in the end."
+    -0.161  "I lay awake until nearly four again, then d..."
+
+Energy and activity language       0.32   [NOT ESTABLISHED]
+    +0.030  "The review meeting went fine in the end."
+    -0.049  "I lay awake until nearly four again, then d..."
+    -0.186  "I did not answer when my sister called."
+    held-out AUC 0.6: Below the 0.70 held-out threshold fixed before this was measured. This project has not shown this dimension works; it is shown only so that its weakness is visible rather than averaged away.
+
+
+stored as 785fd7835a774686 in /tmp/tmp.tRyFlmESxR/journal.enc
+
+### ledger add  (a better day)
+
+Ledger is not a medical device and does not diagnose. It reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. It does not replace professional care.
+
+Low-mood language                  0.22
+    -0.322  "I called my sister back."
+    -0.843  "Slept right through for once and woke up re..."
+    -0.984  "I went for a walk at lunch and actually enj..."
+
+Anxious / worried language         0.33
+    -0.069  "I called my sister back."
+    -0.382  "Slept right through for once and woke up re..."
+    -0.392  "I went for a walk at lunch and actually enj..."
+
+Sleep-disruption language          0.16
+    -0.177  "I called my sister back."
+    -0.646  "I went for a walk at lunch and actually enj..."
+    -0.690  "Slept right through for once and woke up re..."
+
+Withdrawal-from-others language    0.16
+    -0.270  "I called my sister back."
+    -0.547  "Slept right through for once and woke up re..."
+    -0.691  "I went for a walk at lunch and actually enj..."
+
+Energy and activity language       0.73   [NOT ESTABLISHED]
+    +0.642  "I went for a walk at lunch and actually enj..."
+    +0.581  "Slept right through for once and woke up re..."
+    +0.220  "I called my sister back."
+    held-out AUC 0.6: Below the 0.70 held-out threshold fixed before this was measured. This project has not shown this dimension works; it is shown only so that its weakness is visible rather than averaged away.
+
+
+stored as 7c7f0b4280ba4670 in /tmp/tmp.tRyFlmESxR/journal.enc
+
+### ledger add  (crisis routing - must not be scored)
+
+==============================================================
+This entry matched a crisis rule, so it was not scored.
+An acute crisis rule matched. Producing a trend line about someone in that moment is not what this tool is for.
+
+Published helplines:
+  Samaritans of Singapore (SOS) — 1767 (24 hours)
+  SOS Care Text — https://www.sos.org.sg/ (24 hours)
+  Find A Helpline (directory, 130+ countries) — https://findahelpline.com/ (directory)
+
+This routing is a rule in the code. No model decided it and no
+model can suppress it.
+==============================================================
+
+stored as 745ae8448164432f in /tmp/tmp.tRyFlmESxR/journal.enc
+
+### ledger list
+785fd7835a774686  2026-08-24T21:53:31Z  scored          I lay awake until nearly four again, then dr
+7c7f0b4280ba4670  2026-08-24T21:53:33Z  scored          Slept right through for once and woke up res
+745ae8448164432f  2026-08-24T21:53:36Z  routed-to-help  I cannot do this anymore. I want to k1ll mys
+
+### ledger report
+LEDGER — between-visits language report
+==============================================================
+
+This report is not a diagnosis and Ledger is not a medical
+device. It shows patterns in language its owner wrote,
+computed on their own machine. Nothing in it was sent
+anywhere. It is intended to be read alongside the person, not
+instead of them.
+
+Entries in this store : 3
+Entries scored        : 2
+Entries routed to help: 1
+Covering              : 2026-08-24T21:53:31Z .. 2026-08-24T21:53:36Z
+
+TRAJECTORY  (probability per entry, fixed 0..1 scale)
+--------------------------------------------------------------
+Low-mood language
+  ▅▂   latest 0.22   held-out AUC 1.00
+
+Anxious / worried language
+  ▆▃   latest 0.33   held-out AUC 0.88
+
+Sleep-disruption language
+  ▆▂   latest 0.16   held-out AUC 0.96
+
+Withdrawal-from-others language
+  ▄▂   latest 0.16   held-out AUC 0.96
+
+Energy and activity language         [NOT ESTABLISHED]
+  ▃▆   latest 0.73   held-out AUC 0.60
+    This dimension scores 0.60 against the 0.70 threshold
+    fixed before it was measured. It has not been shown to
+    work and should not be read as a signal.
+
+WHAT MOVED EACH SCORE  (the writer's own words)
+--------------------------------------------------------------
+Low-mood language
+  -0.002  2026-08-24  "I did not answer when my sister called."
+  -0.266  2026-08-24  "I lay awake until nearly four again, then dragged..."
+  -0.322  2026-08-24  "I called my sister back."
+
+Anxious / worried language
+  +0.499  2026-08-24  "I lay awake until nearly four again, then dragged..."
+  +0.090  2026-08-24  "I did not answer when my sister called."
+  -0.042  2026-08-24  "The review meeting went fine in the end."
+
+Sleep-disruption language
+  +0.594  2026-08-24  "I lay awake until nearly four again, then dragged..."
+  +0.297  2026-08-24  "I did not answer when my sister called."
+  -0.055  2026-08-24  "The review meeting went fine in the end."
+
+Withdrawal-from-others language
+  +0.172  2026-08-24  "I did not answer when my sister called."
+  -0.139  2026-08-24  "The review meeting went fine in the end."
+  -0.161  2026-08-24  "I lay awake until nearly four again, then dragged..."
+
+Energy and activity language  [NOT ESTABLISHED]
+  +0.642  2026-08-24  "I went for a walk at lunch and actually enjoyed t..."
+  +0.581  2026-08-24  "Slept right through for once and woke up rested."
+  +0.220  2026-08-24  "I called my sister back."
+
+HOW TO READ THIS
+--------------------------------------------------------------
+Each number is a contrast between two ways of writing, not a
+quantity of anything. The contributions listed above are the
+score: they sum to it exactly, so nothing shown here is a
+reconstruction of a decision made elsewhere.
+
+Scores come from a zero-shot anchor head, not a trained model.
+It was evaluated on 25 withheld anchor-sentence pairs per
+dimension, from anchors written for this repository. Not
+clinical data, not real journal entries, and not an external
+benchmark.
+
+SAFETY ROUTING
+--------------------------------------------------------------
+1 entry matched a crisis rule and was routed to published helplines.
+Entries matching an acute rule are never scored. That is a
+rule in the code, not a model judgement, and it cannot be
+overridden by anything written in an entry.
+
+### the store on disk
+  mode: -rw-------  size: 10636 bytes
+  first 48 bytes:
+    00000000: 4c45 4447 4552 3031 0100 0000 377b 2261  LEDGER01....7{"a
+    00000010: 6c67 6f72 6974 686d 223a 2273 6372 7970  lgorithm":"scryp
+    00000020: 7422 2c22 646b 6c65 6e22 3a33 322c 226e  t","dklen":32,"n
+  occurrences of the plaintext word 'sister' in the file: 0
+
+### ledger wipe
+{
+ "wiped": true,
+ "bytes_overwritten": 10636,
+ "passes": 2,
+ "path": "/tmp/tmp.tRyFlmESxR/journal.enc"
+}
+  store still present? no

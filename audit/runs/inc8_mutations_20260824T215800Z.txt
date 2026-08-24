@@ -1,0 +1,31 @@
+CAUGHT  crisis routing stops blocking the model  ->  tests/test_engine.py::TestTheModelIsNotInTheCrisisPath
+CAUGHT  an acute entry is scored anyway  ->  tests/test_engine.py::TestTheModelIsNotInTheCrisisPath
+CAUGHT  the crisis path returns no helplines  ->  tests/test_engine.py::TestTheModelIsNotInTheCrisisPath::test_an_acute_entry_still_returns_reachable_help
+CAUGHT  structural tokens are silently dropped instead of bucketed  ->  tests/test_spans.py::TestPartition
+CAUGHT  a token is counted in every span it overlaps  ->  tests/test_spans.py::TestPartition
+CAUGHT  padding tokens are attributed  ->  tests/test_spans.py::TestPartition
+CAUGHT  scrypt cost is lowered to something a laptop can brute-force  ->  tests/test_store.py::TestTheKdfIsNotQuietlyWeakened
+CAUGHT  a record that fails authentication is skipped rather than raising  ->  tests/test_store.py::TestTampering
+CAUGHT  record position is no longer bound into the AAD  ->  tests/test_store.py::TestTampering::test_a_record_cannot_be_moved_to_another_position
+CAUGHT  wipe unlinks without overwriting  ->  tests/test_store.py::TestWipe
+CAUGHT  the store file is created world-readable  ->  tests/test_store.py::TestRoundTrip::test_file_is_owner_only
+CAUGHT  entries are appended as plaintext json  ->  tests/test_store.py::TestNoPlaintextOnDisk
+MISSED  the usable-AUC floor is lowered until activation passes  ->  tests/test_engine.py::TestWhatTheEngineClaims
+MISSED  the report stops flagging an unestablished dimension  ->  tests/test_report.py::TestUnestablishedDimensionsAreLabelled
+CAUGHT  the report drops the non-diagnostic contract  ->  tests/test_report.py::TestTheContract
+CAUGHT  the report starts naming a condition  ->  tests/test_report.py::TestNoClinicalLanguage
+CAUGHT  the report claims the three listed spans are the whole score  ->  tests/test_report.py::TestWhatTheReportShows::test_it_does_not_claim_the_LISTED_contributions_are_the_whole_sum
+CAUGHT  the head starts describing itself as trained  ->  tests/test_engine.py::TestWhatTheEngineClaims::test_the_head_is_never_described_as_trained
+CAUGHT  the application imports transformers again  ->  tests/test_engine.py::TestTheApplicationRunsWithoutTransformers
+CAUGHT  the tokenizer stops padding to the measured length  ->  tests/test_local_tokenizer.py::TestTheTokenizerItself
+CAUGHT  the egress instrument calls every destination loopback  ->  tests/test_egress.py::TestTheInstrumentCanFail
+MISSED  span additivity widens its own tolerance  ->  tests/test_spans.py::TestMeasuredAdditivity::test_the_tolerance_was_not_widened_for_the_aggregation_step
+CAUGHT  the egress report hides a non-loopback call  ->  tests/test_egress.py::TestTheMeasurementPassed::test_no_non_loopback_call_was_recorded
+CAUGHT  the egress report passes without exercising the app  ->  tests/test_egress.py::TestTheMeasurementPassed::test_the_application_was_actually_exercised
+CAUGHT  the egress report describes itself as a packet capture  ->  tests/test_egress.py::TestTheMeasurementPassed::test_the_report_states_what_it_does_not_cover
+CAUGHT  the span measurement hides a partition failure  ->  tests/test_spans.py::TestMeasuredAdditivity::test_the_partition_held_on_every_probe_entry
+CAUGHT  the span measurement raises its recorded tolerance  ->  tests/test_spans.py::TestMeasuredAdditivity
+CAUGHT  tokenizer parity hides a mismatch  ->  tests/test_local_tokenizer.py::TestParityWasMeasured::test_not_one_token_differs
+CAUGHT  tokenizer parity compares a handful of strings and calls it done  ->  tests/test_local_tokenizer.py::TestParityWasMeasured::test_the_comparison_covered_the_probe_set_and_every_anchor
+
+26/29 mutations caught

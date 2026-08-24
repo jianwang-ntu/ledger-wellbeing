@@ -1,0 +1,36 @@
+{
+ "measured_at_utc": "2026-08-24T22:03:40Z",
+ "rules": "R8-1, R8-2 - export/INCREMENT_8_PREREGISTRATION.md",
+ "build": "int8_embed",
+ "model_sha256": "952471d51eba07365b0b62f6ddefbe580e2f838d997a654dabc4813716da00e9",
+ "probe_entries": 64,
+ "max_length": 256,
+ "tolerance": 0.0001,
+ "tolerance_note": "identical to R6-1; the aggregation step gets no tolerance of its own",
+ "R8_1_partition": {
+  "checks": 128,
+  "failures": [],
+  "pass": true
+ },
+ "R8_2_additivity": {
+  "sentence": {
+   "checks": 320,
+   "max_residual": 4.41097654402256e-07,
+   "worst": {
+    "entry": 27,
+    "dimension": "activation"
+   },
+   "pass": true
+  },
+  "word": {
+   "checks": 320,
+   "max_residual": 4.41097654402256e-07,
+   "worst": {
+    "entry": 27,
+    "dimension": "activation"
+   },
+   "pass": true
+  }
+ },
+ "verdict": "PASS"
+}

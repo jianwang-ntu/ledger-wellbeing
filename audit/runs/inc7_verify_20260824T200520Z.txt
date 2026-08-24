@@ -1,0 +1,298 @@
+{
+ "measured_at_utc": "2026-08-24T20:06:34Z",
+ "delivery_target": "desktop",
+ "delivery_target_note": "plan.md R-4, exercised in build increment 6. CEIL-1 and CEIL-3 bound an HTTP first-load and are NOT enforced on a desktop target; they are still measured and every build carries would_fail_web_target_on. CEIL-4 is judged on native_ort_cpu_1thread rather than WASM, which is a relaxation of the measurement basis and is logged as one in export/INCREMENT_6_PREREGISTRATION.md. No ceiling VALUE was edited.",
+ "enforced_ceilings": [
+  "CEIL_2_tokenizer_bytes",
+  "CEIL_4_p95_latency_ms",
+  "CEIL_5_min_pearson_r",
+  "CEIL_5_max_abs_score_delta"
+ ],
+ "base_model": "sentence-transformers/nli-distilroberta-base-v2",
+ "base_revision": "cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d",
+ "machine": {
+  "cpu": "AMD EPYC 9654 96-Core Processor",
+  "python": "3.13.9",
+  "onnxruntime": "1.29.0",
+  "os": "Linux-5.15.0-170-generic-x86_64-with-glibc2.35"
+ },
+ "probe_set": {
+  "n": 64,
+  "padded_to_tokens": 256,
+  "source": "export/common.py:probe_entries - seeded recombination of the anchor sentences in this repository; a numerical probe, not an evaluation set. No accuracy claim is made from it."
+ },
+ "reference_build": {
+  "name": "fp32",
+  "bytes": 326177397,
+  "attribution_identity_max_residual": 2.7567148208618164e-07,
+  "latency_native_ort_cpu_1thread": {
+   "p50_ms": 223.525,
+   "p95_ms": 228.83,
+   "runs": 50
+  },
+  "latency_wasm_1thread": "NOT_MEASURED"
+ },
+ "tokenizer_bytes": 1556504,
+ "wasm_benches_rejected_as_stale": {
+  "fp32": "bench predates DEFECT-INC6-001 and carries no model_sha256",
+  "int8_full": "bench predates DEFECT-INC6-001 and carries no model_sha256"
+ },
+ "ort_runtime_floor_bytes": 11865354,
+ "candidate_builds": {
+  "int8_full": {
+   "bytes": 81997245,
+   "MiB": 78.2,
+   "cold_first_load_bytes": 95419103,
+   "cold_first_load_MiB": 91.0,
+   "vs_fp32_per_dimension": {
+    "low_mood": {
+     "pearson_r": 0.992823,
+     "max_abs_score_delta": 0.069778
+    },
+    "anxiety": {
+     "pearson_r": 0.994019,
+     "max_abs_score_delta": 0.077
+    },
+    "sleep_disruption": {
+     "pearson_r": 0.993587,
+     "max_abs_score_delta": 0.071506
+    },
+    "social_withdrawal": {
+     "pearson_r": 0.994806,
+     "max_abs_score_delta": 0.04377
+    },
+    "activation": {
+     "pearson_r": 0.996594,
+     "max_abs_score_delta": 0.05345
+    }
+   },
+   "attribution_identity_max_residual": 2.870219759643078e-07,
+   "attribution_identity_holds": true,
+   "latency_native_ort_cpu_1thread": {
+    "p50_ms": 75.664,
+    "p95_ms": 76.19,
+    "runs": 50
+   },
+   "latency_wasm_1thread": "NOT_MEASURED",
+   "wasm_vs_native_ort_max_abs_logit_diff": null,
+   "ceiling_checks": {
+    "CEIL_1_int8_model_bytes": {
+     "measured": 81997245,
+     "ceiling": 33554432,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_2_tokenizer_bytes": {
+     "measured": 1556504,
+     "ceiling": 2097152,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_3_cold_payload_bytes": {
+     "measured": 95419103,
+     "ceiling": 67108864,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_4_p95_latency_ms": {
+     "measured": 76.19,
+     "ceiling": 500.0,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_min_pearson_r": {
+     "measured": 0.992823,
+     "ceiling": 0.99,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_max_abs_score_delta": {
+     "measured": 0.077,
+     "ceiling": 0.02,
+     "pass": false,
+     "enforced_on_this_target": true
+    }
+   },
+   "ceil_4_judged_on": "native_ort_cpu_1thread",
+   "would_fail_web_target_on": [
+    "CEIL_1_int8_model_bytes",
+    "CEIL_3_cold_payload_bytes",
+    "CEIL_5_max_abs_score_delta"
+   ],
+   "clears_every_enforced_ceiling": false
+  },
+  "int8_embed": {
+   "bytes": 209181357,
+   "MiB": 199.49,
+   "cold_first_load_bytes": 222603215,
+   "cold_first_load_MiB": 212.29,
+   "vs_fp32_per_dimension": {
+    "low_mood": {
+     "pearson_r": 0.999948,
+     "max_abs_score_delta": 0.006313
+    },
+    "anxiety": {
+     "pearson_r": 0.999955,
+     "max_abs_score_delta": 0.006744
+    },
+    "sleep_disruption": {
+     "pearson_r": 0.999949,
+     "max_abs_score_delta": 0.006941
+    },
+    "social_withdrawal": {
+     "pearson_r": 0.999957,
+     "max_abs_score_delta": 0.0048
+    },
+    "activation": {
+     "pearson_r": 0.999957,
+     "max_abs_score_delta": 0.00498
+    }
+   },
+   "attribution_identity_max_residual": 3.203749656677246e-07,
+   "attribution_identity_holds": true,
+   "latency_native_ort_cpu_1thread": {
+    "p50_ms": 222.801,
+    "p95_ms": 228.15,
+    "runs": 50
+   },
+   "latency_wasm_1thread": {
+    "p50_ms": 815.12,
+    "p95_ms": 836.612,
+    "session_load_ms": 840.69
+   },
+   "wasm_vs_native_ort_max_abs_logit_diff": 3.2783e-07,
+   "ceiling_checks": {
+    "CEIL_1_int8_model_bytes": {
+     "measured": 209181357,
+     "ceiling": 33554432,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_2_tokenizer_bytes": {
+     "measured": 1556504,
+     "ceiling": 2097152,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_3_cold_payload_bytes": {
+     "measured": 222603215,
+     "ceiling": 67108864,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_4_p95_latency_ms": {
+     "measured": 228.15,
+     "ceiling": 500.0,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_min_pearson_r": {
+     "measured": 0.999948,
+     "ceiling": 0.99,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_max_abs_score_delta": {
+     "measured": 0.006941,
+     "ceiling": 0.02,
+     "pass": true,
+     "enforced_on_this_target": true
+    }
+   },
+   "ceil_4_judged_on": "native_ort_cpu_1thread",
+   "would_fail_web_target_on": [
+    "CEIL_1_int8_model_bytes",
+    "CEIL_3_cold_payload_bytes"
+   ],
+   "clears_every_enforced_ceiling": true
+  },
+  "fp32": {
+   "bytes": 326177397,
+   "MiB": 311.07,
+   "cold_first_load_bytes": 339599255,
+   "cold_first_load_MiB": 323.87,
+   "vs_fp32_per_dimension": {
+    "low_mood": {
+     "pearson_r": 1.0,
+     "max_abs_score_delta": 0.0
+    },
+    "anxiety": {
+     "pearson_r": 1.0,
+     "max_abs_score_delta": 0.0
+    },
+    "sleep_disruption": {
+     "pearson_r": 1.0,
+     "max_abs_score_delta": 0.0
+    },
+    "social_withdrawal": {
+     "pearson_r": 1.0,
+     "max_abs_score_delta": 0.0
+    },
+    "activation": {
+     "pearson_r": 1.0,
+     "max_abs_score_delta": 0.0
+    }
+   },
+   "attribution_identity_max_residual": 2.7567148208618164e-07,
+   "attribution_identity_holds": true,
+   "latency_native_ort_cpu_1thread": {
+    "p50_ms": 223.525,
+    "p95_ms": 228.83,
+    "runs": 50
+   },
+   "latency_wasm_1thread": "NOT_MEASURED",
+   "wasm_vs_native_ort_max_abs_logit_diff": null,
+   "ceiling_checks": {
+    "CEIL_1_int8_model_bytes": {
+     "measured": 326177397,
+     "ceiling": 33554432,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_2_tokenizer_bytes": {
+     "measured": 1556504,
+     "ceiling": 2097152,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_3_cold_payload_bytes": {
+     "measured": 339599255,
+     "ceiling": 67108864,
+     "pass": false,
+     "enforced_on_this_target": false
+    },
+    "CEIL_4_p95_latency_ms": {
+     "measured": 228.83,
+     "ceiling": 500.0,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_min_pearson_r": {
+     "measured": 1.0,
+     "ceiling": 0.99,
+     "pass": true,
+     "enforced_on_this_target": true
+    },
+    "CEIL_5_max_abs_score_delta": {
+     "measured": 0.0,
+     "ceiling": 0.02,
+     "pass": true,
+     "enforced_on_this_target": true
+    }
+   },
+   "ceil_4_judged_on": "native_ort_cpu_1thread",
+   "would_fail_web_target_on": [
+    "CEIL_1_int8_model_bytes",
+    "CEIL_3_cold_payload_bytes"
+   ],
+   "clears_every_enforced_ceiling": true
+  }
+ },
+ "shippable_builds": [
+  "int8_embed",
+  "fp32"
+ ],
+ "selected_build": "int8_embed",
+ "selection_rule": "R6-2, pre-registered: ship the smallest build that clears every ceiling enforced on this target AND holds the additivity identity. CANDIDATES is ordered smallest-first, so fp32 can only win once both int8 builds have failed.",
+ "verdict": "SHIPPABLE on target=desktop: int8_embed, fp32"
+}

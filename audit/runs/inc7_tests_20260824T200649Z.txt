@@ -1,0 +1,53 @@
+........................................ [ 42%]
+.F.F...............ss.....sss.......s..ss..............                  [100%]
+=================================== FAILURES ===================================
+_ TestCeilingsAreHonoured.test_no_build_is_claimed_shippable_while_breaching_a_ceiling _
+
+self = <test_export_pipeline.TestCeilingsAreHonoured testMethod=test_no_build_is_claimed_shippable_while_breaching_a_ceiling>
+
+    def test_no_build_is_claimed_shippable_while_breaching_a_ceiling(self):
+        for build in self.report["shippable_builds"]:
+            checks = self.report["candidate_builds"][build]["ceiling_checks"]
+            failed = [k for k, c in checks.items() if c["pass"] is not True]
+>           self.assertEqual(failed, [], f"{build} is listed shippable but fails {failed}")
+E           AssertionError: Lists differ: ['CEIL_1_int8_model_bytes', 'CEIL_3_cold_payload_bytes'] != []
+E           
+E           First list contains 2 additional elements.
+E           First extra element 0:
+E           'CEIL_1_int8_model_bytes'
+E           
+E           - ['CEIL_1_int8_model_bytes', 'CEIL_3_cold_payload_bytes']
+E           + [] : int8_embed is listed shippable but fails ['CEIL_1_int8_model_bytes', 'CEIL_3_cold_payload_bytes']
+
+tests/test_export_pipeline.py:55: AssertionError
+______ TestCeilingsAreHonoured.test_shippable_list_agrees_with_the_flags _______
+
+self = <test_export_pipeline.TestCeilingsAreHonoured testMethod=test_shippable_list_agrees_with_the_flags>
+
+    def test_shippable_list_agrees_with_the_flags(self):
+        derived = sorted(b for b, d in self.report["candidate_builds"].items()
+                         if all(c["pass"] is True for c in d["ceiling_checks"].values()))
+>       self.assertEqual(sorted(self.report["shippable_builds"]), derived)
+E       AssertionError: Lists differ: ['fp32', 'int8_embed'] != []
+E       
+E       First list contains 2 additional elements.
+E       First extra element 0:
+E       'fp32'
+E       
+E       - ['fp32', 'int8_embed']
+E       + []
+
+tests/test_export_pipeline.py:49: AssertionError
+=============================== warnings summary ===============================
+tests/test_scorer_ablation.py::TestTheFindingIsWhereAReaderWillSeeIt::test_the_hypotheses_are_recorded_with_the_numbers
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+tests/test_scorer_ablation.py::TestTheFindingIsWhereAReaderWillSeeIt::test_the_hypotheses_are_recorded_with_the_numbers
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_export_pipeline.py::TestCeilingsAreHonoured::test_no_build_is_claimed_shippable_while_breaching_a_ceiling
+FAILED tests/test_export_pipeline.py::TestCeilingsAreHonoured::test_shippable_list_agrees_with_the_flags
+2 failed, 85 passed, 8 skipped, 2 warnings, 32 subtests passed in 4.73s
+<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

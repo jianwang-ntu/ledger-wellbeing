@@ -1,0 +1,79 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11742.68it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  incumbent_centroid             held_out=0.504 control=0.860 additive=True
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10468.48it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  incumbent_shrunk_lda           held_out=0.544 control=0.864 additive=True
+Loading weights:   0%|          | 0/100 [00:00<?, ?it/s]Loading weights: 100%|██████████| 100/100 [00:00<00:00, 10936.34it/s]
+[1mDistilBertModel LOAD REPORT[0m from: distilbert-base-uncased-finetuned-sst-2-english
+Key                   | Status     |  | 
+----------------------+------------+--+-
+pre_classifier.weight | UNEXPECTED |  | 
+classifier.bias       | UNEXPECTED |  | 
+pre_classifier.bias   | UNEXPECTED |  | 
+classifier.weight     | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  sst2_body_centroid             held_out=0.672 control=0.584 additive=True
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10916.59it/s]
+[1mRobertaModel LOAD REPORT[0m from: sentence-transformers/nli-distilroberta-base-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_sbert_centroid             held_out=0.880 control=0.916 additive=True
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 10816.17it/s]
+[1mRobertaForSequenceClassification LOAD REPORT[0m from: cross-encoder/nli-distilroberta-base
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+roberta.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_crossenc_distilroberta     held_out=0.784 control=0.656 additive=False
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 10509.03it/s]
+[1mRobertaForSequenceClassification LOAD REPORT[0m from: cross-encoder/nli-MiniLM2-L6-H768
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+roberta.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  nli_crossenc_minilm2           held_out=0.896 control=0.684 additive=False
+Loading weights:   0%|          | 0/104 [00:00<?, ?it/s]Loading weights: 100%|██████████| 104/104 [00:00<00:00, 10689.53it/s]
+  sst2_global_polarity           held_out=0.792 control=0.608 additive=False
+
+variant                        model                                                 held_out  in_samp  control  additive   int8emb
+incumbent_centroid             sentence-transformers/all-MiniLM-L6-v2                   0.504    1.000    0.860      True   52.55Mi
+incumbent_shrunk_lda           sentence-transformers/all-MiniLM-L6-v2                   0.544    1.000    0.864      True   52.55Mi
+sst2_body_centroid             distilbert-base-uncased-finetuned-sst-2-english          0.672    0.920    0.584      True  184.96Mi
+nli_sbert_centroid             sentence-transformers/nli-distilroberta-base-v2          0.880    1.000    0.916      True  201.68Mi
+nli_crossenc_distilroberta     cross-encoder/nli-distilroberta-base                     0.784        -    0.656     False  201.69Mi
+nli_crossenc_minilm2           cross-encoder/nli-MiniLM2-L6-H768                        0.896        -    0.684     False  201.69Mi
+sst2_global_polarity           distilbert-base-uncased-finetuned-sst-2-english          0.792        -    0.608     False  187.22Mi
+
+per-dimension held-out AUC
+  incumbent_centroid             low_=0.960  anxi=0.240  slee=0.360  soci=0.560  acti=0.400
+  incumbent_shrunk_lda           low_=0.960  anxi=0.280  slee=0.400  soci=0.640  acti=0.440
+  sst2_body_centroid             low_=1.000  anxi=0.640  slee=0.560  soci=1.000  acti=0.160
+  nli_sbert_centroid             low_=1.000  anxi=0.880  slee=0.960  soci=0.960  acti=0.600
+  nli_crossenc_distilroberta     low_=0.560  anxi=0.760  slee=0.800  soci=0.920  acti=0.880
+  nli_crossenc_minilm2           low_=0.840  anxi=0.880  slee=0.920  soci=1.000  acti=0.840
+  sst2_global_polarity           low_=1.000  anxi=0.720  slee=0.680  soci=1.000  acti=0.560
+
+SELECT nli_sbert_centroid (sentence-transformers/nli-distilroberta-base-v2), macro held-out 0.88. Option B is open on separation and C4 survives: the head is still a fixed linear row over a mean-pooled vector, so the attribution identity is untouched. NOT ADOPTED THIS INCREMENT: it breaches 2 size ceiling(s) - CEIL_1_int8_model_bytes: projected 211476480 > 33554432; CEIL_3_cold_payload_bytes: projected 223341834 > 67108864 (excl. tokenizer). The scorer that separates is 201.68 MiB against CEIL-1's 32, so R4-CEIL-001 returns as the binding defect and export/common.py is left on the incumbent.

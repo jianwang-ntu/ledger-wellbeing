@@ -1,0 +1,94 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11838.58it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Loading weights:   0%|          | 0/135 [00:00<?, ?it/s]Loading weights: 100%|██████████| 135/135 [00:00<00:00, 61573.62it/s]
+[1mBertModel LOAD REPORT[0m from: google/bert_uncased_L-8_H-256_A-4
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 53341.56it/s]
+[1mBertModel LOAD REPORT[0m from: google/bert_uncased_L-6_H-256_A-4
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Loading weights:   0%|          | 0/71 [00:00<?, ?it/s]Loading weights: 100%|██████████| 71/71 [00:00<00:00, 45195.87it/s]
+[1mBertModel LOAD REPORT[0m from: google/bert_uncased_L-4_H-256_A-4
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+{
+ "measured_at_utc": "2026-08-24T14:41:59Z",
+ "question": "Which encoder lets an embedding-only-int8 build clear CEIL-1 (<= 32 MiB) while giving up the least anchor separation?",
+ "selection_rule": "Fixed before any candidate was measured. (1) The positive control must hold at >= 0.75 or nothing is read. (2) A candidate must reach macro held-out AUC >= 0.7 to be eligible at all. (3) Among those, keep the ones whose projected int8_embed build clears CEIL-1. (4) Take the highest macro held-out AUC. CEIL-5 is not part of this rule - verify.py decides it on the real exported graph.",
+ "protocol_trustworthy": true,
+ "usable_held_out_auc_threshold": 0.7,
+ "positive_control_floor": 0.75,
+ "selected": null,
+ "selected_revision": null,
+ "verdict": "NO SELECTION. No candidate - including the incumbent - reaches macro held-out AUC 0.7 on the anchor separation test, so any choice between them would be a choice between noise levels. The encoder is not the binding problem; the head is. See open finding R4-HEAD-003.",
+ "incumbent_reference": {
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "macro_held_out_auc": 0.504,
+  "macro_in_sample_auc": 1.0,
+  "positive_control_macro": 0.86,
+  "int8embed_MiB": 52.55,
+  "representation_geometry": {
+   "mean_cosine_across_poles_same_dimension": 0.324,
+   "mean_cosine_to_other_dimensions": 0.2426,
+   "per_dimension_cross_pole_cosine": {
+    "low_mood": 0.2803,
+    "anxiety": 0.2517,
+    "sleep_disruption": 0.5206,
+    "social_withdrawal": 0.2542,
+    "activation": 0.3131
+   },
+   "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+  }
+ }
+}
+
+model                                             H   L   int8emb  CEIL1  held_out  in_samp  control
+sentence-transformers/all-MiniLM-L6-v2          384   6   52.55Mi   FAIL     0.504    1.000    0.860
+google/bert_uncased_L-8_H-256_A-4               256   8   31.93Mi   PASS     0.400    1.000    0.844
+google/bert_uncased_L-6_H-256_A-4               256   6   25.91Mi   PASS     0.392    1.000    0.824
+google/bert_uncased_L-4_H-256_A-4               256   4   19.88Mi   PASS     0.432    1.000    0.844
+
+NO SELECTION. No candidate - including the incumbent - reaches macro held-out AUC 0.7 on the anchor separation test, so any choice between them would be a choice between noise levels. The encoder is not the binding problem; the head is. See open finding R4-HEAD-003.

@@ -1,0 +1,35 @@
+{
+ "build": "int8_full",
+ "model_path": "artifacts/onnx/ledger_scorer_int8.onnx",
+ "runtime": "onnxruntime-web WASM (node host)",
+ "onnxruntime_web_version": "1.23.0",
+ "node_version": "v22.22.1",
+ "threads": 1,
+ "simd": true,
+ "sequence_length": 256,
+ "real_tokens": 62,
+ "session_load_ms": 233.29,
+ "runs": 30,
+ "p50_ms": 117.064,
+ "p95_ms": 123.782,
+ "min_ms": 116.823,
+ "max_ms": 124.769,
+ "wasm_vs_native_ort_max_abs_logit_diff": 0.013271,
+ "logits_wasm": [
+  0.459127,
+  0.975304,
+  -0.070576,
+  -0.657188,
+  0.588469
+ ],
+ "attribution_sum_without_bias": [
+  -1.094046,
+  0.472517,
+  -0.589926,
+  -0.110523,
+  0.634265
+ ],
+ "attribution_identity_residual": 1.3859e-7,
+ "attribution_identity_note": "max_k | logit_k - (sum_i token_attr[i,k] + bias_k) |, measured in the WASM runtime",
+ "caveat": "Node host, not a browser. Same wasm binary and kernels; excludes browser fetch, Cache API and main-thread contention."
+}
