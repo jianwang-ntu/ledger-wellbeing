@@ -47,3 +47,31 @@ accuracy claim is not weakened to keep the size claim.
 
 No ceiling is to be edited to match a measurement. If one is genuinely wrong,
 it is superseded in a new row with the reason, and the old row stays.
+
+---
+
+## Build increment 3 — the fallback rule was invoked, and the route through was not taken
+
+No ceiling in the table above has been edited. This section records what happened
+when the increment-2 route through was tested.
+
+Increment 2 left `verify.py` at exit 1 with `shippable_builds == []` and named a
+narrower encoder as the way out: hidden 256 rather than 384, encoder layers fp32,
+int8 on the embedding table only, projected at ~26.7 MiB.
+
+`export/encoder_ablation.py` measured that route before it was adopted, and the
+size half of it held — `google/bert_uncased_L-6_H-256_A-4` projects to 25.91 MiB
+against CEIL-1's 32 MiB. The quality half did not. Every candidate encoder,
+including the incumbent, scores at chance on held-out anchor separation (macro
+AUC 0.392–0.504) while scoring 1.000 in-sample, and the positive control at
+0.82–0.86 rules out the protocol as the explanation. Details in
+`../docs/limitations.md` §1.
+
+**The encoder was therefore not switched**, and CEIL-1 is still unmet by a
+shippable build. Shrinking a scorer that does not discriminate on held-out text
+would have made the size number better and the product no more real.
+
+This is the SIZE_BUDGET fallback rule working as written, one level up from where
+it was expected to fire: plan.md R-4's fallback ("drop the in-browser claim
+rather than fudge it") remains live and unexercised, because the binding problem
+turned out not to be size.

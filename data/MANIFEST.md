@@ -15,6 +15,26 @@ be complete: if something is used and is not ours, it is listed here.
 | Used for | The encoder. Its weights are frozen — no gradient step is taken on them anywhere in this repository. |
 | Upstream | Reimers & Gurevych, *Sentence-BERT* (EMNLP-IJCNLP 2019); the checkpoint is the sentence-transformers community distillation of MiniLM. |
 
+### Downloaded and measured, not shipped
+
+`export/encoder_ablation.py` (build increment 3) downloads three further
+checkpoints to measure whether a narrower encoder could clear CEIL-1. None of
+them is shipped and none is in any exported artifact — the ablation selected
+nothing and `export/common.py` still holds the incumbent above — but they were
+used, so rule 2 requires that they be attributed.
+
+| Asset | Pinned revision | Licence | Gated |
+|---|---|---|---|
+| `google/bert_uncased_L-8_H-256_A-4` | `fff21c203abcc9365418f2e46bb6801a2b98e3da` | **Apache-2.0** | No |
+| `google/bert_uncased_L-6_H-256_A-4` | `67ada51801f40684c01ca3f20c97a35fa7a67d36` | **Apache-2.0** | No |
+| `google/bert_uncased_L-4_H-256_A-4` | `387825ce42dbb39b87911cdf8e383ee3b25184f8` | **Apache-2.0** | No |
+
+Licences read from the Hugging Face model API (`cardData.license` and the
+`license:apache-2.0` tag) on 2026-08-24, not from a README badge. Upstream: Turc,
+Chang, Lee & Toutanova, *Well-Read Students Learn Better* (2019).
+`tests/test_encoder_ablation.py` fails if a model the ablation downloads is
+missing from this table.
+
 ## Runtime
 
 | Asset | `onnxruntime-web` 1.23.0 |

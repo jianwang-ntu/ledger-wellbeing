@@ -1,0 +1,332 @@
+{
+ "measured_at_utc": "2026-08-24T14:41:59Z",
+ "question": "Which encoder lets an embedding-only-int8 build clear CEIL-1 (<= 32 MiB) while giving up the least anchor separation?",
+ "selection_rule": "Fixed before any candidate was measured. (1) The positive control must hold at >= 0.75 or nothing is read. (2) A candidate must reach macro held-out AUC >= 0.7 to be eligible at all. (3) Among those, keep the ones whose projected int8_embed build clears CEIL-1. (4) Take the highest macro held-out AUC. CEIL-5 is not part of this rule - verify.py decides it on the real exported graph.",
+ "protocol_trustworthy": true,
+ "usable_held_out_auc_threshold": 0.7,
+ "positive_control_floor": 0.75,
+ "candidates": [
+  {
+   "model": "sentence-transformers/all-MiniLM-L6-v2",
+   "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+   "role": "incumbent from build increment 2",
+   "hidden_size": 384,
+   "num_hidden_layers": 6,
+   "total_parameters": 22713216,
+   "int8embed_size": {
+    "embedding_parameters": 11917824,
+    "non_embedding_parameters": 10795392,
+    "bytes": 55099392,
+    "MiB": 52.55,
+    "clears_CEIL_1": false,
+    "projected_cold_payload_MiB_excl_tokenizer": 63.86,
+    "clears_CEIL_3_excl_tokenizer": true,
+    "basis": "computed from parameter shapes: 1 byte per embedding weight, 4 per other weight. Omits per-channel quantization scales and ONNX graph overhead, and also omits the exporter's pruning of the unused BERT pooler - for the incumbent those cancelled to within 0.5 MiB of the file verify.py measured (projected 52.55 MiB, measured 52.04). A PROJECTION. CEIL-1 is decided by verify.py on the exported file, never by this number."
+   },
+   "anchor_separation": {
+    "per_dimension": {
+     "low_mood": {
+      "held_out_auc": 0.96,
+      "in_sample_auc": 1.0
+     },
+     "anxiety": {
+      "held_out_auc": 0.24,
+      "in_sample_auc": 1.0
+     },
+     "sleep_disruption": {
+      "held_out_auc": 0.36,
+      "in_sample_auc": 1.0
+     },
+     "social_withdrawal": {
+      "held_out_auc": 0.56,
+      "in_sample_auc": 1.0
+     },
+     "activation": {
+      "held_out_auc": 0.4,
+      "in_sample_auc": 1.0
+     }
+    },
+    "macro_held_out_auc": 0.504,
+    "dimensions_at_or_above_usable_threshold": [
+     "low_mood"
+    ],
+    "macro_in_sample_auc": 1.0,
+    "positive_control_pairs": {
+     "low_mood|anxiety": 0.2,
+     "low_mood|sleep_disruption": 1.0,
+     "low_mood|social_withdrawal": 0.88,
+     "low_mood|activation": 0.92,
+     "anxiety|sleep_disruption": 1.0,
+     "anxiety|social_withdrawal": 0.72,
+     "anxiety|activation": 0.92,
+     "sleep_disruption|social_withdrawal": 1.0,
+     "sleep_disruption|activation": 1.0,
+     "social_withdrawal|activation": 0.96
+    },
+    "positive_control_macro": 0.86,
+    "protocol_trustworthy": true,
+    "n_held_out_pairs_per_dimension": 25
+   },
+   "representation_geometry": {
+    "mean_cosine_across_poles_same_dimension": 0.324,
+    "mean_cosine_to_other_dimensions": 0.2426,
+    "per_dimension_cross_pole_cosine": {
+     "low_mood": 0.2803,
+     "anxiety": 0.2517,
+     "sleep_disruption": 0.5206,
+     "social_withdrawal": 0.2542,
+     "activation": 0.3131
+    },
+    "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+   },
+   "elapsed_s": 1.58
+  },
+  {
+   "model": "google/bert_uncased_L-8_H-256_A-4",
+   "revision": "fff21c203abcc9365418f2e46bb6801a2b98e3da",
+   "role": "narrower encoder, 8 layers",
+   "hidden_size": 256,
+   "num_hidden_layers": 8,
+   "total_parameters": 14329600,
+   "int8embed_size": {
+    "embedding_parameters": 7945216,
+    "non_embedding_parameters": 6384384,
+    "bytes": 33482752,
+    "MiB": 31.93,
+    "clears_CEIL_1": true,
+    "projected_cold_payload_MiB_excl_tokenizer": 43.25,
+    "clears_CEIL_3_excl_tokenizer": true,
+    "basis": "computed from parameter shapes: 1 byte per embedding weight, 4 per other weight. Omits per-channel quantization scales and ONNX graph overhead, and also omits the exporter's pruning of the unused BERT pooler - for the incumbent those cancelled to within 0.5 MiB of the file verify.py measured (projected 52.55 MiB, measured 52.04). A PROJECTION. CEIL-1 is decided by verify.py on the exported file, never by this number."
+   },
+   "anchor_separation": {
+    "per_dimension": {
+     "low_mood": {
+      "held_out_auc": 0.76,
+      "in_sample_auc": 1.0
+     },
+     "anxiety": {
+      "held_out_auc": 0.12,
+      "in_sample_auc": 1.0
+     },
+     "sleep_disruption": {
+      "held_out_auc": 0.24,
+      "in_sample_auc": 1.0
+     },
+     "social_withdrawal": {
+      "held_out_auc": 0.68,
+      "in_sample_auc": 1.0
+     },
+     "activation": {
+      "held_out_auc": 0.2,
+      "in_sample_auc": 1.0
+     }
+    },
+    "macro_held_out_auc": 0.4,
+    "dimensions_at_or_above_usable_threshold": [
+     "low_mood"
+    ],
+    "macro_in_sample_auc": 1.0,
+    "positive_control_pairs": {
+     "low_mood|anxiety": 0.32,
+     "low_mood|sleep_disruption": 0.88,
+     "low_mood|social_withdrawal": 0.72,
+     "low_mood|activation": 0.96,
+     "anxiety|sleep_disruption": 1.0,
+     "anxiety|social_withdrawal": 0.68,
+     "anxiety|activation": 0.92,
+     "sleep_disruption|social_withdrawal": 1.0,
+     "sleep_disruption|activation": 1.0,
+     "social_withdrawal|activation": 0.96
+    },
+    "positive_control_macro": 0.844,
+    "protocol_trustworthy": true,
+    "n_held_out_pairs_per_dimension": 25
+   },
+   "representation_geometry": {
+    "mean_cosine_across_poles_same_dimension": 0.7307,
+    "mean_cosine_to_other_dimensions": 0.6965,
+    "per_dimension_cross_pole_cosine": {
+     "low_mood": 0.7127,
+     "anxiety": 0.7318,
+     "sleep_disruption": 0.7823,
+     "social_withdrawal": 0.7158,
+     "activation": 0.7111
+    },
+    "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+   },
+   "elapsed_s": 1.62
+  },
+  {
+   "model": "google/bert_uncased_L-6_H-256_A-4",
+   "revision": "67ada51801f40684c01ca3f20c97a35fa7a67d36",
+   "role": "narrower encoder, 6 layers",
+   "hidden_size": 256,
+   "num_hidden_layers": 6,
+   "total_parameters": 12750080,
+   "int8embed_size": {
+    "embedding_parameters": 7945216,
+    "non_embedding_parameters": 4804864,
+    "bytes": 27164672,
+    "MiB": 25.91,
+    "clears_CEIL_1": true,
+    "projected_cold_payload_MiB_excl_tokenizer": 37.22,
+    "clears_CEIL_3_excl_tokenizer": true,
+    "basis": "computed from parameter shapes: 1 byte per embedding weight, 4 per other weight. Omits per-channel quantization scales and ONNX graph overhead, and also omits the exporter's pruning of the unused BERT pooler - for the incumbent those cancelled to within 0.5 MiB of the file verify.py measured (projected 52.55 MiB, measured 52.04). A PROJECTION. CEIL-1 is decided by verify.py on the exported file, never by this number."
+   },
+   "anchor_separation": {
+    "per_dimension": {
+     "low_mood": {
+      "held_out_auc": 0.76,
+      "in_sample_auc": 1.0
+     },
+     "anxiety": {
+      "held_out_auc": 0.08,
+      "in_sample_auc": 1.0
+     },
+     "sleep_disruption": {
+      "held_out_auc": 0.16,
+      "in_sample_auc": 1.0
+     },
+     "social_withdrawal": {
+      "held_out_auc": 0.64,
+      "in_sample_auc": 1.0
+     },
+     "activation": {
+      "held_out_auc": 0.32,
+      "in_sample_auc": 1.0
+     }
+    },
+    "macro_held_out_auc": 0.392,
+    "dimensions_at_or_above_usable_threshold": [
+     "low_mood"
+    ],
+    "macro_in_sample_auc": 1.0,
+    "positive_control_pairs": {
+     "low_mood|anxiety": 0.16,
+     "low_mood|sleep_disruption": 0.92,
+     "low_mood|social_withdrawal": 0.88,
+     "low_mood|activation": 0.96,
+     "anxiety|sleep_disruption": 0.96,
+     "anxiety|social_withdrawal": 0.68,
+     "anxiety|activation": 0.84,
+     "sleep_disruption|social_withdrawal": 1.0,
+     "sleep_disruption|activation": 1.0,
+     "social_withdrawal|activation": 0.84
+    },
+    "positive_control_macro": 0.824,
+    "protocol_trustworthy": true,
+    "n_held_out_pairs_per_dimension": 25
+   },
+   "representation_geometry": {
+    "mean_cosine_across_poles_same_dimension": 0.7563,
+    "mean_cosine_to_other_dimensions": 0.7265,
+    "per_dimension_cross_pole_cosine": {
+     "low_mood": 0.7479,
+     "anxiety": 0.7615,
+     "sleep_disruption": 0.7986,
+     "social_withdrawal": 0.7367,
+     "activation": 0.737
+    },
+    "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+   },
+   "elapsed_s": 1.86
+  },
+  {
+   "model": "google/bert_uncased_L-4_H-256_A-4",
+   "revision": "387825ce42dbb39b87911cdf8e383ee3b25184f8",
+   "role": "narrower encoder, 4 layers",
+   "hidden_size": 256,
+   "num_hidden_layers": 4,
+   "total_parameters": 11170560,
+   "int8embed_size": {
+    "embedding_parameters": 7945216,
+    "non_embedding_parameters": 3225344,
+    "bytes": 20846592,
+    "MiB": 19.88,
+    "clears_CEIL_1": true,
+    "projected_cold_payload_MiB_excl_tokenizer": 31.2,
+    "clears_CEIL_3_excl_tokenizer": true,
+    "basis": "computed from parameter shapes: 1 byte per embedding weight, 4 per other weight. Omits per-channel quantization scales and ONNX graph overhead, and also omits the exporter's pruning of the unused BERT pooler - for the incumbent those cancelled to within 0.5 MiB of the file verify.py measured (projected 52.55 MiB, measured 52.04). A PROJECTION. CEIL-1 is decided by verify.py on the exported file, never by this number."
+   },
+   "anchor_separation": {
+    "per_dimension": {
+     "low_mood": {
+      "held_out_auc": 0.76,
+      "in_sample_auc": 1.0
+     },
+     "anxiety": {
+      "held_out_auc": 0.24,
+      "in_sample_auc": 1.0
+     },
+     "sleep_disruption": {
+      "held_out_auc": 0.4,
+      "in_sample_auc": 1.0
+     },
+     "social_withdrawal": {
+      "held_out_auc": 0.28,
+      "in_sample_auc": 1.0
+     },
+     "activation": {
+      "held_out_auc": 0.48,
+      "in_sample_auc": 1.0
+     }
+    },
+    "macro_held_out_auc": 0.432,
+    "dimensions_at_or_above_usable_threshold": [
+     "low_mood"
+    ],
+    "macro_in_sample_auc": 1.0,
+    "positive_control_pairs": {
+     "low_mood|anxiety": 0.32,
+     "low_mood|sleep_disruption": 0.92,
+     "low_mood|social_withdrawal": 0.92,
+     "low_mood|activation": 0.96,
+     "anxiety|sleep_disruption": 0.92,
+     "anxiety|social_withdrawal": 0.56,
+     "anxiety|activation": 0.84,
+     "sleep_disruption|social_withdrawal": 1.0,
+     "sleep_disruption|activation": 1.0,
+     "social_withdrawal|activation": 1.0
+    },
+    "positive_control_macro": 0.844,
+    "protocol_trustworthy": true,
+    "n_held_out_pairs_per_dimension": 25
+   },
+   "representation_geometry": {
+    "mean_cosine_across_poles_same_dimension": 0.7576,
+    "mean_cosine_to_other_dimensions": 0.7296,
+    "per_dimension_cross_pole_cosine": {
+     "low_mood": 0.7573,
+     "anxiety": 0.7381,
+     "sleep_disruption": 0.7935,
+     "social_withdrawal": 0.7475,
+     "activation": 0.7514
+    },
+    "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+   },
+   "elapsed_s": 1.54
+  }
+ ],
+ "selected": null,
+ "selected_revision": null,
+ "verdict": "NO SELECTION. No candidate - including the incumbent - reaches macro held-out AUC 0.7 on the anchor separation test, so any choice between them would be a choice between noise levels. The encoder is not the binding problem; the head is. See open finding R4-HEAD-003.",
+ "incumbent_reference": {
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "macro_held_out_auc": 0.504,
+  "macro_in_sample_auc": 1.0,
+  "positive_control_macro": 0.86,
+  "int8embed_MiB": 52.55,
+  "representation_geometry": {
+   "mean_cosine_across_poles_same_dimension": 0.324,
+   "mean_cosine_to_other_dimensions": 0.2426,
+   "per_dimension_cross_pole_cosine": {
+    "low_mood": 0.2803,
+    "anxiety": 0.2517,
+    "sleep_disruption": 0.5206,
+    "social_withdrawal": 0.2542,
+    "activation": 0.3131
+   },
+   "reading": "topic-dominated: opposite poles of the same dimension are more similar to each other than to other dimensions, so mean-pooled similarity carries subject matter rather than direction"
+  }
+ }
+}
