@@ -112,7 +112,7 @@ def render(entries: list[dict], *, region: str | None = None) -> str:
             mark = "" if evidence[dim]["established"] else "   [NOT ESTABLISHED]"
             auc = evidence[dim]["held_out_auc"]
             auc_text = "n/a" if auc is None else f"{auc:.2f}"
-            lines.append(f"{DIMENSION_LABELS[dim]:<34}{mark}")
+            lines.append(f"{DIMENSION_LABELS[dim]:<34}{mark}".rstrip())
             lines.append(f"  {_sparkline([p.probability for p in series])}"
                          f"   latest {series[-1].probability:.2f}"
                          f"   held-out AUC {auc_text}")
@@ -158,8 +158,9 @@ def render(entries: list[dict], *, region: str | None = None) -> str:
     if routed:
         lines.append("SAFETY ROUTING")
         lines.append("-" * 62)
-        lines.append(f"{len(routed)} entr{'y' if len(routed) == 1 else 'ies'} matched a "
-                     "crisis rule and were routed to published helplines.")
+        one = len(routed) == 1
+        lines.append(f"{len(routed)} entr{'y' if one else 'ies'} matched a crisis rule "
+                     f"and {'was' if one else 'were'} routed to published helplines.")
         for chunk in _wrap(
             "Entries matching an acute rule are never scored. That is a rule in the "
             "code, not a model judgement, and it cannot be overridden by anything "
