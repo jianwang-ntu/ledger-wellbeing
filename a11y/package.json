@@ -1,0 +1,6 @@
+{
+  "name": "ledger-a11y-harness",
+  "private": true,
+  "description": "Measurement tooling only. Not a dependency of the Ledger application.",
+  "dependencies": { "axe-core": "^4.13.0" }
+}

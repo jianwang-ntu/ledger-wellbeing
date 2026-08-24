@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledger — a private well-being journal</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/app.css">
+<meta name="ledger-token" content="__LEDGER_TOKEN__">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <p class="wordmark"><span class="wordmark__mark" aria-hidden="true"></span>Ledger</p>
+    <h1>A private well-being journal</h1>
+    <p class="masthead__sub" id="contract">Nothing you write here leaves this machine.</p>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Sections">
+  <ul class="rail__list">
+    <li><button type="button" class="rail__link" data-view="write" aria-current="page">Write</button></li>
+    <li><button type="button" class="rail__link" data-view="entry">Latest entry</button></li>
+    <li><button type="button" class="rail__link" data-view="history">History</button></li>
+    <li><button type="button" class="rail__link" data-view="report">Report</button></li>
+    <li><button type="button" class="rail__link" data-view="settings">Journal &amp; safety</button></li>
+  </ul>
+</nav>
+
+<main id="main" tabindex="-1">
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <section class="view" id="view-unlock" aria-labelledby="h-unlock">
+    <h2 id="h-unlock" tabindex="-1">Open your journal</h2>
+    <p class="lede" id="unlock-lede">Your entries are encrypted on this machine with a passphrase only you hold. It is not stored anywhere, and it cannot be recovered.</p>
+    <form id="unlock-form" class="card" novalidate>
+      <div class="field">
+        <label for="passphrase">Passphrase</label>
+        <input type="password" id="passphrase" name="passphrase" autocomplete="current-password"
+               aria-describedby="passphrase-help" required>
+        <p class="hint" id="passphrase-help">At least one character. A long phrase you will remember is better than a short complicated one.</p>
+      </div>
+      <p class="error" id="unlock-error" role="alert"></p>
+      <button type="submit" class="btn btn--primary" id="unlock-submit">Open journal</button>
+    </form>
+  </section>
+
+  <section class="view" id="view-write" hidden aria-labelledby="h-write">
+    <h2 id="h-write" tabindex="-1">Write an entry</h2>
+    <p class="lede">Write about your day in your own words. Ledger reads it on this machine and shows you which of your own phrases moved each signal. It does not give advice and it does not diagnose.</p>
+    <form id="entry-form" class="card" novalidate>
+      <div class="field">
+        <label for="entry-text">Today</label>
+        <textarea id="entry-text" name="text" rows="9" aria-describedby="entry-help"
+                  placeholder="Slept badly again and dragged through the day…"></textarea>
+        <p class="hint" id="entry-help">A few sentences is enough. Longer entries give the attribution more to work with.</p>
+      </div>
+      <fieldset class="field field--inline">
+        <legend>Explain by</legend>
+        <div class="choice">
+          <input type="radio" id="gran-sentence" name="granularity" value="sentence" checked>
+          <label for="gran-sentence">Sentence</label>
+        </div>
+        <div class="choice">
+          <input type="radio" id="gran-word" name="granularity" value="word">
+          <label for="gran-word">Word</label>
+        </div>
+      </fieldset>
+      <p class="error" id="entry-error" role="alert"></p>
+      <button type="submit" class="btn btn--primary" id="entry-submit">Save and explain</button>
+    </form>
+  </section>
+
+  <section class="view" id="view-entry" hidden aria-labelledby="h-entry">
+    <h2 id="h-entry" tabindex="-1">Latest entry</h2>
+    <div id="crisis" class="crisis" role="alert" hidden>
+      <h3 class="crisis__title">This entry was not scored</h3>
+      <p id="crisis-reason"></p>
+      <h4 class="crisis__sub">Published helplines</h4>
+      <ul id="crisis-helplines" class="helplines"></ul>
+      <p class="crisis__foot">This routing is a rule in the code. No model decided it, and no model can switch it off.</p>
+    </div>
+    <div id="entry-result" hidden>
+      <p class="lede" id="entry-contract"></p>
+      <div id="dimensions"></div>
+    </div>
+    <p class="empty" id="entry-empty">Nothing written yet. Start on the <strong>Write</strong> page.</p>
+  </section>
+
+  <section class="view" id="view-history" hidden aria-labelledby="h-history">
+    <h2 id="h-history" tabindex="-1">History</h2>
+    <p class="lede">Every entry stored in this journal, oldest first. Read back from the encrypted file, not from anything held in memory.</p>
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Stored entries, scrollable">
+      <table class="table" id="history-table">
+        <caption class="visually-hidden">Stored entries with their date and outcome</caption>
+        <thead><tr><th scope="col">Written</th><th scope="col">Outcome</th><th scope="col">Opening words</th></tr></thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="history-empty">No entries yet.</p>
+  </section>
+
+  <section class="view" id="view-report" hidden aria-labelledby="h-report">
+    <h2 id="h-report" tabindex="-1">Report</h2>
+    <p class="lede">The report is what you might choose to show a clinician who is treating you. It is produced here, on this machine, and it goes nowhere unless you take it somewhere.</p>
+    <button type="button" class="btn" id="report-refresh">Render the report</button>
+    <div class="tablewrap tablewrap--tall" tabindex="0" role="region" aria-label="Rendered report, scrollable">
+      <pre class="report" id="report-text">Not rendered yet.</pre>
+    </div>
+  </section>
+
+  <section class="view" id="view-settings" hidden aria-labelledby="h-settings">
+    <h2 id="h-settings" tabindex="-1">Journal &amp; safety</h2>
+    <dl class="facts">
+      <dt>Journal file</dt><dd id="fact-store">—</dd>
+      <dt>Interface</dt><dd id="fact-bind">Served from 127.0.0.1 on this machine only.</dd>
+      <dt>Model</dt><dd id="fact-model">A quantized scorer that runs on this machine. It is not fine-tuned on clinical data.</dd>
+    </dl>
+
+    <h3>What each signal has behind it</h3>
+    <p class="lede" id="evidence-basis"></p>
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Evidence for each signal, scrollable">
+      <table class="table" id="evidence-table">
+        <caption class="visually-hidden">Held-out AUC for each signal against the threshold fixed before it was measured</caption>
+        <thead><tr><th scope="col">Signal</th><th scope="col">Held-out AUC</th><th scope="col">Established?</th></tr></thead>
+        <tbody id="evidence-body"></tbody>
+      </table>
+    </div>
+
+    <h3>Destroy this journal</h3>
+    <p class="lede">The file is overwritten and then removed. There is no undo and no copy anywhere else.</p>
+    <form id="wipe-form" class="card card--danger" novalidate>
+      <div class="field">
+        <label for="wipe-confirm">Type WIPE to confirm</label>
+        <input type="text" id="wipe-confirm" name="confirm" autocomplete="off" aria-describedby="wipe-help">
+        <p class="hint" id="wipe-help">Anything other than WIPE leaves the journal untouched.</p>
+      </div>
+      <p class="error" id="wipe-error" role="alert"></p>
+      <button type="submit" class="btn btn--danger" id="wipe-submit">Destroy journal</button>
+    </form>
+  </section>
+
+</main>
+
+<footer class="colophon">
+  <p id="colophon-contract"></p>
+  <p>Ledger runs entirely on this machine. The interface is served from 127.0.0.1 and the page loads no third-party asset.</p>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

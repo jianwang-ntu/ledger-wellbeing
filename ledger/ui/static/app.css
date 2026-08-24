@@ -1,0 +1,419 @@
+/* Ledger — the interface's whole stylesheet.
+
+   Three constraints shaped every choice here, and they are worth stating because
+   they are unusual ones for a hackathon front-end:
+
+   1. No byte may come from anywhere but this repository. No web font, no icon
+      set, no CSS framework. `export/INCREMENT_9_PREREGISTRATION.md` R9-8(b)
+      measures that in the browser, so a stray @import would be caught rather
+      than shipped. Typography is therefore built from the platform's own faces.
+   2. Nothing may be encoded in colour alone. Attribution direction is carried by
+      the underline STYLE (solid for a contribution that pushed the signal up,
+      dotted for one that pushed it down) and by a number in an adjacent table.
+      Colour agrees with those; it never carries them.
+   3. Text sits on a plain background, always. A tinted highlight behind a
+      person's own sentence would look expressive and would put every attributed
+      span at risk of failing 4.5:1 — R9-4. The underline carries the weight
+      instead, which is also why it can be thickened by magnitude for free.
+*/
+
+:root {
+  --paper: #fbfaf8;
+  --surface: #ffffff;
+  --ink: #16191c;
+  --ink-soft: #4a5158;
+  --rule: #ddd8d1;
+  --rule-strong: #c3bcb2;
+  --accent: #1f5f4e;
+  --accent-ink: #17493c;
+  --accent-soft: #eef4f1;
+  --danger: #8a2b20;
+  --danger-soft: #fdf3f1;
+  --focus-ring: #12305a;
+  --focus-halo: #cfe0ff;
+
+  --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --measure: 62ch;
+  --radius: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+  grid-template-areas: "masthead masthead" "rail main" "colophon colophon";
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ---- skip link ---------------------------------------------------------- */
+
+.skip {
+  position: absolute;
+  left: 0.75rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  color: var(--accent-ink);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 120ms ease-out;
+}
+.skip:focus { top: 0.75rem; }
+
+/* ---- masthead ----------------------------------------------------------- */
+
+.masthead {
+  grid-area: masthead;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+.masthead__inner { padding: 2.1rem clamp(1.25rem, 4vw, 3rem) 1.6rem; max-width: 78rem; }
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.35rem;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.wordmark__mark {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid var(--accent);
+  border-right-color: transparent;
+  border-radius: 50%;
+  transform: rotate(-35deg);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+}
+.masthead__sub { margin: 0.5rem 0 0; color: var(--ink-soft); max-width: var(--measure); }
+
+/* ---- rail --------------------------------------------------------------- */
+
+.rail {
+  grid-area: rail;
+  padding: 1.6rem 0.75rem 3rem clamp(0.75rem, 2.4vw, 1.75rem);
+  border-right: 1px solid var(--rule);
+}
+.rail__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+
+.rail__link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+.rail__link:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.rail__link[aria-current="page"] {
+  background: var(--accent-soft);
+  border-color: var(--rule);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+/* ---- main --------------------------------------------------------------- */
+
+main {
+  grid-area: main;
+  padding: 1.6rem clamp(1.25rem, 4vw, 3rem) 4rem;
+  max-width: 62rem;
+}
+main:focus { outline: none; }
+
+h2 {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.62rem;
+  line-height: 1.2;
+  letter-spacing: -0.008em;
+}
+h2:focus { outline: none; }
+h3 {
+  margin: 2.2rem 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+}
+h4 { margin: 1rem 0 0.3rem; font-size: 0.93rem; font-weight: 700; }
+
+.lede { margin: 0 0 1.2rem; color: var(--ink-soft); max-width: var(--measure); }
+.empty { color: var(--ink-soft); font-style: italic; }
+
+.status {
+  min-height: 1.6rem;
+  margin: 0 0 0.9rem;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.status:empty { margin-bottom: 0; }
+
+/* ---- cards and forms ---------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  max-width: 44rem;
+}
+.card--danger { border-color: var(--rule-strong); background: var(--danger-soft); }
+
+.field { margin: 0 0 1.05rem; }
+.field:last-of-type { margin-bottom: 1.3rem; }
+.field label, .field legend {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  font-size: 0.93rem;
+}
+.field--inline { border: 0; padding: 0; margin: 0 0 1.2rem; }
+.field--inline legend { padding: 0; }
+.choice { display: inline-flex; align-items: center; gap: 0.4rem; margin-right: 1.2rem; }
+.choice label { margin: 0; font-weight: 400; }
+
+input[type="password"], input[type="text"], textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+textarea { font-family: var(--sans); line-height: 1.55; resize: vertical; }
+::placeholder { color: var(--ink-soft); opacity: 1; }
+
+.hint { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--ink-soft); }
+.error { margin: 0 0 0.8rem; color: var(--danger); font-weight: 600; }
+.error:empty { margin: 0; }
+
+.btn {
+  display: inline-block;
+  padding: 0.58rem 1.15rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+.btn:hover { background: var(--accent-soft); }
+.btn--primary { background: var(--accent); border-color: var(--accent-ink); color: #ffffff; }
+.btn--primary:hover { background: var(--accent-ink); }
+.btn--danger { background: var(--danger); border-color: var(--danger); color: #ffffff; }
+.btn--danger:hover { background: #6f2119; }
+
+/* ---- focus: one rule, everywhere, never removed ------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--focus-halo);
+  border-radius: var(--radius);
+}
+/* Browsers that have not implemented :focus-visible still get a ring. */
+:focus:not(:focus-visible) { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+h2:focus:not(:focus-visible), main:focus:not(:focus-visible) { outline: none; }
+
+/* ---- dimensions and attribution ---------------------------------------- */
+
+.dimension {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  margin: 0 0 0.9rem;
+}
+.dimension__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem;
+}
+.dimension__name { margin: 0; font-size: 1.02rem; font-weight: 700; }
+.dimension__score { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; }
+.badge {
+  display: inline-block;
+  padding: 0.08rem 0.5rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge--warn { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+.dimension__note { margin: 0.3rem 0 0.9rem; font-size: 0.87rem; color: var(--ink-soft); }
+
+.attributed { margin: 0 0 0.85rem; line-height: 2.1; }
+.span { border-bottom: var(--t, 1px) solid transparent; padding-bottom: 1px; }
+.span--pos { border-bottom: var(--t, 2px) solid var(--accent); }
+.span--neg { border-bottom: var(--t, 2px) dotted var(--ink-soft); }
+
+.arith {
+  margin: 0.2rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+
+/* ---- tables ------------------------------------------------------------- */
+
+.tablewrap {
+  max-height: 26rem;
+  overflow: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.tablewrap--tall { max-height: 34rem; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.table th, .table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  border-bottom: 2px solid var(--rule-strong);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.table td.num { font-family: var(--mono); white-space: nowrap; }
+.table tbody tr:last-child td { border-bottom: 0; }
+
+.report {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink);
+}
+
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1.2rem; margin: 0 0 1rem; max-width: 52rem; }
+.facts dt { font-weight: 700; }
+.facts dd { margin: 0; color: var(--ink-soft); word-break: break-word; }
+
+/* ---- crisis ------------------------------------------------------------- */
+
+.crisis {
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+  padding: 1.15rem 1.25rem;
+  margin: 0 0 1.4rem;
+}
+.crisis__title { margin: 0 0 0.4rem; font-size: 1.1rem; color: var(--danger); }
+.crisis__sub { margin: 0.9rem 0 0.35rem; }
+.crisis__foot { margin: 0.9rem 0 0; font-size: 0.87rem; color: var(--ink-soft); }
+.helplines { margin: 0; padding-left: 1.15rem; }
+.helplines li { margin-bottom: 0.25rem; }
+
+/* ---- colophon ----------------------------------------------------------- */
+
+.colophon {
+  grid-area: colophon;
+  border-top: 1px solid var(--rule);
+  padding: 1.2rem clamp(1.25rem, 4vw, 3rem) 2rem;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+.colophon p { margin: 0 0 0.4rem; max-width: 74ch; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- narrow viewports --------------------------------------------------- */
+
+@media (max-width: 46rem) {
+  body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "masthead" "rail" "main" "colophon"; }
+  .rail { border-right: 0; border-bottom: 1px solid var(--rule); padding-bottom: 1rem; }
+  .rail__list { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 0.3rem; }
+}
+
+/* ---- reduced motion ----------------------------------------------------- */
+/* R9-5. Blanket, `!important`, and over `*` including pseudo-elements, because
+   the failure mode this rule exists to catch is a transition added later to a
+   hover state that nobody remembers to exempt. Measured over the live DOM. */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- forced colours ----------------------------------------------------- */
+/* R9-4. When the platform substitutes its own palette, the interface must still
+   be readable and its structure must survive. Borders are the load-bearing part:
+   anything distinguished only by a background tint disappears here. */
+
+@media (forced-colors: active) {
+  .card, .dimension, .tablewrap, .crisis, .badge { border: 1px solid CanvasText; }
+  .btn, .rail__link { border: 1px solid ButtonText; }
+  .rail__link[aria-current="page"] { border: 2px solid Highlight; }
+  .span--pos { border-bottom: var(--t, 2px) solid LinkText; }
+  .span--neg { border-bottom: var(--t, 2px) dotted CanvasText; }
+  :focus-visible { outline: 3px solid Highlight; box-shadow: none; }
+  .wordmark__mark { border-color: CanvasText; border-right-color: transparent; }
+}
