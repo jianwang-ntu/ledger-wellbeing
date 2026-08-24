@@ -43,16 +43,102 @@ class TestCeilingsAreHonoured(unittest.TestCase):
                                  f"{build}/{name}: flag {check['pass']} contradicts "
                                  f"measured={measured} vs ceiling={ceiling}")
 
+    # ------------------------------------------------------------------
+    # DEFECT-INC7-001. The two tests below used to read
+    #
+    #     all(c["pass"] for c in checks.values())
+    #
+    # i.e. "shippable => passes all six ceilings". That was the correct rule
+    # until increment 6 scoped enforcement to a delivery target, and it was
+    # never updated - because it could not fail. shippable_builds was empty in
+    # increments 3, 4, 5 and 6, so both tests compared [] against [] and stayed
+    # green through the single most self-serving change in this repository.
+    # Increment 7 is the first run that produces a shippable build, and it is
+    # the run that exposed them.
+    #
+    # They are replaced rather than relaxed. The new pair asserts the enforced
+    # rule AND the bookkeeping that keeps the dropped claim visible, and
+    # TestTheWebTargetIsLostNotForgotten below re-asserts the original all-six
+    # rule for the target it was written for.
+    # ------------------------------------------------------------------
+
+    def _enforced(self, build):
+        checks = self.report["candidate_builds"][build]["ceiling_checks"]
+        return {k: c for k, c in checks.items() if c["enforced_on_this_target"]}
+
+    def test_the_report_enforces_exactly_the_targets_ceilings(self):
+        """The report may not invent its own enforcement set."""
+        import sys, pathlib as _pl
+        sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1] / "export"))
+        import common
+        self.assertEqual(sorted(self.report["enforced_ceilings"]),
+                         sorted(common.ENFORCED_BY_TARGET[self.report["delivery_target"]]))
+        for build, data in self.report["candidate_builds"].items():
+            flagged = sorted(k for k, c in data["ceiling_checks"].items()
+                             if c["enforced_on_this_target"])
+            self.assertEqual(flagged, sorted(self.report["enforced_ceilings"]), build)
+
     def test_shippable_list_agrees_with_the_flags(self):
-        derived = sorted(b for b, d in self.report["candidate_builds"].items()
-                         if all(c["pass"] is True for c in d["ceiling_checks"].values()))
+        derived = sorted(b for b in self.report["candidate_builds"]
+                         if all(c["pass"] is True for c in self._enforced(b).values()))
         self.assertEqual(sorted(self.report["shippable_builds"]), derived)
 
-    def test_no_build_is_claimed_shippable_while_breaching_a_ceiling(self):
+    def test_no_build_is_claimed_shippable_while_breaching_an_enforced_ceiling(self):
+        for build in self.report["shippable_builds"]:
+            failed = [k for k, c in self._enforced(build).items() if c["pass"] is not True]
+            self.assertEqual(failed, [], f"{build} is listed shippable but fails {failed}")
+
+    def test_a_shippable_build_still_publishes_every_ceiling_it_breaches(self):
+        """The half of the old rule that must not be lost: an unenforced ceiling
+        a shipping build fails has to appear in would_fail_web_target_on, so the
+        dropped claim is in the artifact rather than absent from it."""
+        for build in self.report["shippable_builds"]:
+            data = self.report["candidate_builds"][build]
+            breached = {k for k, c in data["ceiling_checks"].items() if c["pass"] is False}
+            disclosed = set(data["would_fail_web_target_on"])
+            self.assertEqual(breached - disclosed, set(),
+                             f"{build} breaches {sorted(breached - disclosed)} without disclosing it")
+            self.assertEqual(disclosed - breached, set(),
+                             f"{build} discloses {sorted(disclosed - breached)} it does not breach")
+
+
+class TestTheWebTargetIsLostNotForgotten(unittest.TestCase):
+    """The original all-six rule, kept for the target it was written for.
+
+    If DELIVERY_TARGET ever returns to `web`, the pre-increment-6 rule applies
+    again with no edit to this file.
+    """
+
+    def setUp(self):
+        self.report = load(VERIFY)
+
+    def test_on_a_web_target_every_ceiling_gates_again(self):
+        if self.report["delivery_target"] != "web":
+            raise unittest.SkipTest("target is not web; the desktop rule is tested above")
         for build in self.report["shippable_builds"]:
             checks = self.report["candidate_builds"][build]["ceiling_checks"]
             failed = [k for k, c in checks.items() if c["pass"] is not True]
-            self.assertEqual(failed, [], f"{build} is listed shippable but fails {failed}")
+            self.assertEqual(failed, [], f"{build} shippable on web but fails {failed}")
+
+    def test_no_build_here_would_have_shipped_to_a_browser(self):
+        """Increment 7 met CEIL-2 and produced the first shippable build. That
+        must not be allowed to read as 'the browser target came back'."""
+        for name, data in self.report["candidate_builds"].items():
+            self.assertNotEqual(data["would_fail_web_target_on"], [],
+                                f"{name} claims no web-target failure; if that is real, "
+                                "delete this test on purpose with the measurement")
+
+    def test_the_selected_build_misses_the_web_latency_ceiling_too(self):
+        """The browser was not lost on size alone (SIZE_BUDGET.md increment 6)."""
+        selected = self.report.get("selected_build")
+        if selected is None:
+            raise unittest.SkipTest("nothing selected")
+        wasm = self.report["candidate_builds"][selected].get("latency_wasm_1thread")
+        if not isinstance(wasm, dict):
+            raise unittest.SkipTest("no accepted WASM bench for the selected build")
+        self.assertGreater(wasm["p95_ms"], 500.0,
+                           "the selected build now fits the web latency ceiling - "
+                           "re-open the delivery target on purpose")
 
 
 class TestAttributionIdentitySurvivesExport(unittest.TestCase):

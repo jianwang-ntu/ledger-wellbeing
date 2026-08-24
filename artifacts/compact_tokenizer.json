@@ -1,0 +1,49 @@
+{
+ "increment": 7,
+ "preregistration": "export/INCREMENT_7_PREREGISTRATION.md",
+ "question": "is there a serialization of this tokenizer, same vocabulary and identical encode() output, that fits CEIL-2's 2 MiB?",
+ "adopted": true,
+ "R7_1_size": {
+  "before_dir_bytes": 3559258,
+  "after_dir_bytes": 1556504,
+  "ceiling_bytes": 2097152,
+  "before_MiB": 3.394,
+  "after_MiB": 1.484,
+  "pass": true,
+  "blind": false,
+  "note": "probed before the pre-registration was written; disclosed there"
+ },
+ "R7_2_encode_identity": {
+  "probe_entries": 64,
+  "probe_max_length": 256,
+  "anchor_sentences": 50,
+  "fields_compared": [
+   "input_ids",
+   "attention_mask",
+   "offset_mapping",
+   "decoded"
+  ],
+  "mismatches": {
+   "probe": [],
+   "anchor": []
+  },
+  "pass": true,
+  "blind": true
+ },
+ "R7_3_document_identity": {
+  "parsed_documents_equal": true,
+  "vocab_size_before": 50265,
+  "vocab_size_after": 50265,
+  "vocab_size_expected": 50265,
+  "merges_before": 50000,
+  "merges_after": 50000,
+  "pass": true,
+  "blind": true
+ },
+ "sha256": {
+  "tokenizer_json_before": "a7dc83300c049f6d4a3347c54a57caeda6aad744b2cb14a21d7bc055334c56e4",
+  "tokenizer_json_after": "afc37937d6ca01ac95a612119b1a5c4243e09a819e2fe6f81560e706dac89bef"
+ },
+ "failures": [],
+ "what_this_does_not_retire": "The vocabulary really did grow 30,522 (WordPiece) -> 50,265 (byte-level BPE), 1.65x, and CEIL-2's day-1 tripwire fired on a real change. Meeting the ceiling by compact serialization satisfies it as written -- bytes on disk -- and does NOT retire that signal. CEIL-1, CEIL-3 and CEIL-4-on-web remain failed."
+}

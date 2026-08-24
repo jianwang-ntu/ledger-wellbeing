@@ -235,3 +235,123 @@ web target, and the desktop fallback fails on CEIL-2 alone.
 The attribution identity holds in the WASM runtime as well — residual 1.4e-07 —
 and WASM and native agree on the logits to 3.3e-07, so the two runtimes are
 measuring the same model.
+
+---
+
+## Build increment 7 — CEIL-2 was met, and the first build shipped
+
+No ceiling in the table above has been edited. `CEILINGS` in `export/common.py`
+is byte-identical to the day-1 values, `ENFORCED_BY_TARGET` is unchanged from
+increment 6, and `tests/test_compact_tokenizer.py::TestNoCeilingMovedForThis`
+now asserts CEIL-2's value **and** that it still gates the desktop target.
+
+Increment 6 left exactly one enforced ceiling unmet, so increment 7 had exactly
+one question, pre-registered in `export/INCREMENT_7_PREREGISTRATION.md` before
+the decisive measurement:
+
+> Is there a serialization of this tokenizer — same 50,265-entry vocabulary,
+> identical `encode()` output — that fits CEIL-2's 2 MiB?
+
+**Yes.** `tokenizers` writes `tokenizer.json` pretty-printed with two-space
+indentation. JSON whitespace is not semantic. Re-dumping the same document with
+`separators=(',',':')` is `export/compact_tokenizer.py`.
+
+| | Bytes | MiB | CEIL-2 |
+|---|---:|---:|---|
+| `artifacts/tokenizer/` before | 3,559,258 | 3.394 | **fail**, 70% over |
+| `artifacts/tokenizer/` after | **1,556,504** | **1.484** | **pass**, 26% under |
+
+### It is the same tokenizer, and that was checked by re-tokenizing
+
+A file that is smaller is not evidence of anything on its own. R7-2 and R7-3
+were the blind half of the pre-registration and both hold:
+
+- the parsed JSON **document** after the rewrite compares equal to the parsed
+  document before it — same document, different whitespace;
+- vocabulary 50,265 entries and a 50,000-entry merges table, both unchanged;
+- `input_ids`, `attention_mask`, `offset_mapping` and `decode()` round-trip are
+  **elementwise identical** across the 64 probe entries at `max_length=256` and
+  all 50 anchor sentences in `ledger/model/dimensions.py`. Zero mismatches.
+
+Report: `artifacts/compact_tokenizer.json`. The rewrite was staged against a
+backup and would have been restored byte-for-byte on any single mismatch.
+
+### One half of this increment was not blind, and the pre-registration says so
+
+The size probe — parse, re-dump compact, measure — was run *before* the
+pre-registration was written, and returned 1,556,145 B for `tokenizer.json`.
+R7-1 is therefore a confirmation, not a prediction, and is labelled `"blind":
+false` in the report. Everything that decides adoption (R7-2, R7-3, R7-5, R7-6)
+was fixed before it ran.
+
+### The result
+
+`export/verify.py` exits **0**. `shippable_builds` is `["int8_embed", "fp32"]`
+and `selected_build` is **`int8_embed`** by the increment-6 rule R6-2: the
+smallest build clearing every ceiling enforced on this target while holding the
+additivity identity.
+
+| `int8_embed`, desktop target | Measured | Ceiling | |
+|---|---:|---:|---|
+| CEIL-2 tokenizer bytes | 1,556,504 | 2,097,152 | pass |
+| CEIL-4 p95, native ORT 1 thread | 228.15 ms | 500 ms | pass |
+| CEIL-5 Pearson r, worst dimension | 0.999948 | 0.99 | pass |
+| CEIL-5 max abs score delta | 0.006941 | 0.02 | pass |
+| additivity residual | 3.20e-07 | 1e-04 | pass |
+
+This is the first build in the project that clears its gate. It is a *size and
+fidelity* gate: it says the artifact is shippable, and it says nothing whatever
+about whether the score is any good. **The head is still untrained** behind
+plan.md R-1 and `activation` is still carried at 0.600.
+
+### What this does not retire
+
+CEIL-2's stated purpose on day 1 was to *"force a rejection if someone swaps in
+a 250k-entry multilingual vocab without saying so"*. A **50,265**-entry
+byte-level BPE vocabulary really was swapped in for a **30,522**-entry
+WordPiece one — 1.65× larger — and the tripwire fired on a real change. Meeting
+the ceiling by compact serialization satisfies it **as written**, since CEIL-2
+bounds bytes on disk. It does not retire that signal, and this increment is not
+to be read as though the vocabulary had not grown.
+
+Two limits, stated rather than discovered later:
+
+- Compact serialization removes indentation, which is roughly what any
+  compressed transport would have removed anyway. The win is real against a
+  ceiling denominated in raw bytes on disk and thin against one denominated in
+  transfer size. CEIL-2 is the former.
+- It buys nothing on the web target. **CEIL-1 (199.49 MiB vs 32), CEIL-3
+  (212.29 MiB vs 64) and CEIL-4-on-WASM (836.61 ms vs 500) all still fail**, so
+  the browser stays lost on three counts and `would_fail_web_target_on` stays
+  populated on every build. `TestTheWebTargetIsLostNotForgotten` fails if that
+  list is ever emptied.
+
+### DEFECT-INC7-001 — two guards had been green because they could not fail
+
+Found by this increment producing the first non-empty `shippable_builds`.
+
+`tests/test_export_pipeline.py::TestCeilingsAreHonoured` carried two tests
+asserting *"a shippable build passes all six ceilings"*. That was the correct
+rule until increment 6 scoped enforcement to a delivery target — and it was
+never updated, because it could not fail: `shippable_builds` was `[]` in
+increments 3, 4, 5 and 6, so both tests compared `[]` against `[]` and stayed
+green straight through the most self-serving change in this repository.
+Increment 6's relaxation was guarded from the *map* side by
+`tests/test_delivery_target.py`, and unguarded from the *report* side.
+
+The two were replaced, not relaxed, following the precedent increment 6 set with
+`tests/pin_invariant.py`. The new set is strictly stronger:
+
+- shippability is derived from the **enforced** checks, and the report's
+  `enforced_ceilings` must equal `ENFORCED_BY_TARGET[delivery_target]` — a
+  report can no longer invent its own enforcement set;
+- a shipping build must disclose **every** ceiling it breaches in
+  `would_fail_web_target_on`, and may not disclose one it does not — the dropped
+  claim can be neither hidden nor inflated;
+- `TestTheWebTargetIsLostNotForgotten` re-asserts the original all-six rule for
+  the `web` target, so it applies again with no edit if the target ever returns.
+
+14 targeted mutations were run against the new guards and all 14 were caught,
+including "ship a build that fails an enforced ceiling", "erase every web-target
+failure", "meet CEIL-2 by deleting 265 vocabulary entries" and "re-serialize the
+tokenizer pretty-printed". `../audit/runs/inc7_mutations.json`.
