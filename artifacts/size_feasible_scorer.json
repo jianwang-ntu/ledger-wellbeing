@@ -1,0 +1,541 @@
+{
+ "measured_at_utc": "2026-08-24T16:39:51Z",
+ "increment": 5,
+ "question": "R4-CEIL-001: is there an entailment-supervised bi-encoder at hidden <= 384 that separates held-out anchors AND fits inside the ceilings fixed in export/SIZE_BUDGET.md before build increment 2?",
+ "candidate_list_closed_before_execution": "status.json's next_action fixed the terms; CANDIDATES is committed in the same commit as this docstring and before any run. Extending it after seeing these numbers would turn a measurement into a search and is not done.",
+ "selection_rule": "(1) READABLE: positive control macro >= POSITIVE_CONTROL_FLOOR, or nothing else in the row is read. (2) USABLE: macro held-out AUC >= USABLE_HELD_OUT_AUC. (3) SHIPPABLE - NEW THIS INCREMENT, AND A TIGHTENING: projected int8_embed bytes <= CEIL_1 AND ORT runtime floor + those bytes <= CEIL_3. Increment 4 selected on (1)+(2) and reported (3) afterwards, which is how it produced a selection it could not adopt. (4) ADDITIVE: required; every row here is mean-pooled + one linear row, asserted rather than assumed. (5) Tie-break on macro held-out AUC. (6) If nothing satisfies 1-4, option B is CLOSED at hidden <= 384 and plan.md R-4 - a local desktop app, zero-egress kept, the in-browser claim dropped - is the answer.",
+ "selection_rule_is_a_tightening_of_increment_4": "Criterion (3) is added. Increment 4's rule is a strict subset, so nothing that failed there can pass here because the rule changed.",
+ "thresholds_inherited": {
+  "usable_held_out_auc": 0.7,
+  "positive_control_floor": 0.75,
+  "ceil_1_int8_model_bytes": 33554432,
+  "ceil_3_cold_payload_bytes": 67108864,
+  "ort_runtime_floor_bytes": 11865354,
+  "note": "imported from export/encoder_ablation.py and export/common.py, not re-typed, so they cannot drift between increments"
+ },
+ "size_envelope_derivation": "int8_embed stores embedding parameters at 1 byte and every other parameter at 4. At vocab 30522 that is ~11.9 MB of embeddings at hidden 384 and ~7.9 MB at hidden 256, leaving ~5.4M and ~6.4M non-embedding parameters inside CEIL-1 - about 3 encoder layers at hidden 384 and about 8 at hidden 256. Arithmetic, fixed before measurement, and it is why the candidates vary depth rather than width.",
+ "variants": [
+  {
+   "variant": "nli_xtremedistil_h256",
+   "model": "MoritzLaurer/xtremedistil-l6-h256-zeroshot-v1.1-all-33",
+   "revision": "c07f66d9cbf781191bee66edfe8ad7856f045781",
+   "licence": "mit",
+   "role": "the one checkpoint found that is BOTH entailment-supervised and inside the size envelope: hidden 256, 6 layers, 30522-entry vocab, the same shape as increment 3's bert_uncased_L-6_H-256 which projected to 25.91 MiB. If NLI supervision is what increment 4 showed it to be, this is the row that ships it.",
+   "expected_shippable_before_measurement": true,
+   "selection_candidate": true,
+   "hidden_size": 256,
+   "num_hidden_layers": 6,
+   "total_parameters": 12750080,
+   "int8embed_projected_MiB": 25.91,
+   "int8embed_projected_bytes": 27164672,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.84,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.24,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.24,
+     "in_sample_auc": 0.96
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.64,
+     "in_sample_auc": 0.84
+    }
+   },
+   "macro_held_out_auc": 0.504,
+   "macro_in_sample_auc": 0.96,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.4,
+    "low_mood|sleep_disruption": 0.92,
+    "low_mood|social_withdrawal": 0.76,
+    "low_mood|activation": 0.84,
+    "anxiety|sleep_disruption": 0.68,
+    "anxiety|social_withdrawal": 0.68,
+    "anxiety|activation": 0.6,
+    "sleep_disruption|social_withdrawal": 0.76,
+    "sleep_disruption|activation": 0.16,
+    "social_withdrawal|activation": 0.48
+   },
+   "positive_control_macro": 0.628,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 11.25,
+   "projected_cold_payload_bytes": 39030026,
+   "projected_cold_payload_MiB": 37.22,
+   "size_blockers": [],
+   "shippable": true
+  },
+  {
+   "variant": "nli_paraphrase_minilm_l3",
+   "model": "sentence-transformers/paraphrase-MiniLM-L3-v2",
+   "revision": "4ca70771034acceecb2e72475f72050fcdde4ddc",
+   "licence": "apache-2.0",
+   "role": "the only hidden-384 depth inside the envelope (3 layers). AllNLI is part of its training mixture, so it carries a weaker form of the same supervision. Included because if the h256 row fails, the question 'was it the width?' has to have been measured rather than argued.",
+   "expected_shippable_before_measurement": true,
+   "selection_candidate": true,
+   "hidden_size": 384,
+   "num_hidden_layers": 3,
+   "total_parameters": 17389824,
+   "int8embed_projected_MiB": 32.24,
+   "int8embed_projected_bytes": 33805824,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.32,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.32,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.76,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.68,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.592,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.24,
+    "low_mood|sleep_disruption": 0.96,
+    "low_mood|social_withdrawal": 0.76,
+    "low_mood|activation": 0.76,
+    "anxiety|sleep_disruption": 1.0,
+    "anxiety|social_withdrawal": 0.32,
+    "anxiety|activation": 0.88,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 1.0
+   },
+   "positive_control_macro": 0.792,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 9.16,
+   "projected_cold_payload_bytes": 45671178,
+   "projected_cold_payload_MiB": 43.56,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 33805824 > 33554432"
+   ],
+   "shippable": false
+  },
+  {
+   "variant": "nli_deberta_v3_xsmall_body",
+   "model": "cross-encoder/nli-deberta-v3-xsmall",
+   "revision": "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+   "licence": "apache-2.0",
+   "role": "the strongest pure-NLI supervision available at hidden <= 384; the sequence classification head is discarded and the body is mean-pooled, exactly as increment 4 treated the SST-2 body. Its 128100-entry vocab is expected to breach CEIL-1 on the embedding table alone, so it is carried as the quality ceiling of the hidden<=384 family, not as a hopeful.",
+   "expected_shippable_before_measurement": false,
+   "selection_candidate": true,
+   "hidden_size": 384,
+   "num_hidden_layers": 12,
+   "total_parameters": 70682112,
+   "int8embed_projected_MiB": 128.9,
+   "int8embed_projected_bytes": 135157248,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.72,
+     "in_sample_auc": 0.76
+    },
+    "anxiety": {
+     "held_out_auc": 0.64,
+     "in_sample_auc": 0.76
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.36,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": 0.92
+    },
+    "activation": {
+     "held_out_auc": 0.44,
+     "in_sample_auc": 0.8
+    }
+   },
+   "macro_held_out_auc": 0.608,
+   "macro_in_sample_auc": 0.848,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.08,
+    "low_mood|sleep_disruption": 0.76,
+    "low_mood|social_withdrawal": 0.84,
+    "low_mood|activation": 0.48,
+    "anxiety|sleep_disruption": 0.8,
+    "anxiety|social_withdrawal": 0.92,
+    "anxiety|activation": 0.52,
+    "sleep_disruption|social_withdrawal": 0.72,
+    "sleep_disruption|activation": 0.52,
+    "social_withdrawal|activation": 0.84
+   },
+   "positive_control_macro": 0.648,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 22.84,
+   "projected_cold_payload_bytes": 147022602,
+   "projected_cold_payload_MiB": 140.21,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 135157248 > 33554432",
+    "CEIL_3_cold_payload_bytes: projected 147022602 > 67108864 (excl. tokenizer)"
+   ],
+   "shippable": false
+  },
+  {
+   "variant": "nli_deberta_v3_xsmall_zeroshot",
+   "model": "MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33",
+   "revision": "262ae02f29173eec1c250f90804dc7edc677dcff",
+   "licence": "mit",
+   "role": "same body under a broader zero-shot mixture, so the family is not judged on one checkpoint's quirk - the same reason increment 4 carried two cross-encoders.",
+   "expected_shippable_before_measurement": false,
+   "selection_candidate": true,
+   "hidden_size": 384,
+   "num_hidden_layers": 12,
+   "total_parameters": 70682112,
+   "int8embed_projected_MiB": 128.9,
+   "int8embed_projected_bytes": 135157248,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.76,
+     "in_sample_auc": 0.84
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.48,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.36,
+     "in_sample_auc": 0.96
+    },
+    "activation": {
+     "held_out_auc": 0.52,
+     "in_sample_auc": 0.96
+    }
+   },
+   "macro_held_out_auc": 0.616,
+   "macro_in_sample_auc": 0.952,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.2,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 1.0,
+    "low_mood|activation": 0.6,
+    "anxiety|sleep_disruption": 0.6,
+    "anxiety|social_withdrawal": 0.84,
+    "anxiety|activation": 0.24,
+    "sleep_disruption|social_withdrawal": 0.56,
+    "sleep_disruption|activation": 0.56,
+    "social_withdrawal|activation": 0.84
+   },
+   "positive_control_macro": 0.644,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 15.58,
+   "projected_cold_payload_bytes": 147022602,
+   "projected_cold_payload_MiB": 140.21,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 135157248 > 33554432",
+    "CEIL_3_cold_payload_bytes: projected 147022602 > 67108864 (excl. tokenizer)"
+   ],
+   "shippable": false
+  },
+  {
+   "variant": "incumbent_centroid",
+   "model": "sentence-transformers/all-MiniLM-L6-v2",
+   "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+   "licence": "apache-2.0",
+   "role": "baseline, recomputed inside this run. Must reproduce increments 3 and 4 (0.504) or one of the three measurements is wrong and none may be quoted.",
+   "expected_shippable_before_measurement": false,
+   "selection_candidate": false,
+   "excluded_because": "baseline - it is the thing being replaced",
+   "hidden_size": 384,
+   "num_hidden_layers": 6,
+   "total_parameters": 22713216,
+   "int8embed_projected_MiB": 52.55,
+   "int8embed_projected_bytes": 55099392,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.24,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.36,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.4,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.504,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.2,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 0.88,
+    "low_mood|activation": 0.92,
+    "anxiety|sleep_disruption": 1.0,
+    "anxiety|social_withdrawal": 0.72,
+    "anxiety|activation": 0.92,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 0.96
+   },
+   "positive_control_macro": 0.86,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 0.87,
+   "projected_cold_payload_bytes": 66964746,
+   "projected_cold_payload_MiB": 63.86,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 55099392 > 33554432"
+   ],
+   "shippable": false
+  },
+  {
+   "variant": "nli_sbert_768_reference",
+   "model": "sentence-transformers/nli-distilroberta-base-v2",
+   "revision": "cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d",
+   "licence": "apache-2.0",
+   "role": "increment 4's selection (0.880), recomputed as the upper reference so the gap this increment is trying to close is measured in this run and not quoted from another one.",
+   "expected_shippable_before_measurement": false,
+   "selection_candidate": false,
+   "excluded_because": "hidden_size 768 - outside the hidden <= 384 rule fixed before this increment, and already measured unshippable at 201.68 MiB",
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 82118400,
+   "int8embed_projected_MiB": 201.68,
+   "int8embed_projected_bytes": 211476480,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.6,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.88,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.52,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 0.92,
+    "low_mood|activation": 0.96,
+    "anxiety|sleep_disruption": 0.96,
+    "anxiety|social_withdrawal": 0.8,
+    "anxiety|activation": 1.0,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 1.0
+   },
+   "positive_control_macro": 0.916,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 0.96,
+   "projected_cold_payload_bytes": 223341834,
+   "projected_cold_payload_MiB": 213.0,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 211476480 > 33554432",
+    "CEIL_3_cold_payload_bytes: projected 223341834 > 67108864 (excl. tokenizer)"
+   ],
+   "shippable": false
+  },
+  {
+   "variant": "nli_minilm_l6_mnli_unlicensed",
+   "model": "MoritzLaurer/MiniLM-L6-mnli",
+   "revision": "6e0917f1a395b7a6c0f054a56b91c45d8e3af92f",
+   "licence": null,
+   "role": "MNLI-supervised at the incumbent's exact shape (hidden 384, 6 layers, 30522 vocab), which isolates supervision from capacity: it is the incumbent's size with NLI training. Measured for that reason and EXCLUDED FROM SELECTION ON LICENCE, not on its number.",
+   "expected_shippable_before_measurement": false,
+   "selection_candidate": false,
+   "excluded_because": "no licence is declared on the model repository or its card (checked 2026-08-24 via the HF model API and README). data/MANIFEST.md requires a cleared licence for anything redistributed in an artifact; an undeclared licence is not a permissive one, and resolving that in our own favour is exactly what GOAL.md non-negotiable 4 forbids.",
+   "hidden_size": 384,
+   "num_hidden_layers": 6,
+   "total_parameters": 22713216,
+   "int8embed_projected_MiB": 52.55,
+   "int8embed_projected_bytes": 55099392,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.24,
+     "in_sample_auc": 0.92
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.72,
+     "in_sample_auc": 0.84
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.72,
+     "in_sample_auc": 0.96
+    }
+   },
+   "macro_held_out_auc": 0.728,
+   "macro_in_sample_auc": 0.944,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.2,
+    "low_mood|sleep_disruption": 0.72,
+    "low_mood|social_withdrawal": 0.6,
+    "low_mood|activation": 0.76,
+    "anxiety|sleep_disruption": 0.52,
+    "anxiety|social_withdrawal": 0.68,
+    "anxiety|activation": 0.36,
+    "sleep_disruption|social_withdrawal": 0.64,
+    "sleep_disruption|activation": 0.16,
+    "social_withdrawal|activation": 0.52
+   },
+   "positive_control_macro": 0.516,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "readout": "centroid_difference",
+   "additivity_preserved": true,
+   "elapsed_s": 13.53,
+   "projected_cold_payload_bytes": 66964746,
+   "projected_cold_payload_MiB": 63.86,
+   "size_blockers": [
+    "CEIL_1_int8_model_bytes: projected 55099392 > 33554432"
+   ],
+   "shippable": false
+  }
+ ],
+ "attrition": {
+  "measured": [
+   "nli_xtremedistil_h256",
+   "nli_paraphrase_minilm_l3",
+   "nli_deberta_v3_xsmall_body",
+   "nli_deberta_v3_xsmall_zeroshot",
+   "incumbent_centroid",
+   "nli_sbert_768_reference",
+   "nli_minilm_l6_mnli_unlicensed"
+  ],
+  "selection_candidates": [
+   "nli_xtremedistil_h256",
+   "nli_paraphrase_minilm_l3",
+   "nli_deberta_v3_xsmall_body",
+   "nli_deberta_v3_xsmall_zeroshot"
+  ],
+  "readable": [
+   "nli_paraphrase_minilm_l3"
+  ],
+  "dropped_unreadable": [
+   "nli_xtremedistil_h256",
+   "nli_deberta_v3_xsmall_body",
+   "nli_deberta_v3_xsmall_zeroshot"
+  ],
+  "usable": [],
+  "dropped_not_usable": [
+   "nli_paraphrase_minilm_l3"
+  ],
+  "shippable_and_usable": [],
+  "dropped_on_size": [],
+  "separates_but_does_not_fit": [
+   "nli_sbert_768_reference"
+  ],
+  "fits_but_does_not_separate": [
+   "nli_xtremedistil_h256"
+  ]
+ },
+ "selected": null,
+ "selected_model": null,
+ "selected_revision": null,
+ "adopted": false,
+ "adoption_rule": "Unlike increment 4, selection here already requires shippability, so a selection IS an adoption: export/common.py's BASE_MODEL/BASE_REVISION move to the selected row and the export pipeline is re-run against SIZE_BUDGET.md. If nothing is selected, export/common.py is left untouched on the incumbent.",
+ "baseline_reference": {
+  "variant": "incumbent_centroid",
+  "macro_held_out_auc": 0.504,
+  "increment_3_and_4_value": 0.504,
+  "note": "recomputed here; must reproduce or one of the three runs is wrong"
+ },
+ "upper_reference": {
+  "variant": "nli_sbert_768_reference",
+  "macro_held_out_auc": 0.88,
+  "increment_4_value": 0.88,
+  "int8embed_projected_MiB": 201.68,
+  "note": "the gap this increment tries to close, recomputed in this run"
+ },
+ "excluded_from_selection": {
+  "incumbent_centroid": "baseline - it is the thing being replaced",
+  "nli_sbert_768_reference": "hidden_size 768 - outside the hidden <= 384 rule fixed before this increment, and already measured unshippable at 201.68 MiB",
+  "nli_minilm_l6_mnli_unlicensed": "no licence is declared on the model repository or its card (checked 2026-08-24 via the HF model API and README). data/MANIFEST.md requires a cleared licence for anything redistributed in an artifact; an undeclared licence is not a permissive one, and resolving that in our own favour is exactly what GOAL.md non-negotiable 4 forbids."
+ },
+ "expectation_vs_outcome": {
+  "nli_xtremedistil_h256": {
+   "expected_shippable": true,
+   "measured_shippable": true
+  },
+  "nli_paraphrase_minilm_l3": {
+   "expected_shippable": true,
+   "measured_shippable": false
+  },
+  "nli_deberta_v3_xsmall_body": {
+   "expected_shippable": false,
+   "measured_shippable": false
+  },
+  "nli_deberta_v3_xsmall_zeroshot": {
+   "expected_shippable": false,
+   "measured_shippable": false
+  },
+  "incumbent_centroid": {
+   "expected_shippable": false,
+   "measured_shippable": false
+  },
+  "nli_sbert_768_reference": {
+   "expected_shippable": false,
+   "measured_shippable": false
+  },
+  "nli_minilm_l6_mnli_unlicensed": {
+   "expected_shippable": false,
+   "measured_shippable": false
+  }
+ },
+ "verdict": "NO SELECTION. Option B is CLOSED at hidden <= 384: no entailment-supervised bi-encoder in the fixed candidate list is READABLE, USABLE and SHIPPABLE at once. These separate and do not fit: ['nli_sbert_768_reference']. These fit and do not separate: ['nli_xtremedistil_h256']. R4-CEIL-001 therefore does not close by shrinking the scorer, and plan.md R-4 is the answer: a local desktop app, which keeps the zero-egress claim and drops the in-browser claim rather than fudging it. No ceiling is edited to reach a different conclusion."
+}

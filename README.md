@@ -11,8 +11,18 @@ A client-side longitudinal well-being instrument, built for
 
 An instrument that makes a person's own between-visits experience legible to the
 clinician actually treating them — not an AI that acts as a therapist. Inference
-runs in the user's browser over their own writing; the output is per-span
-attribution over their words and a trajectory over time, not generated advice.
+runs locally over the user's own writing and nothing leaves the device; the
+output is per-span attribution over their words and a trajectory over time, not
+generated advice.
+
+**The delivery target changed in build increment 5, and the reason is a
+measurement, not a preference.** The plan was a browser app. Meeting the size
+ceiling set on day one requires an encoder small enough that no
+entailment-supervised checkpoint we could find both fits it and separates
+held-out text — the one that fits scores at chance. Rather than move the ceiling
+or drop the claim quietly, plan.md's pre-written R-4 fallback is taken: a local
+desktop app. Zero-egress survives, because it never depended on the browser. The
+in-browser claim does not. `docs/limitations.md` §1b has the table.
 
 ## What is built and verified so far
 
@@ -21,10 +31,11 @@ attribution over their words and a trajectory over time, not generated advice.
 | `ledger/safety/` — deterministic crisis router | **built, tested** | `../audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `../audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
 | `ledger/model/` — encoder + additive attribution head | **built** | `artifacts/verify_report.json` |
 | `export/` — ONNX export, int8 quantization, verification | **built, and currently failing its own ceiling** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
-| In-browser inference (`onnxruntime-web`, WASM) | **runs**; no shippable build yet | `artifacts/wasm/bench_*.json` |
+| In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — no build meets the ceilings | `artifacts/wasm/bench_*.json`, `docs/limitations.md` §1b |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
+| A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
 | UI | not started | — |
 
 All tests pass offline: `python -m unittest discover -s tests`. What they assert is that the numbers in this README are re-derivable from the artifacts, not that the project works.
@@ -103,6 +114,35 @@ which kernel path their browser took. That is an argument against the int8 build
 independent of any ceiling.
 
 Neither the ceilings nor the claims were adjusted to fit these numbers.
+
+## The small-scorer route was measured, and it closed
+
+Increment 4 left a working scorer (0.880 held-out) at 201.68 MiB and a shippable
+scorer at chance, so increment 5 asked the only remaining cheap question: is
+there an entailment-supervised bi-encoder small enough to fit? The candidate list
+was committed before the run (`c1727e1`) and shippability was promoted into the
+selection rule, so a scorer that separates and does not fit could not be
+"selected" again.
+
+| Scorer | H | L | Held-out AUC | Control | int8-embed | Fits CEIL-1? |
+|---|---:|---:|---:|---:|---:|:---:|
+| `xtremedistil-l6-h256-zeroshot` | 256 | 6 | 0.504 | 0.628 | **25.91 MiB** | **yes** |
+| `paraphrase-MiniLM-L3-v2` | 384 | 3 | 0.592 | 0.792 | 32.24 MiB | no, by 0.24 MiB |
+| `nli-deberta-v3-xsmall` (body) | 384 | 12 | 0.608 | 0.648 | 128.90 MiB | no |
+| `deberta-v3-xsmall-zeroshot` | 384 | 12 | 0.616 | 0.644 | 128.90 MiB | no |
+| `nli-distilroberta-base-v2` *(reference)* | 768 | 6 | **0.880** | 0.916 | 201.68 MiB | no |
+
+The one that fits separates at 0.504 — the incumbent's number — on a positive
+control below the 0.75 floor, so it is not even readable. **Nothing was
+selected**, `export/common.py` is unchanged, and no ceiling moved: the 32.24 MiB
+row missing a 32.00 MiB ceiling by a quarter of a megabyte is exactly the edit
+`tests/test_size_feasible_scorer.py` exists to forbid.
+
+That closes the last route that would have kept the browser target, so R-4 was
+invoked. It is worth being plain about what this costs and what it does not: the
+scoring defect in `docs/limitations.md` §1 is **not** fixed by this — a desktop
+target makes the 0.880 scorer *shippable*, it does not make its 0.600
+`activation` dimension work.
 
 ## The narrower encoder was measured, and not taken
 

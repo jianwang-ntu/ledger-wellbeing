@@ -75,3 +75,50 @@ This is the SIZE_BUDGET fallback rule working as written, one level up from wher
 it was expected to fire: plan.md R-4's fallback ("drop the in-browser claim
 rather than fudge it") remains live and unexercised, because the binding problem
 turned out not to be size.
+
+---
+
+## Build increment 5 — the fallback rule fired, and this time it was taken
+
+No ceiling in the table above has been edited. This section records the run that
+ended the attempt to meet them.
+
+Increment 4 left the project holding two artifacts that are not the same
+artifact: a scorer measured to separate held-out text at macro AUC 0.880
+(`sentence-transformers/nli-distilroberta-base-v2`, 201.68 MiB) and a scorer that
+fits (`all-MiniLM-L6-v2`, at chance). `export/size_feasible_scorer.py` was
+written to close that gap from the size end, with its candidate list committed
+before it ran (`c1727e1`) and with **shippability promoted from a post-hoc report
+to a selection criterion** — a strict tightening of increment 4's rule.
+
+The envelope was arithmetic, not a search. The int8-embed build stores embedding
+parameters at one byte and every other parameter at four, so at a 30522-entry
+vocabulary CEIL-1's 32 MiB buys roughly three encoder layers at hidden 384 or
+eight at hidden 256. Four entailment-supervised bi-encoders at hidden ≤ 384 were
+measured against it, with three references.
+
+**Nothing was selected.** The full table is in `../docs/limitations.md` §1b and
+`../artifacts/size_feasible_scorer.json`. The two rows that define the outcome:
+
+| | Model | int8-embed | CEIL-1 | Held-out AUC | Control |
+|---|---|---:|---:|---:|---:|
+| fits, does not separate | `xtremedistil-l6-h256-zeroshot-v1.1-all-33` | **25.91 MiB** | pass | **0.504** | 0.628 (under floor) |
+| separates, does not fit | `nli-distilroberta-base-v2` | 201.68 MiB | **fail** | **0.880** | 0.916 |
+
+The closest thing to a near miss, `paraphrase-MiniLM-L3-v2`, projects to **32.24
+MiB against CEIL-1's 32.00** — 0.24 MiB over — and separates at 0.592 against a
+0.70 threshold. It fails both halves, and it is named here because raising CEIL-1
+by a quarter of a megabyte is the specific edit this document exists to forbid.
+`tests/test_size_feasible_scorer.py::TestNoCeilingMoved::test_ceil_1_is_still_32_mib`
+fails if it ever happens.
+
+So the fallback in "What happens if a ceiling fails" is now **invoked rather than
+merely available**. plan.md R-4 as written: *fall back to a local desktop app;
+the zero-egress claim survives, the "in-browser" claim is dropped rather than
+fudged.* CEIL-1 through CEIL-3 stop being the binding constraint on the artifact,
+because the artifact is no longer a web download — and CEIL-4 (latency) and
+CEIL-5 (int8-vs-fp32 agreement) continue to apply unchanged, because they are
+properties of the model, not of the delivery target.
+
+`export/common.py` is unchanged. `BASE_MODEL` still holds the incumbent, and no
+build has been shipped.

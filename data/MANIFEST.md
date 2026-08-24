@@ -49,10 +49,38 @@ Upstream for the two cross-encoders and the NLI bi-encoder: Reimers & Gurevych,
 MultiNLI; for the SST-2 checkpoint, Sanh et al., *DistilBERT* (2019) fine-tuned
 on SST-2 (Socher et al., 2013).
 
+`export/size_feasible_scorer.py` (build increment 5) downloads five further
+checkpoints to ask whether any entailment-supervised bi-encoder at hidden <= 384
+both separates held-out anchors and fits the ceilings in
+`export/SIZE_BUDGET.md`. The candidate list was committed before the run.
+
+| Asset | Pinned revision | Licence | Gated | Measured as |
+|---|---|---|---|---|
+| `MoritzLaurer/xtremedistil-l6-h256-zeroshot-v1.1-all-33` | `c07f66d9cbf781191bee66edfe8ad7856f045781` | **MIT** | No | entailment-supervised body, mean-pooled; the one candidate inside the size envelope |
+| `sentence-transformers/paraphrase-MiniLM-L3-v2` | `4ca70771034acceecb2e72475f72050fcdde4ddc` | **Apache-2.0** | No | 3-layer bi-encoder with AllNLI in its training mixture |
+| `cross-encoder/nli-deberta-v3-xsmall` | `a150876415327c80daeff35ca6f68f5ed8cf5c24` | **Apache-2.0** | No | NLI body, sequence-classification head discarded, mean-pooled |
+| `MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33` | `262ae02f29173eec1c250f90804dc7edc677dcff` | **MIT** | No | same body under a broader zero-shot mixture |
+| `MoritzLaurer/MiniLM-L6-mnli` | `6e0917f1a395b7a6c0f054a56b91c45d8e3af92f` | **NONE DECLARED** | No | MNLI-supervised at the incumbent's exact shape — **measured, and excluded from selection on licence** |
+
+**`MoritzLaurer/MiniLM-L6-mnli` declares no licence** in `cardData.license`, in
+the repository tags, or anywhere in its model card (all three checked via the
+Hugging Face model API on 2026-08-24). An undeclared licence is not a permissive
+one. It was measured because it isolates supervision from capacity — it is the
+incumbent's exact shape with MNLI training — and it was excluded from selection
+before its number was read, so no weight of it enters any artifact here.
+`tests/test_size_feasible_scorer.py::TestLicenceIsAGateNotAPreference` fails if a
+model with a null licence is ever made a selection candidate.
+
+Upstream: for the MiniLM checkpoints, Wang et al., *MiniLM* (2020) and Reimers &
+Gurevych, *Sentence-BERT* (2019); for the DeBERTa-v3 checkpoints, He, Gao & Chen,
+*DeBERTaV3* (2021); for the xtremedistil body, Mukherjee & Awadallah,
+*XtremeDistil* (2020). The zero-shot fine-tunes are Laurer et al., *Less Annotating,
+More Classifying* (2023).
+
 All licences on this page were read from the Hugging Face model API
 (`cardData.license` and the `license:apache-2.0` tag) on 2026-08-24, not from a
-README badge. `tests/test_encoder_ablation.py` and
-`tests/test_scorer_ablation.py` fail if a model either ablation downloads is
+README badge. `tests/test_encoder_ablation.py`, `tests/test_scorer_ablation.py` and
+`tests/test_size_feasible_scorer.py` fail if a model any ablation downloads is
 missing from this file, or is listed without its pinned revision.
 
 ## Runtime

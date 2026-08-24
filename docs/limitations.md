@@ -5,7 +5,7 @@ state, in the place a reader will actually look, what this tool has *not* shown.
 Everything here is a measurement in this repository, not a caveat written to
 sound careful.
 
-Last updated: build increment 4, 2026-08-24.
+Last updated: build increment 5, 2026-08-24.
 
 ---
 
@@ -161,6 +161,68 @@ to be fixed before the next increment runs, not chosen from its results), and
 plan.md R-4 — a local desktop app, which keeps the zero-egress claim and drops
 the in-browser one rather than fudging it.
 
+### §1b. There is no small NLI encoder that both separates and fits. R-4 fires.
+
+**Measured:** `artifacts/size_feasible_scorer.json`, reproducible with
+`python export/size_feasible_scorer.py`. Same held-out protocol, same 0.75
+control floor and 0.70 usable threshold, imported not re-typed — and this time
+**size is a selection criterion, not a footnote**. Increment 4 selected on
+separation and reported shippability afterwards, which is how it produced a
+selection it could not adopt. That is a tightening, so nothing that failed in
+increment 4 can pass here because the rule changed.
+
+The candidate list was closed in commit `c1727e1`, which contains the list and
+no measurement. The size envelope was arithmetic, fixed before any of it ran:
+the int8-embed build stores embedding parameters at one byte and everything else
+at four, so at a 30522-entry vocab CEIL-1 buys about **three encoder layers at
+hidden 384, or about eight at hidden 256**. That is why the candidates vary
+depth rather than width.
+
+| Scorer | H | L | Held-out AUC | Positive control | int8-embed | Fits? |
+|---|---:|---:|---:|---:|---:|:---:|
+| `xtremedistil-l6-h256-zeroshot-v1.1-all-33` | 256 | 6 | 0.504 | **0.628** | **25.91 MiB** | **yes** |
+| `paraphrase-MiniLM-L3-v2` | 384 | 3 | 0.592 | 0.792 | 32.24 MiB | no |
+| `cross-encoder/nli-deberta-v3-xsmall` (body) | 384 | 12 | 0.608 | **0.648** | 128.90 MiB | no |
+| `deberta-v3-xsmall-zeroshot-v1.1-all-33` | 384 | 12 | 0.616 | **0.644** | 128.90 MiB | no |
+| `all-MiniLM-L6-v2` *(baseline, recomputed)* | 384 | 6 | 0.504 | 0.860 | 52.55 MiB | no |
+| `nli-distilroberta-base-v2` *(§1a, recomputed)* | 768 | 6 | **0.880** | 0.916 | 201.68 MiB | no |
+| `MoritzLaurer/MiniLM-L6-mnli` *(unlicensed)* | 384 | 6 | 0.728 | **0.516** | 52.55 MiB | no |
+
+**Nothing is selected.** The two rows that matter are the two ends of the gap:
+
+* `MoritzLaurer/xtremedistil-l6-h256-zeroshot-v1.1-all-33` **fits** — 25.91 MiB
+  inside CEIL-1, 37.2 MiB of cold payload inside CEIL-3 — and separates at
+  **0.504**, which is the incumbent's number, on a positive control of 0.628
+  that is under the floor. It is entailment-supervised and it recovers nothing.
+  Adopting it would be a size fix presented as a scorer fix.
+* `sentence-transformers/nli-distilroberta-base-v2` separates at 0.880 and does
+  not fit, unchanged from §1a.
+
+`paraphrase-MiniLM-L3-v2` is the near miss in both directions and clears
+neither: 32.24 MiB against a 32.00 MiB ceiling — **0.24 MiB over** — and 0.592
+against a 0.70 threshold. Editing CEIL-1 by a quarter of a megabyte would have
+"closed" R4-CEIL-001 on a model that is at chance anyway.
+`tests/test_size_feasible_scorer.py::TestNoCeilingMoved` fails if CEIL-1 or
+CEIL-3 ever moves.
+
+Two things are recorded because they cut against us. First, one pre-registered
+expectation was **wrong**: `paraphrase-MiniLM-L3-v2` was written down as
+expected-to-fit before the run and missed by 0.24 MiB, and the expectation is in
+the artifact rather than quietly corrected. Second, the second-highest held-out
+number in the whole table (0.728) belongs to `MoritzLaurer/MiniLM-L6-mnli`, and
+it is **not readable**: its positive control is 0.516, so the protocol cannot
+attribute that separation to the dimension it is claimed for. That model is also
+excluded from selection on licence — its repository and card declare none, and
+`data/MANIFEST.md` requires a cleared licence for anything redistributed. Both
+reasons are recorded, and it is worth being plain that the licence exclusion
+cost nothing: the row was unreadable on its own control regardless.
+
+**Conclusion: option B is closed at hidden ≤ 384.** R4-CEIL-001 does not close
+by shrinking the scorer. plan.md **R-4** is therefore the answer, exactly as it
+was written before any of this was measured — *a local desktop app, where the
+zero-egress claim survives and the in-browser claim is dropped rather than
+fudged*. `export/common.py` is unchanged and still holds the incumbent.
+
 ### What is therefore not claimed anywhere
 
 - That a Ledger score reflects the user's mood, anxiety, sleep or activity.
@@ -195,6 +257,13 @@ read the two facts in is: the only scorer measured to separate held-out text
 (§1a) is **201.68 MiB**, six times CEIL-1, so there is now a working scorer and a
 shippable size and they are not the same artifact. Neither ceiling was moved to
 close that gap.
+
+Increment 5 closed the last route that would have kept the in-browser target:
+of four entailment-supervised bi-encoders at hidden ≤ 384, the only one that
+fits the ceilings separates at chance (§1b). **The in-browser claim is therefore
+dropped rather than fudged, and plan.md R-4's desktop fallback is the target.**
+The zero-egress claim is unaffected — it never depended on the browser, only on
+there being no server component.
 
 The narrower-encoder route recorded at the end of increment 2 was measured in
 increment 3 and **not taken**: `google/bert_uncased_L-6_H-256_A-4` does project
