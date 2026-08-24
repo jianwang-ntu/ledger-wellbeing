@@ -1,0 +1,85 @@
+{
+ "measured_at_utc": "2026-08-24T14:20:19Z",
+ "reference": "fp32 single-file build",
+ "probe_set_n": 64,
+ "results": {
+  "int8_full": {
+   "bytes": 22840664,
+   "MiB": 21.78,
+   "cold_payload_MiB": 33.78,
+   "max_abs_score_delta": 0.040429,
+   "mean_abs_score_delta": 0.010824
+  },
+  "uint8_full": {
+   "bytes": 22850906,
+   "MiB": 21.79,
+   "cold_payload_MiB": 33.79,
+   "max_abs_score_delta": 0.041284,
+   "mean_abs_score_delta": 0.009983
+  },
+  "int8_full_reduce_range": {
+   "bytes": 22840664,
+   "MiB": 21.78,
+   "cold_payload_MiB": 33.78,
+   "max_abs_score_delta": 0.041416,
+   "mean_abs_score_delta": 0.010905
+  },
+  "int8_matmul_only": {
+   "bytes": 58593086,
+   "MiB": 55.88,
+   "cold_payload_MiB": 67.87,
+   "max_abs_score_delta": 0.045903,
+   "mean_abs_score_delta": 0.009813
+  },
+  "int8_embed_only": {
+   "bytes": 54571189,
+   "MiB": 52.04,
+   "cold_payload_MiB": 64.04,
+   "max_abs_score_delta": 0.009437,
+   "mean_abs_score_delta": 0.002126
+  },
+  "int8_full_excluding_L0": {
+   "bytes": 28568239,
+   "MiB": 27.24,
+   "cold_payload_MiB": 39.24,
+   "max_abs_score_delta": 0.041598,
+   "mean_abs_score_delta": 0.009054
+  },
+  "int8_full_excluding_L1": {
+   "bytes": 28568298,
+   "MiB": 27.24,
+   "cold_payload_MiB": 39.24,
+   "max_abs_score_delta": 0.052735,
+   "mean_abs_score_delta": 0.0089
+  },
+  "int8_full_excluding_L2": {
+   "bytes": 28568153,
+   "MiB": 27.24,
+   "cold_payload_MiB": 39.24,
+   "max_abs_score_delta": 0.031974,
+   "mean_abs_score_delta": 0.009341
+  },
+  "int8_full_excluding_L3": {
+   "bytes": 28568051,
+   "MiB": 27.24,
+   "cold_payload_MiB": 39.24,
+   "max_abs_score_delta": 0.035789,
+   "mean_abs_score_delta": 0.00995
+  },
+  "int8_full_excluding_L4": {
+   "bytes": 29889343,
+   "MiB": 28.5,
+   "cold_payload_MiB": 40.5,
+   "max_abs_score_delta": 0.03753,
+   "mean_abs_score_delta": 0.010146
+  },
+  "int8_full_excluding_L5": {
+   "bytes": 24612701,
+   "MiB": 23.47,
+   "cold_payload_MiB": 35.47,
+   "max_abs_score_delta": 0.040966,
+   "mean_abs_score_delta": 0.010729
+  }
+ },
+ "finding": "The int8 error is diffuse, not concentrated. Excluding any single encoder layer costs ~5.5 MiB and moves max_abs_score_delta by less than 0.01 - two of the six exclusions make it WORSE - so no cheap subset buys CEIL-5 back. Quantizing the embedding table, by contrast, is nearly free in agreement (int8_embed_only max delta ~0.009) and saves ~34 MiB, so the embedding is not where the accuracy is lost. What costs agreement is int8 on the 10.6M encoder-layer weights, and what costs size is the 11.7M-parameter embedding table. They are separable, which is what makes a smaller encoder - rather than smarter quantization of this one - the way through."
+}

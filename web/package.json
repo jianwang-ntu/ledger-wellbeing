@@ -1,0 +1,9 @@
+{
+  "name": "ledger-web",
+  "private": true,
+  "type": "module",
+  "description": "In-browser inference runtime for Ledger (onnxruntime-web).",
+  "dependencies": {
+    "onnxruntime-web": "1.23.0"
+  }
+}

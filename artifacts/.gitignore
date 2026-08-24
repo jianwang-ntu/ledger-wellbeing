@@ -1,0 +1,5 @@
+# Track the reports, not the weights.
+onnx/
+torch/
+tokenizer/
+bench_input.json
