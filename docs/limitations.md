@@ -245,9 +245,22 @@ R-1: no mental-health corpus with a clear permissive licence has been cleared,
 and hackathon rule 2 requires clearing it rather than assuming it. Nothing in
 this repository may be described as fine-tuned; a test enforces that.
 
-## 3. There is no shippable in-browser build yet
+## 3. There is no shippable in-browser build, and there will not be
 
-`export/verify.py` exits **1** and `shippable_builds` is `[]`. The int8 build
+**Updated at increment 7.** `export/verify.py` now exits **0** on the *desktop*
+target with `int8_embed` selected: CEIL-2 was met by re-serializing the same
+tokenizer document compactly, 3,559,258 B -> 1,556,504 B, with `encode()` output
+elementwise identical. That is the first shippable build in this project. It is a
+statement about **size and fidelity only** and says nothing about whether the
+score is any good; §1 is unchanged by it.
+
+The **web** target stays lost, on four ceilings rather than two: model bytes,
+cold payload, and 836.61 ms p95 in single-threaded WASM against 500 ms. Nothing
+below is retracted.
+
+The history that got here, kept because the numbers are the argument:
+
+`export/verify.py` used to exit **1** with `shippable_builds` `[]`. The int8 build
 (21.78 MiB) misses CEIL-5 at max score delta 0.0404 against 0.02; the
 embeddings-only int8 build (52.04 MiB) meets CEIL-5 at 0.0094 but breaches CEIL-1
 and CEIL-3. Details and the full ceiling table are in `export/SIZE_BUDGET.md`.
@@ -304,5 +317,88 @@ Stated so the list above is not read as "nothing works":
 - **The crisis router fires** on all 23 adversarial cases in the matrix,
   including one real evasion this suite caught (the dotless-i homoglyph
   `U+0131`, which survived NFKD normalisation).
-- **Nothing leaves the device**, by construction: there is no server component.
-  The packet-level demonstration of that claim is still owed.
+- **Nothing leaves the device**, and as of increment 8 that is measured rather
+  than asserted: a full end-to-end exercise of the application under instrumented
+  `socket` primitives records **zero socket calls of any kind**, loopback
+  included (`artifacts/egress_audit.json`). See §7.1 for exactly how far that
+  measurement reaches, which is not as far as a packet capture.
+- **The application exists and runs.** Entry -> deterministic crisis route ->
+  score -> per-span attribution -> encrypted local store -> report, driven from
+  `python -m ledger.app.cli`. Span-level attribution still sums to the logit
+  exactly: max residual **4.41e-07** against a 1e-4 rule, over 64 probe entries x
+  5 dimensions x 2 granularities (`artifacts/span_additivity.json`).
+
+## 7. What the application does and does not do (increment 8)
+
+### 7.1 The zero-egress measurement is process-level, not packet-level
+
+`export/egress_audit.py` wraps `socket.socket.connect`, `connect_ex`, `sendto`,
+`sendmsg`, `socket.create_connection`, `getaddrinfo`, `gethostbyname` and
+`gethostbyname_ex` before the application is imported, then drives it end to end.
+It observes **what this Python process asked the kernel to do**.
+
+It does not observe a subprocess, a native library that opens a socket without
+going through the `socket` module, or a kernel-level send. A packet capture with
+the interface down — which `plan.md`'s evidence plan asks for — is strictly
+stronger and needs privileges this build environment does not have. **The weaker
+measurement is not described as the stronger one**, and the stronger one remains
+owed.
+
+What the weaker one is genuinely sufficient for: the realistic failure mode here
+was a Hugging Face library issuing a revision check on first use, which goes
+through `getaddrinfo` and would have been caught. Since increment 8 the
+application does not import `transformers` at all, so there is no library left in
+it that knows how to fetch anything.
+
+### 7.2 The encrypted store leaks metadata, and truncation is not detectable
+
+Records are AES-256-GCM with a per-record nonce, keyed by scrypt
+(n=2^15, r=8, p=1) from a passphrase the user holds and the file never contains.
+Position and file identity are bound into the AAD, so a record cannot be
+reordered, duplicated, or moved between stores without the tag failing.
+
+Three things it does not hide or prevent, stated rather than left to be found:
+
+- **Record count and approximate entry length are visible** to anyone holding the
+  file. Length-prefixed records make that unavoidable without padding, and
+  padding was not implemented.
+- **Truncation of trailing records is detectable only as absence.** Someone who
+  can write to the file can delete the most recent entries; the remaining ones
+  still authenticate. A running counter in each record would fix this and is not
+  built.
+- **The header is plaintext**, deliberately: it holds the KDF parameters, which
+  cannot be hidden from an attacker without also hiding them from the owner.
+
+### 7.3 Wipe is as good as userspace gets, which is not as good as it sounds
+
+`Journal.wipe()` overwrites the file with random bytes, then with zeros, then
+unlinks it. On a copy-on-write, journalled, or wear-levelled filesystem — which
+is to say on most SSDs — the superseded blocks may survive both passes, and **no
+userspace program can promise otherwise**. Full-disk encryption is the actual
+answer to that threat and is outside what this project can provide.
+
+Wipe deliberately does **not** require the passphrase. Someone who needs their
+journal gone should not have to remember how to open it first.
+
+### 7.4 The CLI is a front-end, not a designed interface
+
+`plan.md` C6 (UI/UX & Accessibility) is graded on visual design quality,
+navigation and accessibility standards. A command line answers none of those,
+`a11y/axe_report.json` does not exist, and no screen-reader traversal has been
+recorded. **C6 has no artifact behind it.** This is stated in
+`export/INCREMENT_8_PREREGISTRATION.md` as a deliberate hole for increment 9, not
+discovered here.
+
+### 7.5 The application shows numbers, and numbers persuade
+
+Four of five dimensions clear the 0.70 held-out floor and one does not. Both the
+per-entry output and the report label `activation` `[NOT ESTABLISHED]` every
+time it appears, with its 0.600 and the threshold, and say the evaluation was 25
+withheld anchor-sentence pairs per dimension written for this repository — not
+clinical data, not real journal entries, not an external benchmark. That labelling
+is a guard (`tests/test_report.py`), not a convention, and a mutation that blanks
+it in either section fails the suite.
+
+The residual risk stands anyway: a person reading a sparkline of their own moods
+will over-read it. The chart is fixed to a 0..1 scale rather than autoscaled for
+exactly this reason, and it is not enough.

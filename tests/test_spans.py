@@ -107,6 +107,34 @@ class TestPartition:
         assert sum(s.n_tokens for s in out) + n_structural == sum(mask)
 
 
+class TestTheToleranceIsOneNumber:
+    """R8-2 gets no tolerance of its own, and the two copies must agree.
+
+    The artifact guard below checks the number the measurement *recorded*. That
+    is blind to someone widening the constant in code and not re-running the
+    measurement, which the first mutation run demonstrated.
+    """
+
+    @staticmethod
+    def _constant(path: Path) -> float:
+        namespace: dict = {}
+        for line in path.read_text().splitlines():
+            if line.startswith("ADDITIVITY_MAX_RESIDUAL"):
+                exec(line, namespace)
+                return namespace["ADDITIVITY_MAX_RESIDUAL"]
+        raise AssertionError(f"no ADDITIVITY_MAX_RESIDUAL in {path}")
+
+    def test_the_application_holds_the_token_level_value(self):
+        assert self._constant(ROOT / "ledger" / "app" / "engine.py") == 1e-4
+
+    def test_the_export_pipeline_holds_the_same_value(self):
+        assert self._constant(ROOT / "export" / "verify.py") == 1e-4
+
+    def test_the_two_have_not_drifted_apart(self):
+        assert (self._constant(ROOT / "ledger" / "app" / "engine.py")
+                == self._constant(ROOT / "export" / "verify.py"))
+
+
 class TestMeasuredAdditivity:
     """R8-2, read from the measurement rather than recomputed."""
 

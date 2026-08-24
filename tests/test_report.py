@@ -113,10 +113,19 @@ class TestUnestablishedDimensionsAreLabelled:
     """R8-7, in the surface the user and any clinician actually reads."""
 
     def test_activation_is_marked_not_established_wherever_it_appears(self):
+        """"Wherever" means every section, not at least one of them.
+
+        The first mutation run flagged this: blanking the trajectory marker left
+        the "what moved each score" marker in place and the guard stayed green.
+        A reader who looks only at the trajectory would have seen no warning.
+        """
         entries = [_entry("a", 10, "Busy day, lots done.", dimension="activation",
                           probability=0.8)]
         rendered = render(entries)
-        assert "NOT ESTABLISHED" in rendered
+        sections = rendered.split("WHAT MOVED EACH SCORE")
+        assert len(sections) == 2, "the report lost a section this guard depends on"
+        for name, section in zip(("trajectory", "what moved each score"), sections):
+            assert "[NOT ESTABLISHED]" in section, f"no warning in the {name} section"
         assert "0.60" in rendered
         assert "has not been shown to work" in flat(rendered)
 
@@ -150,7 +159,25 @@ class TestWhatTheReportShows:
         assert "2 entries matched a crisis rule and were routed" in flat(two)
 
     def test_it_says_the_contributions_are_the_score(self):
-        assert "they sum to it" in flat(render(ENTRIES))
+        assert "adds up to the score exactly" in flat(render(ENTRIES))
+
+    def test_it_does_not_claim_the_LISTED_contributions_are_the_whole_sum(self):
+        """Found by the first end-to-end run, not by a test.
+
+        A dimension came out at 0.60 with all three displayed spans negative,
+        because the offset and the unshown spans carry the rest. Text that says
+        "the contributions listed above are the score" is false whenever more
+        than TOP_SPANS spans exist, which is almost always.
+        """
+        rendered = flat(render(ENTRIES))
+        assert "The contributions listed above are the score" not in rendered
+        assert "Only the largest few contributions are listed" in rendered
+        for term in ("every span of the entry", "structural tokens",
+                     "one fixed offset per dimension"):
+            assert term in rendered, term
+
+    def test_the_section_heading_says_it_is_showing_only_the_largest(self):
+        assert "WHAT MOVED EACH SCORE  (largest 3" in render(ENTRIES)
 
     def test_an_empty_store_says_so_rather_than_drawing_an_empty_chart(self):
         assert "no trajectory to show" in flat(render([]))

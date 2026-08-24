@@ -1,0 +1,13 @@
+# Runtime dependencies of the Ledger APPLICATION.
+#
+# Deliberately short. Since DEFECT-INC8-001 the shipped application does not
+# import transformers, sklearn, pyarrow or torch: tokenization goes through
+# `tokenizers` directly and the head bias is read from a build report. See
+# ledger/app/local_tokenizer.py for why, and export/tokenizer_parity.py for the
+# measurement that makes it legitimate.
+#
+# Versions are the ones every measurement in artifacts/ was produced under.
+onnxruntime==1.29.0
+numpy==2.2.6
+tokenizers==0.22.2
+cryptography==46.0.3

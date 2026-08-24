@@ -104,15 +104,32 @@ def _crisis_block(analysis) -> str:
 
 
 def _scored_block(analysis, top: int = 3) -> str:
+    """Print each dimension, its largest contributions, and the rest of the sum.
+
+    The remainder line is not decoration. The explanation's whole claim is that
+    the contributions ARE the score; printing three of them and asserting they
+    add up would be the same overstatement the report was carrying until the
+    first end-to-end run showed a dimension at 0.60 with three negative spans.
+    """
     lines = ["", analysis.contract, ""]
     for dim in analysis.dimensions:
         flag = "" if dim["established"] else "   [NOT ESTABLISHED]"
         lines.append(f"{dim['label']:<34} {dim['probability']:.2f}{flag}")
-        spans = sorted(dim["spans"], key=lambda s: -s["attribution"])[:top]
-        for span in spans:
+        ranked = sorted(dim["spans"], key=lambda s: -abs(s["attribution"]))
+        for span in ranked[:top]:
             snippet = span["text"].strip()
             snippet = snippet if len(snippet) <= 46 else snippet[:43] + "..."
             lines.append(f"    {span['attribution']:+.3f}  \"{snippet}\"")
+        rest = sum(s["attribution"] for s in ranked[top:])
+        parts = []
+        if ranked[top:]:
+            parts.append(f"{rest:+.3f} from {len(ranked) - top} more span(s)")
+        parts.append(f"{dim['structural_attribution']:+.3f} structural "
+                     f"({dim['structural_tokens']} token(s))")
+        parts.append(f"{dim['bias']:+.3f} offset")
+        lines.append(f"    ... {', '.join(parts)}")
+        lines.append(f"    = logit {dim['logit']:+.3f}  "
+                     f"(all terms, residual {dim['additivity_residual']:.1e})")
         if not dim["established"]:
             lines.append(f"    held-out AUC {dim['held_out_auc']}: {dim['evidence_note']}")
         lines.append("")

@@ -125,7 +125,7 @@ def render(entries: list[dict], *, region: str | None = None) -> str:
                     lines.append(f"    {chunk}")
             lines.append("")
 
-        lines.append("WHAT MOVED EACH SCORE  (the writer's own words)")
+        lines.append(f"WHAT MOVED EACH SCORE  (largest {TOP_SPANS}, the writer's own words)")
         lines.append("-" * 62)
         for dim in DIMENSIONS:
             top = _top_spans(entries, dim)
@@ -142,9 +142,11 @@ def render(entries: list[dict], *, region: str | None = None) -> str:
     lines.append("-" * 62)
     for chunk in _wrap(
         "Each number is a contrast between two ways of writing, not a quantity of "
-        "anything. The contributions listed above are the score: they sum to it "
-        "exactly, so nothing shown here is a reconstruction of a decision made "
-        "elsewhere.", 62
+        "anything. Only the largest few contributions are listed above. The "
+        "complete set - every span of the entry, the tokenizer's own structural "
+        "tokens, and one fixed offset per dimension - adds up to the score "
+        "exactly, which is why nothing here is a reconstruction of a decision "
+        "made somewhere else. `ledger show <id>` prints every term.", 62
     ):
         lines.append(chunk)
     lines.append("")

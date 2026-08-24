@@ -1,0 +1,10 @@
+# Dependencies of the EXPORT PIPELINE only — `bash export/run_all.sh`.
+#
+# None of these run on a user's machine. They build, quantize and verify the
+# ONNX artifact and the tokenizer directory; the application then reads those
+# files and needs nothing here. Keeping the two lists apart is the point.
+-r requirements.txt
+torch==2.10.0
+transformers==5.5.4
+onnx==1.22.0
+pytest==9.0.3

@@ -6,6 +6,11 @@ A client-side longitudinal well-being instrument, built for
 > **Status: in progress.** This README records only what is built and has been
 > run. Claims about parts that do not exist yet are not made here. Every claim
 > below is backed by a checked-in artifact under `../audit/`.
+>
+> As of build increment 8 there is a working application. As of build increment
+> 7 there is a shippable model build. Neither of those makes the score good —
+> `docs/limitations.md` §1 is the thing to read before believing any number
+> this produces.
 
 ## What it is meant to be
 
@@ -39,16 +44,23 @@ it, written before the measurement.
 |---|---|---|
 | `ledger/safety/` — deterministic crisis router | **built, tested** | `../audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `../audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
 | `ledger/model/` — encoder + additive attribution head | **built** | `artifacts/verify_report.json` |
-| `export/` — ONNX export, int8 quantization, verification | **built, and currently failing its own ceiling** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
+| `export/` — ONNX export, int8 quantization, verification | **built; clears every enforced ceiling since increment 7** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
 | In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — fails 4 of 6 ceilings on the current body, including latency at 845.98 ms | `artifacts/wasm/bench_int8_embed.json`, `export/SIZE_BUDGET.md` |
-| Desktop target with the 0.880 scorer | **built and measured; NOT adopted** — CEIL-2 (tokenizer) fails at 3.394 MiB vs 2.000 MiB | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
+| Desktop target with the 0.880 scorer | **built, measured and ADOPTED** since increment 7 — CEIL-2 met at 1.484 MiB vs 2.000 MiB, `verify.py` exits 0, `int8_embed` selected | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
+| `ledger/store/` — encrypted local journal, one-click wipe | **built, tested** | `tests/test_store.py` (25 guards), `docs/limitations.md` §7.2–7.3 |
+| `ledger/app/` — entry → route → score → per-span attribution → store → report | **built, runs end to end** | `../audit/runs/inc8_cli_demo_*.txt`, `artifacts/span_additivity.json` |
+| Zero egress | **measured on the running application**: 0 socket calls of any kind | `artifacts/egress_audit.json`, `docs/limitations.md` §7.1 |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
 | A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
-| UI | not started | — |
+| CLI front-end (`python -m ledger.app.cli`) | **built** | `../audit/runs/inc8_cli_demo_*.txt` |
+| Visual UI / accessibility audit (plan.md C6) | **not built** — a CLI is not a designed interface | `docs/limitations.md` §7.4 |
+| 4-minute submission video | **not produced**, and will not be faked | — |
 
-All tests pass offline: `python -m unittest discover -s tests`. What they assert is that the numbers in this README are re-derivable from the artifacts, not that the project works.
+All tests pass offline: `python3 -m pytest tests/`. What they assert is that the
+numbers in this README are re-derivable from the artifacts, and — since increment
+8 — that the application's own behaviour matches what is claimed for it.
 
 ## The safety layer
 
@@ -65,13 +77,14 @@ earlier version of the normaliser. The fix is the `_CONFUSABLES` table in
 `ledger/safety/crisis_router.py`; the case is now a permanent test.
 
 ```
-python3 -m unittest discover -s tests -v
+python3 -m pytest tests/test_crisis_router.py -v
 ```
 
 ## The model, and the one claim it is built to support
 
-`ledger/model/scorer.py` is a frozen `all-MiniLM-L6-v2` encoder, mean pooling,
-and a linear head over five language dimensions. That shape is chosen for a
+`ledger/model/scorer.py` is a frozen encoder — `nli-distilroberta-base-v2` since
+increment 6, `all-MiniLM-L6-v2` before it — with mean pooling and a linear head
+over five language dimensions. That shape is chosen for a
 single reason: mean pooling followed by a linear layer is a **sum of per-token
 terms**, so
 
@@ -324,3 +337,135 @@ file on disk. On its first run the guard rejected all three stale files.
 mutations — including raising CEIL-2 to 4 MiB, dropping CEIL-2 or CEIL-4 from the
 desktop enforcement map, and re-pinning the encoder to a model no ablation
 selected — and caught 12 of 12.
+
+## Build increment 7 — the first shippable build
+
+Increment 6 ended with exactly one enforced ceiling unmet: **CEIL-2, the
+tokenizer, at 3,559,258 B against 2,097,152 B**. Increment 7 had one question,
+pre-registered in `export/INCREMENT_7_PREREGISTRATION.md` before the decisive
+measurement: is there a serialization of *this* tokenizer — same 50,265-entry
+vocabulary, identical `encode()` output — that fits?
+
+There is. `tokenizer.json` was written pretty-printed; JSON whitespace carries no
+semantics. Compact re-serialization gives **1,556,504 B (1.484 MiB)**, and
+re-tokenizing afterwards returns `input_ids`, `attention_mask`, `offset_mapping`
+and `decode()` round-trips **elementwise identical** over the 64 probe entries and
+all 50 anchor sentences. Zero mismatches. The parsed JSON document compares equal;
+vocab 50,265 and merges 50,000 both unchanged.
+
+`export/verify.py` exits **0** for the first time in this project.
+`shippable_builds` is `["int8_embed", "fp32"]` and `int8_embed` is selected at
+CEIL-4 228.15 ms (ceiling 500), CEIL-5 r 0.99995 / max Δ 0.00694 (ceilings 0.99 /
+0.02), additivity residual 3.2e-07.
+
+Two things this does **not** retire, both published in `export/SIZE_BUDGET.md`
+rather than left to be inferred:
+
+- The vocabulary really did grow 30,522 → 50,265, and CEIL-2's day-one tripwire
+  fired on a real change. Meeting the ceiling by re-serialization satisfies it
+  **as written** — it bounds bytes on disk — and does not unmake that signal.
+- The win is thin against a ceiling denominated in *transfer* size, since
+  compression would have removed most of that whitespace anyway. CEIL-2 is
+  denominated in bytes on disk. Both readings are in the budget file.
+
+One defect was found and fixed in the same increment: two guards had been green
+for four increments only because `shippable_builds` was empty and they could not
+fail (DEFECT-INC7-001). They were replaced with strictly stronger guards rather
+than relaxed. 103 tests pass; 16 new guards caught 14 of 14 targeted mutations.
+
+## Build increment 8 — there is an application now
+
+Everything before this was a model and a set of measurements. The competition
+asks for **functioning source code**, and there was none: no way to enter
+anything, no storage, no attribution surface, no report. Increment 8 builds the
+smallest honest end-to-end path.
+
+```
+python3 -m ledger.app.cli init
+echo "I lay awake until nearly four again." | python3 -m ledger.app.cli --region SG add
+python3 -m ledger.app.cli report
+python3 -m ledger.app.cli wipe
+```
+
+| Piece | What it is |
+|---|---|
+| `ledger/store/` | Append-only encrypted journal. scrypt (n=2^15, r=8, p=1) → AES-256-GCM per record, fresh nonce, file identity and record position bound into the AAD. `0600` from creation. One-click wipe: two overwrite passes, then unlink. |
+| `ledger/app/spans.py` | Regroups per-token attribution into the user's own words and sentences, as a **partition** — no token dropped, none double-counted, structural tokens reported rather than hidden. |
+| `ledger/app/engine.py` | Route → score → attribute. On an acute crisis match the model is **not loaded, let alone run**. |
+| `ledger/app/report.py` | The clinician-shareable output: trajectory, the spans that moved each score, and the strength of the evidence for each dimension. |
+| `ledger/app/cli.py` | A front-end. Not a designed interface — see below. |
+
+### The four things that were measured rather than asserted
+
+Rules fixed in `export/INCREMENT_8_PREREGISTRATION.md` **before** any of this
+existed.
+
+| | Rule | Result |
+|---|---|---|
+| **R8-1** | Span aggregation is a partition | **PASS** — 128 checks, 0 failures |
+| **R8-2** | Span attributions still sum to the logit, ≤ 1e-4 | **PASS** — max residual **4.41e-07** over 640 checks, at both granularities. The aggregation step got no tolerance of its own. |
+| **R8-3** | Zero egress, on the running application | **PASS** — **0 socket calls of any kind** across init, 5 entries, scoring, read-back, report and wipe |
+| **R8-4** | The model never runs on an acute entry | **PASS** — session `run()` count 0, and the session is never even constructed |
+
+Plus R8-5/R8-6 on the store (no 12-character run of any entry appears in the
+file; a flipped byte, a reordered record and a record from another store are all
+rejected rather than decrypted; wipe overwrites before unlinking) and R8-7/R8-8
+on what the product says.
+
+`export/egress_audit.py` was committed before it was run. It carries its own
+positive control: `tests/test_egress.py` makes a real outbound connect under the
+same instrumentation and fails if it is not recorded — because a green guard over
+an instrument that cannot fail is exactly DEFECT-INC7-001 again.
+
+### Three defects, two found by running the thing
+
+**DEFECT-INC8-001, found by the first end-to-end run.** The application loaded its
+tokenizer through `transformers`, which imports `sklearn`, which imports
+`pyarrow` — and on this machine that fails outright once `onnxruntime` or `torch`
+has been imported first (`CXXABI_1.3.15 not found`). The test suite never saw it,
+because pytest's collection order happens to import things in an order that
+works. A product whose startup depends on import order is broken.
+
+Fixed by reading `tokenizer.json` with the `tokenizers` library directly and the
+head bias from the build report, which removes `transformers`, `sklearn`,
+`pyarrow` **and** `torch` from everything the shipped application touches. The
+runtime dependency set is now `onnxruntime`, `numpy`, `tokenizers`,
+`cryptography`. That is only legitimate if the encodings are identical, so
+`export/tokenizer_parity.py` compares `input_ids`, `attention_mask` and
+`offset_mapping` elementwise over 114 texts: **0 mismatches**, and the head bias
+is bit-identical after its float32 cast.
+
+**A claim defect, also found by running it.** The report said "the contributions
+listed above are the score: they sum to it exactly" while listing only the
+largest three. The first real entry came out with a dimension at 0.60 and all
+three displayed spans negative — the offset and the unshown spans carry the rest.
+The text now says what is true: only the largest few are listed, and the complete
+set (every span, the structural tokens, one fixed offset per dimension) is what
+adds up. The CLI prints the remainder terms so the sum visibly closes.
+
+**A guard gap and a harness bug, found by the mutation run.** Blanking the
+`[NOT ESTABLISHED]` marker in the trajectory section left it in the other section
+and the guard stayed green; it now requires the flag in both. And the harness
+itself replaced the first occurrence of its target string, which for one mutation
+was a docstring — reporting MISSED against a guard it had never given anything to
+catch. It now refuses any target that does not occur exactly once.
+
+### Where it stands
+
+212 tests pass, 9 skipped (all pre-existing conditional guards). The increment-8
+guards were checked against **30 targeted mutations and caught 30 of 30** —
+including lowering the scrypt cost, skipping records that fail authentication,
+appending entries as plaintext, blanking the not-established marker, importing
+`transformers` again, and widening the additivity tolerance in either of the two
+files that hold it.
+
+Still open, and stated plainly:
+
+- **`plan.md` C6 has no artifact.** A CLI is not a visual design. No
+  `a11y/axe_report.json`, no recorded screen-reader traversal.
+- **The 4-minute video does not exist** and will not be faked.
+- **The head is still untrained** (plan.md R-1), `activation` still separates
+  held-out text at 0.600 against a 0.700 floor, and the application labels it
+  `[NOT ESTABLISHED]` everywhere it appears rather than averaging it away.
+- **The egress measurement is process-level, not a packet capture.**
+  `docs/limitations.md` §7.1 says exactly how far it reaches.

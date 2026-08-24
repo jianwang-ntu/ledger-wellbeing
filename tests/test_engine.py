@@ -7,6 +7,7 @@ control flow, because "the code obviously does that" is how it would get broken.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -34,6 +35,42 @@ ORDINARY = [
     "I slept badly and dragged through the day, but the meeting went fine.",
     "Went for a walk at lunch and enjoyed the afternoon.",
 ]
+
+
+class TestTheApplicationRunsWithoutTransformers:
+    """DEFECT-INC8-001. The app must not import transformers, torch or sklearn."""
+
+    HEAVY = ("transformers", "torch", "sklearn", "pyarrow")
+
+    def test_no_application_module_imports_the_build_only_libraries(self):
+        for name in ("engine", "cli", "report", "spans", "evidence",
+                     "local_tokenizer", "offline"):
+            source = (ROOT / "ledger" / "app" / f"{name}.py").read_text()
+            for line in source.splitlines():
+                stripped = line.strip()
+                if not (stripped.startswith("import ") or stripped.startswith("from ")):
+                    continue
+                for heavy in self.HEAVY:
+                    assert not stripped.startswith((f"import {heavy}", f"from {heavy}")), \
+                        f"{name}.py imports {heavy}: {stripped!r}"
+
+    @needs_model
+    def test_a_full_analysis_leaves_them_unimported_in_a_fresh_process(self):
+        """Import-order fragility is invisible inside a suite that already loaded
+        half of site-packages, so this one runs in its own interpreter."""
+        import subprocess
+        code = (
+            "import sys, json;"
+            "sys.path.insert(0, %r);"
+            "from ledger.app.engine import LedgerEngine;"
+            "LedgerEngine().analyse('I slept badly and could not settle.');"
+            "print(json.dumps([m for m in ('transformers','torch','sklearn','pyarrow')"
+            " if m in sys.modules]))" % str(ROOT)
+        )
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                                text=True, timeout=600)
+        assert result.returncode == 0, result.stderr[-2000:]
+        assert json.loads(result.stdout.strip().splitlines()[-1]) == []
 
 
 class TestTheModelIsNotInTheCrisisPath:
@@ -134,6 +171,25 @@ class TestScoringEndToEnd:
         analysis = LedgerEngine().analyse(ORDINARY[1], granularity="word")
         for dim in analysis.dimensions:
             assert dim["additivity_residual"] <= 1e-4
+
+    def test_every_displayed_term_sums_to_the_logit(self):
+        """The CLI's own accounting must close, not just the engine's internals."""
+        analysis = LedgerEngine(region="SG").analyse(ORDINARY[0])
+        for dim in analysis.dimensions:
+            total = (sum(s["attribution"] for s in dim["spans"])
+                     + dim["structural_attribution"] + dim["bias"])
+            assert abs(total - dim["logit"]) <= 1e-4, dim["dimension"]
+
+    def test_the_bias_travels_with_each_dimension_so_a_reader_can_add_it_up(self):
+        analysis = LedgerEngine().analyse(ORDINARY[0])
+        assert all("bias" in dim for dim in analysis.dimensions)
+        assert len({dim["bias"] for dim in analysis.dimensions}) == len(DIMENSIONS)
+
+    def test_the_cli_block_prints_the_remainder_and_the_offset(self):
+        from ledger.app.cli import _scored_block
+        block = _scored_block(LedgerEngine().analyse(ORDINARY[0]))
+        assert "offset" in block and "structural" in block
+        assert block.count("= logit") == len(DIMENSIONS)
 
     def test_the_record_written_to_the_store_keeps_the_text_and_the_analysis(self):
         analysis = LedgerEngine().analyse(ORDINARY[0])

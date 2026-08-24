@@ -128,10 +128,29 @@ class TestOfflineIsEnforcedInCode:
         for key, value in offline.OFFLINE_ENV.items():
             assert os.environ.get(key) == value, key
 
-    def test_the_engine_imports_offline_before_transformers(self):
+    def test_the_engine_imports_offline_before_anything_that_could_fetch(self):
+        """The offline pin has to be applied before any ML import, not after."""
         source = (ROOT / "ledger" / "app" / "engine.py").read_text()
-        assert source.index("from ledger.app import offline") < source.index("transformers")
+        assert (source.index("from ledger.app import offline")
+                < source.index("import onnxruntime"))
 
-    def test_the_tokenizer_is_loaded_local_files_only(self):
-        source = (ROOT / "ledger" / "app" / "engine.py").read_text()
-        assert "local_files_only=True" in source
+    def test_the_application_no_longer_imports_a_library_with_a_hub_client(self):
+        """Superseded the `local_files_only=True` guard at DEFECT-INC8-001.
+
+        That guard checked that `transformers` was pointed at a local directory.
+        The application no longer imports `transformers` at all, so the stronger
+        statement is available and this asserts that one instead: there is no
+        library left in the app that knows how to fetch anything.
+        """
+        for name in ("engine", "cli", "local_tokenizer", "evidence", "report"):
+            source = (ROOT / "ledger" / "app" / f"{name}.py").read_text()
+            for line in source.splitlines():
+                stripped = line.strip()
+                if stripped.startswith(("import ", "from ")):
+                    assert "transformers" not in stripped.split("#")[0], \
+                        f"{name}.py still imports transformers: {stripped!r}"
+
+    def test_the_tokenizer_is_read_from_a_local_file(self):
+        source = (ROOT / "ledger" / "app" / "local_tokenizer.py").read_text()
+        assert "Tokenizer.from_file" in source
+        assert "from_pretrained" not in source

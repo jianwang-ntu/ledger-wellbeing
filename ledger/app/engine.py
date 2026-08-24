@@ -12,7 +12,10 @@ model is a different and weaker thing than one that runs *instead of* it.
 
 **Nothing here reaches the network.** `ledger.app.offline` is imported first, for
 its side effects, and `export/egress_audit.py` measures the result on the running
-application.
+application. Since DEFECT-INC8-001 the application also carries no library with a
+hub-checking code path at all: tokenization goes through `tokenizers` directly and
+the head bias is read from a build report, so `transformers` and `torch` are build
+dependencies only.
 
 What this module does not do, and will not be extended to do: generate text,
 give advice, name a condition, or suggest a treatment. It reports what the
@@ -26,12 +29,14 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from uuid import uuid4
 
-from ledger.app import offline  # noqa: F401  - must precede the transformers import
+from ledger.app import offline  # noqa: F401  - side effect: pin the ML libraries offline
 
 import numpy as np
 import onnxruntime as ort
 
 from ledger.app.evidence import dimension_evidence
+from ledger.app import local_tokenizer
+from ledger.app.local_tokenizer import MAX_LENGTH, encode as encode_text
 from ledger.app.spans import attribute_spans, sentence_spans, word_spans
 from ledger.model.dimensions import DIMENSION_LABELS, DIMENSIONS
 from ledger.safety.crisis_router import route
@@ -39,7 +44,7 @@ from ledger.store.journal import JournalEntry, utc_now_iso
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACTS = ROOT / "artifacts"
-TOKENIZER_DIR = ARTIFACTS / "tokenizer"
+BUILD_REPORT = ARTIFACTS / "torch" / "build_report.json"
 
 #: The build `export/verify.py` selected. Changing this changes what ships, so
 #: it is read from the verify report rather than hard-coded twice.
@@ -49,11 +54,6 @@ BUILD_FILES = {
     "int8_full": ARTIFACTS / "onnx" / "ledger_scorer_int8.onnx",
     "fp32": ARTIFACTS / "onnx" / "ledger_scorer_fp32_single.onnx",
 }
-
-#: CEIL-4 is stated at this length, so inference is done at this length. Padding
-#: tokens are masked to exactly zero contribution upstream, so they cost time and
-#: change no number.
-MAX_LENGTH = 256
 
 #: R8-2. The same tolerance as R6-1; the aggregation step does not get its own.
 ADDITIVITY_MAX_RESIDUAL = 1e-4
@@ -81,6 +81,10 @@ class DimensionResult:
     spans: list = field(default_factory=list)
     structural_attribution: float = 0.0
     structural_tokens: int = 0
+    #: The per-dimension offset from anchor calibration. Carried explicitly so a
+    #: reader can add the displayed terms up and land on the score, rather than
+    #: being told they add up.
+    bias: float = 0.0
     additivity_residual: float = 0.0
 
 
@@ -132,11 +136,14 @@ class LedgerEngine:
 
     @property
     def tokenizer(self):
+        """The `tokenizers` fast tokenizer, loaded from the local build output.
+
+        Not `transformers`: see `ledger/app/local_tokenizer.py`, DEFECT-INC8-001.
+        Encoding parity with the path every prior measurement used is measured by
+        `export/tokenizer_parity.py`, not assumed.
+        """
         if self._tokenizer is None:
-            from transformers import AutoTokenizer
-            self._tokenizer = AutoTokenizer.from_pretrained(
-                TOKENIZER_DIR, local_files_only=True
-            )
+            self._tokenizer = local_tokenizer.load(MAX_LENGTH)
         return self._tokenizer
 
     @property
@@ -157,11 +164,24 @@ class LedgerEngine:
 
     @property
     def bias(self) -> np.ndarray:
+        """The head bias, read from the build report rather than from `head.pt`.
+
+        `head.pt` stores a float32 cast of these same calibration offsets, so the
+        cast below reproduces the shipped bias bit-for-bit and the application
+        does not import `torch` to obtain five numbers.
+        `export/tokenizer_parity.py` measures that equality.
+        """
         if self._bias is None:
-            import torch
-            ckpt = torch.load(ARTIFACTS / "torch" / "head.pt",
-                              map_location="cpu", weights_only=True)
-            self._bias = ckpt["head_bias"].numpy().astype(np.float64)
+            if not BUILD_REPORT.exists():
+                raise ModelUnavailable(
+                    f"{BUILD_REPORT} is absent; it is a build output. "
+                    "Regenerate it with `bash export/run_all.sh`."
+                )
+            report = json.loads(BUILD_REPORT.read_text())
+            calibration = report["anchor_calibration"]
+            self._bias = np.array(
+                [calibration[dim]["offset"] for dim in DIMENSIONS], np.float32
+            ).astype(np.float64)
         return self._bias
 
     def model_card(self) -> dict:
@@ -223,19 +243,14 @@ class LedgerEngine:
     def _score(self, text: str, granularity: str) -> list[DimensionResult]:
         spans = sentence_spans(text) if granularity == "sentence" else word_spans(text)
 
-        encoded = self.tokenizer(
-            [text], padding="max_length", truncation=True, max_length=MAX_LENGTH,
-            return_offsets_mapping=True, return_tensors="np",
-        )
+        input_ids, mask, offsets = encode_text(text, MAX_LENGTH)
         feeds = {
-            "input_ids": encoded["input_ids"].astype(np.int64),
-            "attention_mask": encoded["attention_mask"].astype(np.int64),
+            "input_ids": np.asarray([input_ids], dtype=np.int64),
+            "attention_mask": np.asarray([mask], dtype=np.int64),
         }
         logits, token_attr = self.session.run(["logits", "token_attr"], feeds)
         logits = logits.astype(np.float64)[0]
         token_attr = token_attr.astype(np.float64)[0]          # T,K
-        offsets = encoded["offset_mapping"][0]
-        mask = encoded["attention_mask"][0]
 
         evidence = dimension_evidence()
         results = []
@@ -256,6 +271,7 @@ class LedgerEngine:
                 spans=[asdict(s) for s in span_attr],
                 structural_attribution=structural,
                 structural_tokens=n_structural,
+                bias=float(self.bias[k]),
                 additivity_residual=residual,
             ))
         return results

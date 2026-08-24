@@ -1,5 +1,5 @@
 {
- "measured_at_utc": "2026-08-24T20:06:34Z",
+ "measured_at_utc": "2026-08-24T21:49:55Z",
  "delivery_target": "desktop",
  "delivery_target_note": "plan.md R-4, exercised in build increment 6. CEIL-1 and CEIL-3 bound an HTTP first-load and are NOT enforced on a desktop target; they are still measured and every build carries would_fail_web_target_on. CEIL-4 is judged on native_ort_cpu_1thread rather than WASM, which is a relaxation of the measurement basis and is logged as one in export/INCREMENT_6_PREREGISTRATION.md. No ceiling VALUE was edited.",
  "enforced_ceilings": [
@@ -26,8 +26,8 @@
   "bytes": 326177397,
   "attribution_identity_max_residual": 2.7567148208618164e-07,
   "latency_native_ort_cpu_1thread": {
-   "p50_ms": 223.525,
-   "p95_ms": 228.83,
+   "p50_ms": 224.369,
+   "p95_ms": 226.792,
    "runs": 50
   },
   "latency_wasm_1thread": "NOT_MEASURED"
@@ -69,8 +69,8 @@
    "attribution_identity_max_residual": 2.870219759643078e-07,
    "attribution_identity_holds": true,
    "latency_native_ort_cpu_1thread": {
-    "p50_ms": 75.664,
-    "p95_ms": 76.19,
+    "p50_ms": 76.279,
+    "p95_ms": 78.574,
     "runs": 50
    },
    "latency_wasm_1thread": "NOT_MEASURED",
@@ -95,7 +95,7 @@
      "enforced_on_this_target": false
     },
     "CEIL_4_p95_latency_ms": {
-     "measured": 76.19,
+     "measured": 78.574,
      "ceiling": 500.0,
      "pass": true,
      "enforced_on_this_target": true
@@ -151,8 +151,8 @@
    "attribution_identity_max_residual": 3.203749656677246e-07,
    "attribution_identity_holds": true,
    "latency_native_ort_cpu_1thread": {
-    "p50_ms": 222.801,
-    "p95_ms": 228.15,
+    "p50_ms": 222.75,
+    "p95_ms": 231.444,
     "runs": 50
    },
    "latency_wasm_1thread": {
@@ -181,7 +181,7 @@
      "enforced_on_this_target": false
     },
     "CEIL_4_p95_latency_ms": {
-     "measured": 228.15,
+     "measured": 231.444,
      "ceiling": 500.0,
      "pass": true,
      "enforced_on_this_target": true
@@ -236,8 +236,8 @@
    "attribution_identity_max_residual": 2.7567148208618164e-07,
    "attribution_identity_holds": true,
    "latency_native_ort_cpu_1thread": {
-    "p50_ms": 223.525,
-    "p95_ms": 228.83,
+    "p50_ms": 224.369,
+    "p95_ms": 226.792,
     "runs": 50
    },
    "latency_wasm_1thread": "NOT_MEASURED",
@@ -262,7 +262,7 @@
      "enforced_on_this_target": false
     },
     "CEIL_4_p95_latency_ms": {
-     "measured": 228.83,
+     "measured": 226.792,
      "ceiling": 500.0,
      "pass": true,
      "enforced_on_this_target": true
