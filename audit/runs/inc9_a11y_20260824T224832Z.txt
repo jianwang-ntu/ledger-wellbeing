@@ -1,0 +1,20 @@
+{
+ "measured_at_utc": "2026-08-24T22:48:32Z",
+ "server": {
+  "url": "http://127.0.0.1:40403/",
+  "bound_host": "127.0.0.1",
+  "port": 40403
+ },
+ "verdicts": {
+  "R9-1_keyboard_complete": "PASS",
+  "R9-2_visible_focus": "FAIL",
+  "R9-3_axe_zero_violations": "PASS",
+  "R9-4_contrast_and_forced_colors": "PASS",
+  "R9-5_reduced_motion": "PASS",
+  "R9-6_announcements": "PASS",
+  "R9-8b_no_third_party_request": "PASS"
+ },
+ "axe_violation_total": 0,
+ "axe_incomplete_total": 0,
+ "verdict": "FAIL"
+}

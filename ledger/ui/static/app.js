@@ -191,9 +191,13 @@ function renderDimension(dim, text) {
     const note = document.createElement("p");
     note.className = "dimension__note";
     /* R9-9. The number and its basis travel with the label every time it is
-       shown. A prettier surface may not be a quieter one about what it rests on. */
-    note.textContent = `Held-out AUC ${dim.held_out_auc} against the 0.70 threshold `
-      + `fixed before it was measured. ${dim.evidence_note || ""}`;
+       shown. A prettier surface may not be a quieter one about what it rests on.
+
+       The sentence after the number comes from `ledger/app/evidence.py` and is
+       not restated here: an earlier draft prefixed its own "against the 0.70
+       threshold fixed before it was measured", which the rendered card then said
+       twice (DEFECT-INC9-005). One source, one sentence. */
+    note.textContent = `Held-out AUC ${dim.held_out_auc.toFixed(3)}. ${dim.evidence_note || ""}`;
     card.append(note);
   }
 
@@ -247,6 +251,11 @@ function renderAnalysis(entry) {
   crisis.hidden = true;
   result.hidden = false;
   el("entry-contract").textContent = analysis.contract;
+  /* R8-7 carried forward: the page that shows the scores also names what they
+     were evaluated on, so a reader does not have to visit another view to find
+     out that the evaluation is 25 withheld anchor-sentence pairs written for
+     this repository rather than clinical data. */
+  el("entry-basis").textContent = state ? `Evaluated on: ${state.evaluation_basis}` : "";
   const container = el("dimensions");
   container.replaceChildren();
   analysis.dimensions.forEach((dim) => container.append(renderDimension(dim, entry.text)));

@@ -39,7 +39,6 @@
  "exercise_error": null,
  "socket_calls_total": 0,
  "socket_calls_loopback": 0,
- "non_loopback_calls": [],
  "probe_calls": [],
  "verdict": "PASS"
 }

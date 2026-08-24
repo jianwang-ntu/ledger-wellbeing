@@ -1,0 +1,21 @@
+{
+ "measured_at_utc": "2026-08-24T23:01:37Z",
+ "server": {
+  "url": "http://127.0.0.1:34041/",
+  "bound_host": "127.0.0.1",
+  "port": 34041
+ },
+ "verdicts": {
+  "R9-1_keyboard_complete": "PASS",
+  "R9-2_visible_focus": "PASS",
+  "R9-3_axe_zero_violations": "FAIL",
+  "R9-4_contrast_and_forced_colors": "PASS",
+  "R9-5_reduced_motion": "PASS",
+  "R9-6_announcements": "PASS",
+  "R9-8b_no_third_party_request": "PASS",
+  "R9-9_no_clinical_vocabulary_rendered": "PASS"
+ },
+ "axe_violation_total": 0,
+ "axe_incomplete_total": 0,
+ "verdict": "FAIL"
+}

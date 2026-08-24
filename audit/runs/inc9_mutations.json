@@ -1,0 +1,141 @@
+{
+ "measured_at_utc": "2026-08-24T23:04:13Z",
+ "caught": 19,
+ "total": 19,
+ "harness_mutations_run": true,
+ "results": [
+  {
+   "mutation": "the listener binds every interface instead of loopback",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheListenerIsLocal::test_it_binds_loopback_and_nothing_else"
+  },
+  {
+   "mutation": "the Host pin is dropped, reopening DNS rebinding",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheListenerIsLocal::test_a_foreign_host_header_is_refused"
+  },
+  {
+   "mutation": "binding resolves a name again",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheListenerIsLocal::test_binding_does_not_resolve_a_name"
+  },
+  {
+   "mutation": "the API token is no longer checked",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheTokenGuardsTheApi"
+  },
+  {
+   "mutation": "the content policy stops pinning connections to this origin",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheContentPolicyForbidsLeaving"
+  },
+  {
+   "mutation": "responses become readable cross-origin",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheTokenGuardsTheApi::test_there_is_no_cors_header_on_any_response"
+  },
+  {
+   "mutation": "static serving stops containing the path",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestStaticServing::test_a_path_outside_the_static_directory_is_refused"
+  },
+  {
+   "mutation": "wipe accepts anything at all",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheEndToEndPath::test_wipe_needs_the_exact_word"
+  },
+  {
+   "mutation": "an empty entry is stored instead of refused",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheEndToEndPath::test_an_empty_entry_is_refused"
+  },
+  {
+   "mutation": "the unlock response echoes the passphrase back",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheServerHoldsNothingItShouldNot::test_the_passphrase_is_never_echoed_back"
+  },
+  {
+   "mutation": "the server starts caching entry text",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheServerHoldsNothingItShouldNot::test_no_entry_text_is_cached_on_the_server_object"
+  },
+  {
+   "mutation": "a stylesheet is pulled from a CDN",
+   "kind": "unit",
+   "file": "ledger/ui/static/index.html",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheContentPolicyForbidsLeaving::test_no_shipped_asset_references_a_third_party"
+  },
+  {
+   "mutation": "the bind address becomes configurable",
+   "kind": "unit",
+   "file": "ledger/ui/server.py",
+   "caught": true,
+   "detail": "tests/test_ui.py::TestTheListenerIsLocal::test_the_bind_address_is_not_configurable"
+  },
+  {
+   "mutation": "the focus ring is removed from every control",
+   "kind": "harness",
+   "file": "ledger/ui/static/app.css",
+   "caught": true,
+   "detail": "R9-2_visible_focus=FAIL"
+  },
+  {
+   "mutation": "the reduced-motion block is deleted",
+   "kind": "harness",
+   "file": "ledger/ui/static/app.css",
+   "caught": true,
+   "detail": "R9-5_reduced_motion=FAIL"
+  },
+  {
+   "mutation": "the status region stops being a live region",
+   "kind": "harness",
+   "file": "ledger/ui/static/index.html",
+   "caught": true,
+   "detail": "R9-6_announcements=FAIL"
+  },
+  {
+   "mutation": "a form control loses its label",
+   "kind": "harness",
+   "file": "ledger/ui/static/index.html",
+   "caught": true,
+   "detail": "R9-3_axe_zero_violations=FAIL"
+  },
+  {
+   "mutation": "the muted text colour is lightened past the contrast floor",
+   "kind": "harness",
+   "file": "ledger/ui/static/app.css",
+   "caught": true,
+   "detail": "R9-4_contrast_and_forced_colors=FAIL"
+  },
+  {
+   "mutation": "clinical vocabulary appears in the interface copy",
+   "kind": "harness",
+   "file": "ledger/ui/static/index.html",
+   "caught": true,
+   "detail": "R9-9_no_clinical_vocabulary_rendered=FAIL"
+  }
+ ]
+}

@@ -250,7 +250,15 @@ textarea { font-family: var(--sans); line-height: 1.55; resize: vertical; }
 }
 /* Browsers that have not implemented :focus-visible still get a ring. */
 :focus:not(:focus-visible) { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
-h2:focus:not(:focus-visible), main:focus:not(:focus-visible) { outline: none; }
+
+/* `main` and the view headings take focus programmatically when a section
+   changes, so that a screen reader announces where it landed. They are not
+   controls, and giving them the control ring made a heading look like a text
+   field in the rendered screenshots. The move is still announced — the live
+   region says what happened — so the ring is dropped here and nowhere else.
+   Neither element is keyboard-focusable (`tabindex="-1"`), so R9-2 does not
+   measure them and this is not a way of quietly exempting a control. */
+h2:focus, main:focus { outline: none; box-shadow: none; }
 
 /* ---- dimensions and attribution ---------------------------------------- */
 

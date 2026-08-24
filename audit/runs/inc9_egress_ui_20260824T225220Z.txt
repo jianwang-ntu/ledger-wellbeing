@@ -1,0 +1,159 @@
+{
+ "measured_at_utc": "2026-08-24T22:52:24Z",
+ "rule": "R8-3, export/INCREMENT_8_PREREGISTRATION.md",
+ "scope": "process-level: socket calls made by this Python process",
+ "not_in_scope": [
+  "subprocesses",
+  "native libraries opening sockets without the socket module",
+  "kernel-level sends",
+  "a packet-level capture, which is strictly stronger and needs privileges this environment does not have"
+ ],
+ "instrumented": [
+  "socket.socket.connect",
+  "socket.socket.connect_ex",
+  "socket.socket.sendto",
+  "socket.socket.sendmsg",
+  "socket.create_connection",
+  "socket.getaddrinfo",
+  "socket.gethostbyname",
+  "socket.gethostbyname_ex",
+  "socket.socket.bind"
+ ],
+ "offline_env_applied": {
+  "HF_HUB_OFFLINE": "1",
+  "TRANSFORMERS_OFFLINE": "1",
+  "HF_HUB_DISABLE_TELEMETRY": "1"
+ },
+ "application_exercise": {
+  "entries_added": 5,
+  "entries_scored": 4,
+  "entries_routed_to_help": 2,
+  "entries_read_back": 5,
+  "report_chars": 3479,
+  "wiped": true,
+  "store_removed": true
+ },
+ "ui_exercise": {},
+ "binds": [
+  {
+   "address": "('127.0.0.1', 0)",
+   "loopback": true,
+   "wildcard": false
+  }
+ ],
+ "non_loopback_or_wildcard_binds": [],
+ "exercise_error": "UI: OSError: [Errno 9] Bad file descriptor",
+ "socket_calls_total": 39,
+ "socket_calls_loopback": 39,
+ "probe_calls": [
+  {
+   "kind": "connect_ex",
+   "target": "('10.193.104.173', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.25.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.22.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.17.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.20.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.18.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.19.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.28.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  },
+  {
+   "kind": "connect_ex",
+   "target": "('172.21.0.1', 39863)",
+   "loopback": false,
+   "probe": true,
+   "stack": [
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:395 in <module>",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:343 in main",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:315 in exercise_ui",
+    "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/export/egress_audit.py:255 in probe_reachability"
+   ]
+  }
+ ],
+ "verdict": "FAIL"
+}

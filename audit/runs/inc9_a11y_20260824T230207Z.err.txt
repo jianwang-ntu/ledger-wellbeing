@@ -1,0 +1,60 @@
+
+forced-colors unlock: 0 violation(s), 1 incomplete
+{
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "nodes": [
+    {
+     "target": [
+      "#unlock-submit"
+     ],
+     "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+    }
+   ]
+  }
+ ]
+}
+
+forced-colors write: 0 violation(s), 1 incomplete
+{
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "nodes": [
+    {
+     "target": [
+      "#entry-submit"
+     ],
+     "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+    }
+   ]
+  }
+ ]
+}
+
+forced-colors settings: 0 violation(s), 1 incomplete
+{
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "nodes": [
+    {
+     "target": [
+      "#wipe-submit"
+     ],
+     "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+    }
+   ]
+  }
+ ]
+}

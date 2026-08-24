@@ -34,6 +34,7 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -42,6 +43,12 @@ from PIL import Image                                            # noqa: E402
 from playwright.sync_api import sync_playwright                  # noqa: E402
 
 from ledger.ui.server import serve_in_thread                     # noqa: E402
+
+# One source for the banned list. R9-9 requires R8-8's check to run over the
+# RENDERED page text rather than the source, and a second copy of the list here
+# would be a copy that could drift from the one the report is held to.
+sys.path.insert(0, str(ROOT / "tests"))
+from test_report import BANNED                                   # noqa: E402
 
 AXE = ROOT / "a11y" / "node_modules" / "axe-core" / "axe.min.js"
 OUT = ROOT / "artifacts" / "a11y"
@@ -92,6 +99,35 @@ def now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def launch_chromium(playwright):
+    """Launch the browser, and say which binary was used.
+
+    The Playwright build pinned by this environment ships a headless shell that
+    exits immediately here, while a newer one in the same cache runs. Rather than
+    silently taking whichever works, the chosen executable is returned and
+    recorded in the report: a measurement that depends on a browser build should
+    name the build.
+    """
+    attempts = []
+    try:
+        return playwright.chromium.launch(), {"executable": "playwright default",
+                                              "attempts": attempts}
+    except Exception as exc:                                # noqa: BLE001
+        attempts.append({"executable": "playwright default", "error": str(exc)[:200]})
+
+    cache = Path.home() / ".cache" / "ms-playwright"
+    candidates = sorted(
+        cache.glob("chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell"),
+        key=lambda p: int(p.parents[1].name.split("-")[-1]), reverse=True)
+    for candidate in candidates:
+        try:
+            return (playwright.chromium.launch(executable_path=str(candidate)),
+                    {"executable": str(candidate), "attempts": attempts})
+        except Exception as exc:                            # noqa: BLE001
+            attempts.append({"executable": str(candidate), "error": str(exc)[:200]})
+    raise RuntimeError(f"no chromium build would launch: {attempts}")
+
+
 def tab_until(page, predicate: str, limit: int = 80) -> int:
     """Press Tab until `predicate` is true of the page. Keyboard input only."""
     for pressed in range(1, limit + 1):
@@ -136,6 +172,115 @@ def run_axe(page, context_label: str) -> dict:
     return result
 
 
+CONTRAST_SCAN = r"""() => {
+  const channel = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const lum = ([r, g, b]) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  const parse = (s) => { const m = String(s).match(/rgba?\(([^)]+)\)/); if (!m) return null;
+    const p = m[1].split(',').map(Number); return {rgb: [p[0], p[1], p[2]], a: p.length > 3 ? p[3] : 1}; };
+  const bgOf = (node) => { let n = node;
+    while (n) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c.a > 0) return c.rgb;
+      n = n.parentElement; } return [255, 255, 255]; };
+  const out = [];
+  for (const n of document.querySelectorAll('*')) {
+    if (![...n.childNodes].some(c => c.nodeType === 3 && c.textContent.trim().length)) continue;
+    const s = getComputedStyle(n);
+    if (s.visibility === 'hidden' || s.display === 'none' || !n.getClientRects().length) continue;
+    if (n.closest('.visually-hidden')) continue;
+    const fg = parse(s.color); if (!fg) continue;
+    const bg = bgOf(n);
+    const l1 = lum(fg.rgb), l2 = lum(bg);
+    const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    const px = parseFloat(s.fontSize), bold = parseInt(s.fontWeight, 10) >= 700;
+    const required = (px >= 24 || (bold && px >= 18.66)) ? 3 : 4.5;
+    out.push({tag: n.tagName.toLowerCase(), id: n.id || '', cls: String(n.className).slice(0, 40),
+              fg: s.color, bg: 'rgb(' + bg.join(', ') + ')', ratio: Math.round(ratio * 100) / 100,
+              required, ok: ratio >= required});
+  }
+  return out;
+}"""
+
+
+def contrast_scan(page, view: str) -> dict:
+    """Compute WCAG contrast from the live computed styles, independently of axe.
+
+    axe reported `#unlock-submit` as a 1:1 `incomplete` under emulated forced
+    colours while `getComputedStyle` on the same element returned black on white.
+    Rather than take either on trust, this walks every text-bearing element,
+    resolves the first opaque background above it, and computes the ratio from
+    the same formula WCAG defines. Both numbers go in the artifact.
+    """
+    rows = page.evaluate(CONTRAST_SCAN)
+    failures = [r for r in rows if not r["ok"]]
+    return {"view": view, "elements_measured": len(rows), "failures": failures,
+            "min_ratio": min((r["ratio"] for r in rows), default=None),
+            "verdict": "PASS" if not failures and rows else "FAIL"}
+
+
+#: The contract has to be able to say "diagnosis" in order to deny making one.
+#: The exemption is by exact rendered text, taken from the page itself, and
+#: covers nothing else — the same discipline `tests/test_report.py` uses.
+RENDERED_TEXT = r"""() => {
+  const flat = (s) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+  let text = flat(document.body.innerText);
+  const exempt = [];
+  for (const id of ['entry-contract', 'colophon-contract']) {
+    const n = document.getElementById(id);
+    if (n && n.textContent.trim()) {
+      const f = flat(n.textContent);
+      exempt.push(f);
+      text = text.split(f).join(' ');
+    }
+  }
+  return {text, exempt, length: text.length};
+}"""
+
+
+def vocabulary_scan(page, view: str) -> dict:
+    """R9-9 / R8-8, over what the page actually renders."""
+    rendered = page.evaluate(RENDERED_TEXT)
+    found = [word for word in BANNED if word in rendered["text"]]
+    return {"view": view, "rendered_chars": rendered["length"],
+            "exempted": rendered["exempt"], "found": found,
+            "verdict": "PASS" if not found and rendered["length"] > 200 else "FAIL"}
+
+
+#: axe-core's `label` rule accepts a non-empty `placeholder` as an accessible
+#: name. A placeholder disappears the moment someone types, so a control named
+#: only by one is not really named. Mutation testing found that removing a
+#: `<label>` left R9-3 green because the placeholder covered for it, so this
+#: check was added and folded into R9-3 — tightening the rule, not relaxing it.
+NAME_SCAN = """() => {
+  const out = [];
+  for (const n of document.querySelectorAll('input:not([type=hidden]), textarea, select')) {
+    if (!n.getClientRects().length) continue;
+    const explicit = n.id ? document.querySelectorAll(
+      'label[for="' + CSS.escape(n.id) + '"]').length : 0;
+    const wrapped = !!n.closest('label');
+    const ariaLabel = (n.getAttribute('aria-label') || '').trim();
+    const labelledby = (n.getAttribute('aria-labelledby') || '').trim();
+    const named = explicit > 0 || wrapped || !!ariaLabel || !!labelledby;
+    out.push({id: n.id || '', tag: n.tagName.toLowerCase(), type: n.type || '',
+              explicit_labels: explicit, wrapped_in_label: wrapped,
+              aria_label: !!ariaLabel, aria_labelledby: !!labelledby,
+              placeholder: !!(n.getAttribute('placeholder') || '').trim(),
+              named});
+  }
+  return out;
+}"""
+
+
+def name_scan(page, view: str) -> dict:
+    """Every visible form control must be named by something durable."""
+    controls = page.evaluate(NAME_SCAN)
+    unnamed = [c for c in controls if not c["named"]]
+    # No vacuity guard on the count here: `entry`, `history` and `report` have no
+    # form controls at all, and demanding one would fail a view for being what it
+    # is. The views that do have controls — unlock, write, settings — carry the
+    # weight, and an unnamed control anywhere fails.
+    return {"view": view, "controls": len(controls), "unnamed": unnamed,
+            "verdict": "PASS" if not unnamed else "FAIL"}
+
+
 def diff_ratio(a: bytes, b: bytes) -> float:
     """Share of pixels that differ by more than the tolerance in any channel."""
     left = Image.open(io.BytesIO(a)).convert("RGB")
@@ -154,8 +299,13 @@ def diff_ratio(a: bytes, b: bytes) -> float:
     return changed / float(width * height)
 
 
-def motion_scan(page) -> list[dict]:
-    """Every element whose computed animation or transition is not zero."""
+def motion_scan(page) -> dict:
+    """Every element whose computed animation or transition is not zero.
+
+    Returns the scanned count as well as the offenders: "no offenders" out of a
+    DOM of zero elements is not the same result as out of a DOM of two hundred,
+    and only one of them is evidence.
+    """
     return page.evaluate("""() => {
       const bad = [];
       for (const node of document.querySelectorAll('*')) {
@@ -168,26 +318,40 @@ def motion_scan(page) -> list[dict]:
                     durations: nonZero});
         }
       }
-      return bad;
+      return {scanned: document.querySelectorAll('*').length, non_zero: bad};
     }""")
 
 
-def focusable_boxes(page, view: str) -> int:
-    """Tag every focusable element inside the visible view and return the count."""
-    return page.evaluate("""(view) => {
+def focusable_boxes(page) -> int:
+    """Tag every focusable element that is currently rendered, in tab order.
+
+    Whole document, not just the view section. The skip link and the section rail
+    live outside every `<section class="view">`, and they are as much a part of
+    "every focusable element" as the controls inside one — the first version of
+    this function scanned only the section and so never looked at either.
+    """
+    return page.evaluate("""() => {
       document.querySelectorAll('[data-a11y-idx]').forEach(n => n.removeAttribute('data-a11y-idx'));
-      const root = document.getElementById('view-' + view);
       const sel = 'a[href], button, input:not([type=hidden]), textarea, select, [tabindex]';
-      const nodes = [...root.querySelectorAll(sel)]
+      const nodes = [...document.querySelectorAll(sel)]
         .filter(n => !n.disabled && n.tabIndex >= 0 && n.getClientRects().length);
       nodes.forEach((n, i) => n.setAttribute('data-a11y-idx', String(i)));
       return nodes.length;
-    }""", view)
+    }""")
+
+
+#: R9-2 is only meaningful if there was something to look at. A view with no
+#: focusable element found is a broken measurement, not a clean result — the
+#: first run of this harness "passed" two views this way, because it scanned a
+#: section that was hidden at the time (DEFECT-INC9-002).
+MIN_FOCUSABLE_PER_VIEW = 3
 
 
 def measure_focus(page, view: str) -> dict:
-    """R9-2, optically, over every focusable element in the visible view."""
-    count = focusable_boxes(page, view)
+    """R9-2, optically, over every focusable element currently rendered."""
+    visit_view(page, view)
+    page.wait_for_timeout(80)
+    count = focusable_boxes(page)
     elements = []
     for idx in range(count):
         if idx == 0:
@@ -200,6 +364,37 @@ def measure_focus(page, view: str) -> dict:
             page.keyboard.press("Tab")
         landed = page.evaluate("() => document.activeElement "
                                "? document.activeElement.getAttribute('data-a11y-idx') : null")
+        reached_by = "Tab"
+        if landed != str(idx):
+            # A radio group is ONE tab stop. Tab moving from the checked radio
+            # straight past its unchecked siblings is correct behaviour, not an
+            # unreachable control, and the arrow keys are how a keyboard user
+            # gets to the others. Treating that as a failure was a defect in this
+            # harness, not in the interface (DEFECT-INC9-004).
+            if page.evaluate("""(i) => {
+                  const n = document.querySelector(`[data-a11y-idx="${i}"]`);
+                  return !!n && n.tagName === 'INPUT' && n.type === 'radio' && !!n.name;
+                }""", idx):
+                # Tab has already carried focus past the group, so step back into
+                # it before using the arrow keys — pressing ArrowDown while a
+                # button is focused does nothing at all, which is why the first
+                # attempt at this fallback still recorded the radio unreachable.
+                page.evaluate("""(i) => {
+                      const n = document.querySelector(`[data-a11y-idx="${i}"]`);
+                      const group = document.getElementsByName(
+                        document.querySelector(`[data-a11y-idx="${i}"]`).name);
+                      const checked = [...group].find(r => r.checked) || group[0];
+                      checked.focus();
+                    }""", idx)
+                for _ in range(8):
+                    page.keyboard.press("ArrowDown")
+                    if page.evaluate("(i) => document.activeElement && "
+                                     "document.activeElement.getAttribute('data-a11y-idx') === String(i)",
+                                     idx):
+                        break
+                landed = page.evaluate("() => document.activeElement "
+                                       "? document.activeElement.getAttribute('data-a11y-idx') : null")
+                reached_by = "ArrowDown within the radio group"
         if landed != str(idx):
             elements.append({"index": idx, "reached": False, "landed_on": landed})
             continue
@@ -210,10 +405,20 @@ def measure_focus(page, view: str) -> dict:
           return {x: r.x, y: r.y, w: r.width, h: r.height,
                   tag: n.tagName.toLowerCase(), id: n.id || '', cls: n.className.toString().slice(0,50)};
         }""", idx)
+        # `clip` is viewport-relative for a non-full-page screenshot — measured,
+        # not assumed: a page-coordinate clip at y=1500 errors with "outside the
+        # resulting image", and a viewport-coordinate one captures the element
+        # exactly. `getBoundingClientRect()` is therefore the right source, and
+        # the box is clamped to the viewport so a control at the edge does not
+        # throw instead of being measured.
         pad = 8
+        view_w, view_h = page.viewport_size["width"], page.viewport_size["height"]
+        x0 = max(0.0, box["x"] - pad)
+        y0 = max(0.0, box["y"] - pad)
         clip = {
-            "x": max(0.0, box["x"] - pad), "y": max(0.0, box["y"] - pad),
-            "width": box["w"] + pad * 2, "height": box["h"] + pad * 2,
+            "x": x0, "y": y0,
+            "width": min(box["w"] + pad * 2, view_w - x0),
+            "height": min(box["h"] + pad * 2, view_h - y0),
         }
         if clip["width"] < 2 or clip["height"] < 2:
             elements.append({"index": idx, "reached": True, "skipped": "zero-size box"})
@@ -227,16 +432,20 @@ def measure_focus(page, view: str) -> dict:
           return {outline: s.outlineStyle + ' ' + s.outlineWidth, boxShadow: s.boxShadow};
         }""", idx)
         elements.append({
-            "index": idx, "reached": True, "tag": box["tag"], "id": box["id"],
-            "class": box["cls"], "changed_pixel_ratio": round(ratio, 5),
+            "index": idx, "reached": True, "reached_by": reached_by, "tag": box["tag"],
+            "id": box["id"], "class": box["cls"], "changed_pixel_ratio": round(ratio, 5),
             "passes": ratio >= FOCUS_MIN_CHANGED, "unfocused_styles": styles,
         })
     failures = [e for e in elements
                 if e.get("reached") and "skipped" not in e and not e.get("passes", False)]
     unreached = [e for e in elements if not e.get("reached")]
-    return {"view": view, "focusable": count, "elements": elements,
-            "failures": len(failures), "unreachable": len(unreached),
-            "verdict": "PASS" if not failures and not unreached else "FAIL"}
+    measured = [e for e in elements if "changed_pixel_ratio" in e]
+    vacuous = len(measured) < MIN_FOCUSABLE_PER_VIEW
+    return {"view": view, "focusable": count, "measured": len(measured),
+            "elements": elements, "failures": len(failures),
+            "unreachable": len(unreached), "vacuous": vacuous,
+            "min_ratio": min((e["changed_pixel_ratio"] for e in measured), default=None),
+            "verdict": "PASS" if not failures and not unreached and not vacuous else "FAIL"}
 
 
 # ---------------------------------------------------------------------------
@@ -267,7 +476,19 @@ def keyboard_flow(page, store: Path, *, label: str) -> dict:
     page.keyboard.press("Enter")
     page.wait_for_function("() => !document.getElementById('entry-result').hidden", timeout=300000)
     dimensions = page.evaluate("() => document.querySelectorAll('.dimension').length")
+    # The live region is written on a short timer so that a repeated message
+    # re-announces. Reading it straight after the repaint catches the *previous*
+    # message, which is how the first run of this harness recorded a pass for
+    # R9-6 on the text "Reading your entry on this machine…" (DEFECT-INC9-003).
+    page.wait_for_function(
+        "() => document.getElementById('status').textContent.includes('explained')",
+        timeout=15000)
     scored_status = page.text_content("#status")
+    # The attribution view is the one artifact a C6 reader most needs to see, and
+    # it is only on screen between the scored entry and the crisis entry that
+    # follows it. Captured here rather than in the later screenshot sweep, which
+    # would find this view showing the crisis panel instead.
+    page.screenshot(path=str(SHOTS / f"attribution-{label}.png"), full_page=True)
     step("write and explain an entry", f"{dimensions} dimension cards rendered")
 
     # R9-6, part two: the crisis path must announce, not merely repaint.
@@ -280,6 +501,9 @@ def keyboard_flow(page, store: Path, *, label: str) -> dict:
     tab_until(page, "() => document.activeElement && document.activeElement.id === 'entry-submit'")
     page.keyboard.press("Enter")
     page.wait_for_function("() => !document.getElementById('crisis').hidden", timeout=300000)
+    page.wait_for_function(
+        "() => document.getElementById('status').textContent.includes('crisis rule')",
+        timeout=15000)
     crisis_status = page.text_content("#status")
     crisis_helplines = page.evaluate("() => document.querySelectorAll('#crisis-helplines li').length")
     crisis_alert_role = page.get_attribute("#crisis", "role")
@@ -320,8 +544,23 @@ def keyboard_flow(page, store: Path, *, label: str) -> dict:
     step("decline the wipe", f"store still present: {store.exists()}; message: {declined!r}")
 
     pointer = page.evaluate("() => window.__pointerEvents")
+    # Mutation testing found R9-6 passing after `role="status" aria-live="polite"`
+    # was stripped off the element: the text still arrived, so a check that only
+    # read textContent could not tell an announcement from a repaint. The
+    # attributes are now part of the rule.
+    live = page.evaluate("""() => {
+      const s = document.getElementById('status');
+      const c = document.getElementById('crisis');
+      return {status_aria_live: s ? s.getAttribute('aria-live') : null,
+              status_role: s ? s.getAttribute('role') : null,
+              crisis_role: c ? c.getAttribute('role') : null};
+    }""")
+    live["is_live_region"] = (live["status_aria_live"] in ("polite", "assertive")
+                              or live["status_role"] == "status")
+    live["crisis_is_alert"] = live["crisis_role"] == "alert"
     return {
         "label": label,
+        "live_region": live,
         "steps": steps,
         "pointer_events": pointer,
         "focus_moved_to_after_unlock": focused_after_unlock,
@@ -377,9 +616,18 @@ def main() -> int:
         report["server"] = {"url": server.url, "bound_host": server.bound_host,
                             "port": server.server_port}
         requests_seen: list[dict] = []
+        #: Every origin this harness itself started. R9-8(b) is a claim about
+        #: 127.0.0.1, not about one port: the forced-colors pass runs a second
+        #: server on a second ephemeral port, and its requests are as local as
+        #: the first server's. Comparing against a single origin marked those
+        #: twelve requests external and failed a rule the product had not broken
+        #: (DEFECT-INC9-001).
+        loopback_origins: set[str] = {server.url.rstrip("/")}
 
         with sync_playwright() as p:
-            browser = p.chromium.launch()
+            browser, browser_info = launch_chromium(p)
+            report["harness"]["browser_binary"] = browser_info
+            report["harness"]["browser_version"] = browser.version
             try:
                 context = browser.new_context(viewport={"width": 1280, "height": 900},
                                               reduced_motion="no-preference")
@@ -396,17 +644,25 @@ def main() -> int:
 
                 # R9-3/R9-4a: axe on every view, and a screenshot of each for the record.
                 axe_results = []
+                contrast_results = []
+                vocabulary_results = []
+                name_results = []
                 for view in VIEWS:
                     visit_view(page, view)
                     page.wait_for_timeout(120)
                     axe_results.append(run_axe(page, view))
+                    contrast_results.append(contrast_scan(page, view))
+                    vocabulary_results.append(vocabulary_scan(page, view))
+                    name_results.append(name_scan(page, view))
                     page.screenshot(path=str(SHOTS / f"{view}.png"), full_page=True)
                 report["axe"] = axe_results
+                report["computed_contrast"] = contrast_results
+                report["rendered_vocabulary"] = vocabulary_results
+                report["accessible_names"] = name_results
 
                 # R9-2 on the two views that carry the most controls, plus the
                 # entry view, which is the one built from user text at runtime.
-                report["focus_visibility"] = [measure_focus(page, v)
-                                              for v in ("write", "settings", "entry")]
+                report["focus_visibility"] = [measure_focus(page, v) for v in VIEWS]
                 report["console"] = console
                 context.close()
 
@@ -420,12 +676,17 @@ def main() -> int:
                 rm_page.add_init_script(POINTER_COUNTER)
                 rm_page.goto(server.url, wait_until="load")
                 rm_page.wait_for_function("() => document.body.dataset.ready === 'true'")
-                tab_until(rm_page, "() => document.activeElement "
-                                   "&& document.activeElement.id === 'passphrase'")
-                rm_page.keyboard.type(PASSPHRASE)
-                tab_until(rm_page, "() => document.activeElement "
-                                   "&& document.activeElement.id === 'unlock-submit'")
-                rm_page.keyboard.press("Enter")
+                # The journal opened in the first context is still open on the
+                # server, so this page loads straight into `write`. Unlocking
+                # again would fail on a store that already exists, so the state
+                # is read rather than assumed.
+                if rm_page.evaluate("() => !document.getElementById('view-unlock').hidden"):
+                    tab_until(rm_page, "() => document.activeElement "
+                                       "&& document.activeElement.id === 'passphrase'")
+                    rm_page.keyboard.type(PASSPHRASE)
+                    tab_until(rm_page, "() => document.activeElement "
+                                       "&& document.activeElement.id === 'unlock-submit'")
+                    rm_page.keyboard.press("Enter")
                 rm_page.wait_for_function("() => !document.getElementById('view-write').hidden",
                                           timeout=30000)
                 motion = []
@@ -437,18 +698,23 @@ def main() -> int:
                             "() => { document.querySelectorAll('.view').forEach(v => v.hidden = true);"
                             "document.getElementById('view-unlock').hidden = false; }")
                     rm_page.wait_for_timeout(80)
-                    offenders = motion_scan(rm_page)
-                    motion.append({"view": view, "non_zero": offenders})
+                    scan = motion_scan(rm_page)
+                    motion.append({"view": view, "scanned": scan["scanned"],
+                                   "non_zero": scan["non_zero"]})
                 report["reduced_motion"] = {
                     "views": motion,
+                    "elements_scanned": sum(m["scanned"] for m in motion),
                     "total_non_zero": sum(len(m["non_zero"]) for m in motion),
-                    "verdict": "PASS" if not any(m["non_zero"] for m in motion) else "FAIL",
+                    "verdict": ("PASS" if (not any(m["non_zero"] for m in motion)
+                                           and all(m["scanned"] > 50 for m in motion))
+                                else "FAIL"),
                 }
                 rm.close()
 
                 # R9-4b: the whole flow again with the platform's colours forced.
                 fc_store = Path(tmp) / "forced.enc"
                 fc_server = serve_in_thread(store=fc_store, region="SG")
+                loopback_origins.add(fc_server.url.rstrip("/"))
                 fc = browser.new_context(viewport={"width": 1280, "height": 900},
                                          forced_colors="active")
                 fc.on("request", lambda r: requests_seen.append(
@@ -458,15 +724,18 @@ def main() -> int:
                 fc_page.add_init_script(POINTER_COUNTER)
                 fc_page.goto(fc_server.url, wait_until="load")
                 fc_flow = keyboard_flow(fc_page, fc_store, label="forced-colors")
-                fc_axe = []
+                fc_axe, fc_contrast = [], []
                 for view in VIEWS:
                     visit_view(fc_page, view)
                     fc_page.wait_for_timeout(120)
                     fc_axe.append(run_axe(fc_page, view))
+                    fc_contrast.append(contrast_scan(fc_page, view))
                     fc_page.screenshot(path=str(SHOTS / f"forced-colors-{view}.png"), full_page=True)
                 report["forced_colors"] = {
-                    "flow": fc_flow, "axe": fc_axe,
+                    "flow": fc_flow, "axe": fc_axe, "computed_contrast": fc_contrast,
                     "violation_total": sum(a["violation_count"] for a in fc_axe),
+                    "incomplete_total": sum(a["incomplete_count"] for a in fc_axe),
+                    "computed_contrast_failures": sum(len(c["failures"]) for c in fc_contrast),
                 }
                 fc.close()
                 fc_server.shutdown_now()
@@ -474,12 +743,20 @@ def main() -> int:
                 browser.close()
         server.shutdown_now()
 
-    origin = report["server"]["url"].rstrip("/")
-    external = [r for r in requests_seen
-                if not (r["url"].startswith(origin) or r["url"].startswith("data:"))]
+    def is_local(url: str) -> bool:
+        if url.startswith("data:"):
+            return True
+        parsed = urlparse(url)
+        # Both halves are required. The host check is the rule; the origin check
+        # stops a request to some *other* process listening on loopback from
+        # being waved through as "well, it is 127.0.0.1".
+        return (parsed.hostname == "127.0.0.1"
+                and f"{parsed.scheme}://{parsed.netloc}" in loopback_origins)
+
+    external = [r for r in requests_seen if not is_local(r["url"])]
     report["page_requests"] = {
         "total": len(requests_seen),
-        "origin": origin,
+        "loopback_origins": sorted(loopback_origins),
         "unique_urls": sorted({r["url"] for r in requests_seen}),
         "external": external,
         "verdict": "PASS" if not external else "FAIL",
@@ -495,16 +772,27 @@ def main() -> int:
     report["verdicts"] = {
         "R9-1_keyboard_complete": report["keyboard_flow"]["verdict"],
         "R9-2_visible_focus": "PASS" if not focus_fail else "FAIL",
-        "R9-3_axe_zero_violations": "PASS" if violations == 0 else "FAIL",
+        # R9-3 as pre-registered is "zero axe violations". It is reported here
+        # together with the accessible-name check, because a mutation that
+        # removed a <label> left axe green. Both must hold.
+        "R9-3_axe_zero_violations": "PASS" if (
+            violations == 0
+            and all(n["verdict"] == "PASS" for n in report["accessible_names"])) else "FAIL",
         "R9-4_contrast_and_forced_colors": "PASS" if (
             contrast_ran and contrast_passed
+            and all(c["verdict"] == "PASS" for c in report["computed_contrast"])
             and report["forced_colors"]["flow"]["verdict"] == "PASS"
-            and report["forced_colors"]["violation_total"] == 0) else "FAIL",
+            and report["forced_colors"]["violation_total"] == 0
+            and report["forced_colors"]["computed_contrast_failures"] == 0) else "FAIL",
         "R9-5_reduced_motion": report["reduced_motion"]["verdict"],
         "R9-6_announcements": "PASS" if (
             report["keyboard_flow"]["status_after_scored_entry"].strip()
-            and report["keyboard_flow"]["status_after_crisis_entry"].strip()) else "FAIL",
+            and report["keyboard_flow"]["status_after_crisis_entry"].strip()
+            and report["keyboard_flow"]["live_region"]["is_live_region"]
+            and report["keyboard_flow"]["live_region"]["crisis_is_alert"]) else "FAIL",
         "R9-8b_no_third_party_request": report["page_requests"]["verdict"],
+        "R9-9_no_clinical_vocabulary_rendered": "PASS" if all(
+            v["verdict"] == "PASS" for v in report["rendered_vocabulary"]) else "FAIL",
     }
     report["axe_violation_total"] = violations
     report["axe_incomplete_total"] = sum(a["incomplete_count"] for a in report["axe"])
@@ -520,6 +808,17 @@ def main() -> int:
         if entry["violations"]:
             print(f"\nVIOLATIONS in {entry['view']}:", file=sys.stderr)
             print(json.dumps(entry["violations"], indent=1)[:6000], file=sys.stderr)
+        if entry["incomplete"]:
+            print(f"\nINCOMPLETE in {entry['view']} (not counted as a pass):", file=sys.stderr)
+            print(json.dumps(entry["incomplete"], indent=1)[:4000], file=sys.stderr)
+    for entry in report["forced_colors"]["axe"]:
+        if entry["violations"] or entry["incomplete"]:
+            print(f"\nforced-colors {entry['view']}: "
+                  f"{entry['violation_count']} violation(s), "
+                  f"{entry['incomplete_count']} incomplete", file=sys.stderr)
+            print(json.dumps({"violations": entry["violations"],
+                              "incomplete": entry["incomplete"]}, indent=1)[:4000],
+                  file=sys.stderr)
     return 0 if report["verdict"] == "PASS" else 1
 
 

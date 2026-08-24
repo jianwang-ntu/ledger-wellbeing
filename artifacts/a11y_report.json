@@ -1,0 +1,2097 @@
+{
+ "measured_at_utc": "2026-08-24T23:04:21Z",
+ "rules": "export/INCREMENT_9_PREREGISTRATION.md",
+ "harness": {
+  "axe_core": "4.13.0",
+  "axe_tags": [
+   "wcag2a",
+   "wcag2aa",
+   "wcag21a",
+   "wcag21aa"
+  ],
+  "browser": "chromium via playwright",
+  "scope_not_measured": [
+   "screen-reader output \u2014 no assistive technology is driven here and none is claimed",
+   "any judgement about whether the design is good, as opposed to conformant"
+  ],
+  "browser_binary": {
+   "executable": "/home/wj/.cache/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-linux64/chrome-headless-shell",
+   "attempts": [
+    {
+     "executable": "playwright default",
+     "error": "BrowserType.launch: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /home/wj/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-"
+    }
+   ]
+  },
+  "browser_version": "149.0.7827.55"
+ },
+ "server": {
+  "url": "http://127.0.0.1:41563/",
+  "bound_host": "127.0.0.1",
+  "port": 41563
+ },
+ "keyboard_flow": {
+  "label": "default",
+  "live_region": {
+   "status_aria_live": "polite",
+   "status_role": "status",
+   "crisis_role": "alert",
+   "is_live_region": true,
+   "crisis_is_alert": true
+  },
+  "steps": [
+   {
+    "step": "reach passphrase",
+    "detail": "Tab only"
+   },
+   {
+    "step": "create journal",
+    "detail": "store exists: True"
+   },
+   {
+    "step": "write and explain an entry",
+    "detail": "5 dimension cards rendered"
+   },
+   {
+    "step": "crisis entry routes without scoring",
+    "detail": "3 helplines, role=alert"
+   },
+   {
+    "step": "history",
+    "detail": "2 rows read back from the encrypted store"
+   },
+   {
+    "step": "render the report",
+    "detail": "3225 characters"
+   },
+   {
+    "step": "decline the wipe",
+    "detail": "store still present: True; message: 'type WIPE to confirm; nothing was destroyed'"
+   }
+  ],
+  "pointer_events": {
+   "pointerdown": 0,
+   "mousedown": 0,
+   "mouseup": 0,
+   "clickWithDetail": 0
+  },
+  "focus_moved_to_after_unlock": "h-write",
+  "status_after_scored_entry": "Entry saved and explained across 5 signals.",
+  "status_after_crisis_entry": "This entry matched a crisis rule. It was stored but not scored, and helplines are shown.",
+  "store_survived_declined_wipe": true,
+  "verdict": "PASS"
+ },
+ "axe": [
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "autocomplete-valid",
+    "avoid-inline-spacing",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "document-title",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "html-has-lang",
+    "html-lang-valid",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "blink",
+    "definition-list",
+    "dlitem",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "scrollable-region-focusable",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "td-headers-attr",
+    "th-has-data-cells",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "unlock",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  },
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "avoid-inline-spacing",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "document-title",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "html-has-lang",
+    "html-lang-valid",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "autocomplete-valid",
+    "blink",
+    "definition-list",
+    "dlitem",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "scrollable-region-focusable",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "td-headers-attr",
+    "th-has-data-cells",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "write",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  },
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "document-title",
+    "duplicate-id-aria",
+    "html-has-lang",
+    "html-lang-valid",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "autocomplete-valid",
+    "avoid-inline-spacing",
+    "blink",
+    "definition-list",
+    "dlitem",
+    "form-field-multiple-labels",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "label",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "scrollable-region-focusable",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "td-headers-attr",
+    "th-has-data-cells",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "entry",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  },
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "document-title",
+    "duplicate-id-aria",
+    "html-has-lang",
+    "html-lang-valid",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "td-headers-attr",
+    "th-has-data-cells"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "autocomplete-valid",
+    "avoid-inline-spacing",
+    "blink",
+    "definition-list",
+    "dlitem",
+    "form-field-multiple-labels",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "label",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "scrollable-region-focusable",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "history",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  },
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "document-title",
+    "duplicate-id-aria",
+    "html-has-lang",
+    "html-lang-valid",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "scrollable-region-focusable"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "autocomplete-valid",
+    "avoid-inline-spacing",
+    "blink",
+    "definition-list",
+    "dlitem",
+    "form-field-multiple-labels",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "label",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "td-headers-attr",
+    "th-has-data-cells",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "report",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  },
+  {
+   "violations": [],
+   "incomplete": [],
+   "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "autocomplete-valid",
+    "avoid-inline-spacing",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "definition-list",
+    "dlitem",
+    "document-title",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "html-has-lang",
+    "html-lang-valid",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "td-headers-attr",
+    "th-has-data-cells"
+   ],
+   "inapplicable": [
+    "area-alt",
+    "aria-braille-equivalent",
+    "aria-command-name",
+    "aria-input-field-name",
+    "aria-meter-name",
+    "aria-progressbar-name",
+    "aria-required-children",
+    "aria-required-parent",
+    "aria-tab-name",
+    "aria-toggle-field-name",
+    "aria-tooltip-name",
+    "blink",
+    "frame-focusable-content",
+    "frame-title-unique",
+    "frame-title",
+    "html-xml-lang-mismatch",
+    "image-alt",
+    "input-button-name",
+    "input-image-alt",
+    "link-in-text-block",
+    "marquee",
+    "meta-refresh",
+    "object-alt",
+    "role-img-alt",
+    "scrollable-region-focusable",
+    "select-name",
+    "server-side-image-map",
+    "summary-name",
+    "svg-img-alt",
+    "valid-lang",
+    "video-caption",
+    "no-autoplay-audio"
+   ],
+   "view": "settings",
+   "violation_count": 0,
+   "incomplete_count": 0,
+   "color_contrast_ran": true,
+   "color_contrast_passed": true
+  }
+ ],
+ "computed_contrast": [
+  {
+   "view": "unlock",
+   "elements_measured": 17,
+   "failures": [],
+   "min_ratio": 7.49,
+   "verdict": "PASS"
+  },
+  {
+   "view": "write",
+   "elements_measured": 20,
+   "failures": [],
+   "min_ratio": 7.49,
+   "verdict": "PASS"
+  },
+  {
+   "view": "entry",
+   "elements_measured": 23,
+   "failures": [],
+   "min_ratio": 7.38,
+   "verdict": "PASS"
+  },
+  {
+   "view": "history",
+   "elements_measured": 23,
+   "failures": [],
+   "min_ratio": 7.72,
+   "verdict": "PASS"
+  },
+  {
+   "view": "report",
+   "elements_measured": 16,
+   "failures": [],
+   "min_ratio": 7.72,
+   "verdict": "PASS"
+  },
+  {
+   "view": "settings",
+   "elements_measured": 45,
+   "failures": [],
+   "min_ratio": 7.38,
+   "verdict": "PASS"
+  }
+ ],
+ "rendered_vocabulary": [
+  {
+   "view": "unlock",
+   "rendered_chars": 565,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "write",
+   "rendered_chars": 635,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "entry",
+   "rendered_chars": 738,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "history",
+   "rendered_chars": 646,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "report",
+   "rendered_chars": 3336,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "settings",
+   "rendered_chars": 1269,
+   "exempted": [
+    "ledger is not a medical device and does not diagnose. it reports patterns in language you wrote, so that you can decide what to share with a clinician who is treating you. it does not replace professional care.",
+    "this report is not a diagnosis and ledger is not a medical device. it shows patterns in language its owner wrote, computed on their own machine. nothing in it was sent anywhere. it is intended to be read alongside the person, not instead of them."
+   ],
+   "found": [],
+   "verdict": "PASS"
+  }
+ ],
+ "accessible_names": [
+  {
+   "view": "unlock",
+   "controls": 1,
+   "unnamed": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "write",
+   "controls": 3,
+   "unnamed": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "entry",
+   "controls": 0,
+   "unnamed": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "history",
+   "controls": 0,
+   "unnamed": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "report",
+   "controls": 0,
+   "unnamed": [],
+   "verdict": "PASS"
+  },
+  {
+   "view": "settings",
+   "controls": 1,
+   "unnamed": [],
+   "verdict": "PASS"
+  }
+ ],
+ "focus_visibility": [
+  {
+   "view": "unlock",
+   "focusable": 8,
+   "measured": 8,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.13216,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.14681,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19158,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 6,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "input",
+     "id": "passphrase",
+     "class": "",
+     "changed_pixel_ratio": 0.17305,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 7,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "unlock-submit",
+     "class": "btn btn--primary",
+     "changed_pixel_ratio": 0.19443,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.13216,
+   "verdict": "PASS"
+  },
+  {
+   "view": "write",
+   "focusable": 10,
+   "measured": 10,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.08919,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19084,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19143,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 6,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "textarea",
+     "id": "entry-text",
+     "class": "",
+     "changed_pixel_ratio": 0.05221,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 7,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "input",
+     "id": "gran-sentence",
+     "class": "",
+     "changed_pixel_ratio": 0.42806,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 8,
+     "reached": true,
+     "reached_by": "ArrowDown within the radio group",
+     "tag": "input",
+     "id": "gran-word",
+     "class": "",
+     "changed_pixel_ratio": 0.42806,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 9,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "entry-submit",
+     "class": "btn btn--primary",
+     "changed_pixel_ratio": 0.19091,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.05221,
+   "verdict": "PASS"
+  },
+  {
+   "view": "entry",
+   "focusable": 6,
+   "measured": 6,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.13216,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.16173,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19084,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19143,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.13216,
+   "verdict": "PASS"
+  },
+  {
+   "view": "history",
+   "focusable": 7,
+   "measured": 7,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.10443,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.14681,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19084,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19143,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 6,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "div",
+     "id": "",
+     "class": "tablewrap",
+     "changed_pixel_ratio": 0.08251,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.08251,
+   "verdict": "PASS"
+  },
+  {
+   "view": "report",
+   "focusable": 8,
+   "measured": 8,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.13216,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.16173,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19084,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19143,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 6,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "report-refresh",
+     "class": "btn",
+     "changed_pixel_ratio": 0.18924,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 7,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "div",
+     "id": "",
+     "class": "tablewrap tablewrap--tall",
+     "changed_pixel_ratio": 0.01903,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.01903,
+   "verdict": "PASS"
+  },
+  {
+   "view": "settings",
+   "focusable": 9,
+   "measured": 9,
+   "elements": [
+    {
+     "index": 0,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "a",
+     "id": "",
+     "class": "skip",
+     "changed_pixel_ratio": 0.13216,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 1,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 2,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 3,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19069,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 4,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.14681,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 5,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "",
+     "class": "rail__link",
+     "changed_pixel_ratio": 0.19158,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 6,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "div",
+     "id": "",
+     "class": "tablewrap",
+     "changed_pixel_ratio": 0.04897,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 7,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "input",
+     "id": "wipe-confirm",
+     "class": "",
+     "changed_pixel_ratio": 0.18566,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    },
+    {
+     "index": 8,
+     "reached": true,
+     "reached_by": "Tab",
+     "tag": "button",
+     "id": "wipe-submit",
+     "class": "btn btn--danger",
+     "changed_pixel_ratio": 0.19238,
+     "passes": true,
+     "unfocused_styles": {
+      "outline": "none 3px",
+      "boxShadow": "none"
+     }
+    }
+   ],
+   "failures": 0,
+   "unreachable": 0,
+   "vacuous": false,
+   "min_ratio": 0.04897,
+   "verdict": "PASS"
+  }
+ ],
+ "console": [
+  "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+ ],
+ "reduced_motion": {
+  "views": [
+   {
+    "view": "unlock",
+    "scanned": 144,
+    "non_zero": []
+   },
+   {
+    "view": "write",
+    "scanned": 144,
+    "non_zero": []
+   },
+   {
+    "view": "history",
+    "scanned": 152,
+    "non_zero": []
+   },
+   {
+    "view": "report",
+    "scanned": 152,
+    "non_zero": []
+   },
+   {
+    "view": "settings",
+    "scanned": 152,
+    "non_zero": []
+   }
+  ],
+  "elements_scanned": 744,
+  "total_non_zero": 0,
+  "verdict": "PASS"
+ },
+ "forced_colors": {
+  "flow": {
+   "label": "forced-colors",
+   "live_region": {
+    "status_aria_live": "polite",
+    "status_role": "status",
+    "crisis_role": "alert",
+    "is_live_region": true,
+    "crisis_is_alert": true
+   },
+   "steps": [
+    {
+     "step": "reach passphrase",
+     "detail": "Tab only"
+    },
+    {
+     "step": "create journal",
+     "detail": "store exists: True"
+    },
+    {
+     "step": "write and explain an entry",
+     "detail": "5 dimension cards rendered"
+    },
+    {
+     "step": "crisis entry routes without scoring",
+     "detail": "3 helplines, role=alert"
+    },
+    {
+     "step": "history",
+     "detail": "2 rows read back from the encrypted store"
+    },
+    {
+     "step": "render the report",
+     "detail": "3225 characters"
+    },
+    {
+     "step": "decline the wipe",
+     "detail": "store still present: True; message: 'type WIPE to confirm; nothing was destroyed'"
+    }
+   ],
+   "pointer_events": {
+    "pointerdown": 0,
+    "mousedown": 0,
+    "mouseup": 0,
+    "clickWithDetail": 0
+   },
+   "focus_moved_to_after_unlock": "h-write",
+   "status_after_scored_entry": "Entry saved and explained across 5 signals.",
+   "status_after_crisis_entry": "This entry matched a crisis rule. It was stored but not scored, and helplines are shown.",
+   "store_survived_declined_wipe": true,
+   "verdict": "PASS"
+  },
+  "axe": [
+   {
+    "violations": [],
+    "incomplete": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "nodes": [
+       {
+        "target": [
+         "#unlock-submit"
+        ],
+        "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+       }
+      ]
+     }
+    ],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "autocomplete-valid",
+     "avoid-inline-spacing",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "document-title",
+     "duplicate-id-aria",
+     "form-field-multiple-labels",
+     "html-has-lang",
+     "html-lang-valid",
+     "label",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "blink",
+     "definition-list",
+     "dlitem",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "scrollable-region-focusable",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "td-headers-attr",
+     "th-has-data-cells",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "unlock",
+    "violation_count": 0,
+    "incomplete_count": 1,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   },
+   {
+    "violations": [],
+    "incomplete": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "nodes": [
+       {
+        "target": [
+         "#entry-submit"
+        ],
+        "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+       }
+      ]
+     }
+    ],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "avoid-inline-spacing",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "document-title",
+     "duplicate-id-aria",
+     "form-field-multiple-labels",
+     "html-has-lang",
+     "html-lang-valid",
+     "label",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "autocomplete-valid",
+     "blink",
+     "definition-list",
+     "dlitem",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "scrollable-region-focusable",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "td-headers-attr",
+     "th-has-data-cells",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "write",
+    "violation_count": 0,
+    "incomplete_count": 1,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   },
+   {
+    "violations": [],
+    "incomplete": [],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "document-title",
+     "duplicate-id-aria",
+     "html-has-lang",
+     "html-lang-valid",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "autocomplete-valid",
+     "avoid-inline-spacing",
+     "blink",
+     "definition-list",
+     "dlitem",
+     "form-field-multiple-labels",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "label",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "scrollable-region-focusable",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "td-headers-attr",
+     "th-has-data-cells",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "entry",
+    "violation_count": 0,
+    "incomplete_count": 0,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   },
+   {
+    "violations": [],
+    "incomplete": [],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "document-title",
+     "duplicate-id-aria",
+     "html-has-lang",
+     "html-lang-valid",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive",
+     "td-headers-attr",
+     "th-has-data-cells"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "autocomplete-valid",
+     "avoid-inline-spacing",
+     "blink",
+     "definition-list",
+     "dlitem",
+     "form-field-multiple-labels",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "label",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "scrollable-region-focusable",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "history",
+    "violation_count": 0,
+    "incomplete_count": 0,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   },
+   {
+    "violations": [],
+    "incomplete": [],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "document-title",
+     "duplicate-id-aria",
+     "html-has-lang",
+     "html-lang-valid",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive",
+     "scrollable-region-focusable"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "autocomplete-valid",
+     "avoid-inline-spacing",
+     "blink",
+     "definition-list",
+     "dlitem",
+     "form-field-multiple-labels",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "label",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "td-headers-attr",
+     "th-has-data-cells",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "report",
+    "violation_count": 0,
+    "incomplete_count": 0,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   },
+   {
+    "violations": [],
+    "incomplete": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "nodes": [
+       {
+        "target": [
+         "#wipe-submit"
+        ],
+        "summary": "Fix any of the following:\n  Element has a 1:1 contrast ratio with the background"
+       }
+      ]
+     }
+    ],
+    "passes": [
+     "aria-allowed-attr",
+     "aria-conditional-attr",
+     "aria-deprecated-role",
+     "aria-hidden-body",
+     "aria-hidden-focus",
+     "aria-prohibited-attr",
+     "aria-required-attr",
+     "aria-roles",
+     "aria-valid-attr-value",
+     "aria-valid-attr",
+     "autocomplete-valid",
+     "avoid-inline-spacing",
+     "button-name",
+     "bypass",
+     "color-contrast",
+     "definition-list",
+     "dlitem",
+     "document-title",
+     "duplicate-id-aria",
+     "form-field-multiple-labels",
+     "html-has-lang",
+     "html-lang-valid",
+     "label",
+     "link-name",
+     "list",
+     "listitem",
+     "meta-viewport",
+     "nested-interactive",
+     "td-headers-attr",
+     "th-has-data-cells"
+    ],
+    "inapplicable": [
+     "area-alt",
+     "aria-braille-equivalent",
+     "aria-command-name",
+     "aria-input-field-name",
+     "aria-meter-name",
+     "aria-progressbar-name",
+     "aria-required-children",
+     "aria-required-parent",
+     "aria-tab-name",
+     "aria-toggle-field-name",
+     "aria-tooltip-name",
+     "blink",
+     "frame-focusable-content",
+     "frame-title-unique",
+     "frame-title",
+     "html-xml-lang-mismatch",
+     "image-alt",
+     "input-button-name",
+     "input-image-alt",
+     "link-in-text-block",
+     "marquee",
+     "meta-refresh",
+     "object-alt",
+     "role-img-alt",
+     "scrollable-region-focusable",
+     "select-name",
+     "server-side-image-map",
+     "summary-name",
+     "svg-img-alt",
+     "valid-lang",
+     "video-caption",
+     "no-autoplay-audio"
+    ],
+    "view": "settings",
+    "violation_count": 0,
+    "incomplete_count": 1,
+    "color_contrast_ran": true,
+    "color_contrast_passed": true
+   }
+  ],
+  "computed_contrast": [
+   {
+    "view": "unlock",
+    "elements_measured": 17,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   },
+   {
+    "view": "write",
+    "elements_measured": 20,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   },
+   {
+    "view": "entry",
+    "elements_measured": 23,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   },
+   {
+    "view": "history",
+    "elements_measured": 23,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   },
+   {
+    "view": "report",
+    "elements_measured": 16,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   },
+   {
+    "view": "settings",
+    "elements_measured": 45,
+    "failures": [],
+    "min_ratio": 13.99,
+    "verdict": "PASS"
+   }
+  ],
+  "violation_total": 0,
+  "incomplete_total": 3,
+  "computed_contrast_failures": 0
+ },
+ "page_requests": {
+  "total": 30,
+  "loopback_origins": [
+   "http://127.0.0.1:41563",
+   "http://127.0.0.1:41753"
+  ],
+  "unique_urls": [
+   "http://127.0.0.1:41563/",
+   "http://127.0.0.1:41563/api/entries",
+   "http://127.0.0.1:41563/api/entry",
+   "http://127.0.0.1:41563/api/report",
+   "http://127.0.0.1:41563/api/state",
+   "http://127.0.0.1:41563/api/unlock",
+   "http://127.0.0.1:41563/api/wipe",
+   "http://127.0.0.1:41563/app.css",
+   "http://127.0.0.1:41563/app.js",
+   "http://127.0.0.1:41753/",
+   "http://127.0.0.1:41753/api/entries",
+   "http://127.0.0.1:41753/api/entry",
+   "http://127.0.0.1:41753/api/report",
+   "http://127.0.0.1:41753/api/state",
+   "http://127.0.0.1:41753/api/unlock",
+   "http://127.0.0.1:41753/api/wipe",
+   "http://127.0.0.1:41753/app.css",
+   "http://127.0.0.1:41753/app.js"
+  ],
+  "external": [],
+  "verdict": "PASS"
+ },
+ "verdicts": {
+  "R9-1_keyboard_complete": "PASS",
+  "R9-2_visible_focus": "PASS",
+  "R9-3_axe_zero_violations": "PASS",
+  "R9-4_contrast_and_forced_colors": "PASS",
+  "R9-5_reduced_motion": "PASS",
+  "R9-6_announcements": "PASS",
+  "R9-8b_no_third_party_request": "PASS",
+  "R9-9_no_clinical_vocabulary_rendered": "PASS"
+ },
+ "axe_violation_total": 0,
+ "axe_incomplete_total": 0,
+ "verdict": "PASS"
+}

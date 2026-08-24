@@ -113,6 +113,23 @@ missing from this file, or is listed without its pinned revision.
 Build-time only, not shipped to a user: `torch`, `transformers`, `onnx`,
 `onnxruntime`, `onnxscript`, `numpy` — all BSD/MIT/Apache-2.0.
 
+### Measurement tooling — increment 9, not shipped and not imported by the app
+
+The interface is plain HTML, CSS and JavaScript with **no runtime dependency of
+any kind**: no framework, no bundler, no icon set, no web font. That is measured,
+not asserted — `tests/test_ui.py` fails on any absolute URL in a shipped asset,
+and the accessibility harness fails if the page issues a request to anything but
+loopback. The two tools below exist only inside the harness.
+
+| Asset | Version | Licence | Used for |
+|---|---|---|---|
+| `axe-core` | 4.13.0 | **MPL-2.0** — read from the package's own `package.json` | The WCAG rule engine in `a11y/audit_a11y.py`. Injected into the page under test at measurement time; never served, never bundled, never referenced by `ledger/ui/static/`. |
+| `playwright` (Python) | 1.58.0 | **Apache-2.0** | Drives Chromium for the same harness. |
+| Chromium (Playwright build `chromium_headless_shell-1228`, 149.0.7827.55) | — | **BSD-3-Clause** (Chromium) | The browser the measurements were taken in. Named in `artifacts/a11y_report.json:harness.browser_binary` because a measurement that depends on a browser build should say which build. |
+
+`a11y/node_modules/` is not tracked; `a11y/package.json` and
+`a11y/package-lock.json` are, so the versions above are reproducible.
+
 ## Text
 
 **There is no third-party text corpus in this project.** Everything the model is

@@ -275,8 +275,11 @@ Increment 5 closed the last route that would have kept the in-browser target:
 of four entailment-supervised bi-encoders at hidden ≤ 384, the only one that
 fits the ceilings separates at chance (§1b). **The in-browser claim is therefore
 dropped rather than fudged, and plan.md R-4's desktop fallback is the target.**
-The zero-egress claim is unaffected — it never depended on the browser, only on
-there being no server component.
+The zero-egress claim is unaffected — it never depended on the browser. It was
+written here as depending on "there being no server component", and **increment 9
+withdrew that wording**: the interface now binds a loopback listener. What the
+claim rests on is stated in §7.6 and measured there — the only bind is
+`127.0.0.1`, and the port is refused on every non-loopback address on this host.
 
 The narrower-encoder route recorded at the end of increment 2 was measured in
 increment 3 and **not taken**: `google/bert_uncased_L-6_H-256_A-4` does project
@@ -328,7 +331,7 @@ Stated so the list above is not read as "nothing works":
   exactly: max residual **4.41e-07** against a 1e-4 rule, over 64 probe entries x
   5 dimensions x 2 granularities (`artifacts/span_additivity.json`).
 
-## 7. What the application does and does not do (increment 8)
+## 7. What the application does and does not do (increments 8–9)
 
 ### 7.1 The zero-egress measurement is process-level, not packet-level
 
@@ -380,14 +383,34 @@ answer to that threat and is outside what this project can provide.
 Wipe deliberately does **not** require the passphrase. Someone who needs their
 journal gone should not have to remember how to open it first.
 
-### 7.4 The CLI is a front-end, not a designed interface
+### 7.4 The interface is measured for conformance, not for what a screen-reader user experiences
 
-`plan.md` C6 (UI/UX & Accessibility) is graded on visual design quality,
-navigation and accessibility standards. A command line answers none of those,
-`a11y/axe_report.json` does not exist, and no screen-reader traversal has been
-recorded. **C6 has no artifact behind it.** This is stated in
-`export/INCREMENT_8_PREREGISTRATION.md` as a deliberate hole for increment 9, not
-discovered here.
+Increment 9 built the visual interface (`python -m ledger.ui`) and measured it in
+a real Chromium: axe-core at **zero violations and zero incomplete** across all
+six views on `wcag2a, wcag2aa, wcag21a, wcag21aa`; the whole primary flow driven
+with **zero pointer events**; a focus indicator verified **optically** on every
+focusable element; every element reporting `0s` motion under
+`prefers-reduced-motion`; the flow completing again under `forced-colors: active`.
+`artifacts/a11y_report.json` has all of it.
+
+What that is **not**: a screen-reader traversal. No assistive technology is driven
+anywhere in this repository, and none is claimed. `plan.md`'s evidence plan asks
+for "an axe run *plus* a recorded screen-reader traversal"; the first half exists
+and the second does not, so **C6 is evidenced in part, not in full**. That half
+needs a screen reader and a human listening to it, and it is recorded as
+NEEDS_HUMAN rather than approximated.
+
+Two further limits worth naming:
+
+- **Conformance is a floor, not a design review.** Zero violations means no rule
+  was broken. It does not mean the interface is good, and no automated check can.
+- **axe disagreed with the computed styles under emulated forced colours.** It
+  reported the three primary buttons as a 1:1 `incomplete`, while
+  `getComputedStyle` on the same elements returns black on white. An independent
+  contrast pass built into the harness — same WCAG formula, live computed styles,
+  every text-bearing element — measures a **minimum of 13.99:1** in that mode and
+  **7.38:1** in the default one. Both numbers are in the artifact; neither is
+  dropped in favour of the flattering one.
 
 ### 7.5 The application shows numbers, and numbers persuade
 
@@ -399,6 +422,49 @@ clinical data, not real journal entries, not an external benchmark. That labelli
 is a guard (`tests/test_report.py`), not a convention, and a mutation that blanks
 it in either section fails the suite.
 
+Increment 9 made this sharper, not softer. The interface renders the same numbers
+in a form that is far more persuasive than a JSON file, so it carries the same
+labelling: every dimension card below the floor shows a **NOT ESTABLISHED** badge,
+its held-out AUC, and the sentence from `ledger/app/evidence.py` saying what that
+means; the entry view names the evaluation basis above the cards; and the
+banned-vocabulary check now runs over the **rendered page text**, not the source.
+That last check caught real copy on the write view during increment 9 — the
+wording was changed rather than the check's exemption widened.
+
 The residual risk stands anyway: a person reading a sparkline of their own moods
 will over-read it. The chart is fixed to a 0..1 scale rather than autoscaled for
 exactly this reason, and it is not enough.
+### 7.6 The interface binds a loopback listener, and that is a change of claim
+
+Until increment 9 the application opened no socket at all, so "no server
+component" was true — by accident of there being no interface. There is now an
+HTTP server on `127.0.0.1` and an ephemeral port.
+
+`export/INCREMENT_8_PREREGISTRATION.md` fixed in advance what would happen if this
+came to pass: the sentence is **withdrawn**, not reinterpreted to mean "no
+*remote* server". What replaces it is measured:
+
+- The only address the process binds is `127.0.0.1`
+  (`artifacts/egress_audit_ui.json:binds`), and `socket.socket.bind` is
+  instrumented so a wildcard bind would be recorded rather than argued about.
+- The port is **refused** on all nine non-loopback IPv4 addresses on this host —
+  `ECONNREFUSED` on each (`…:ui_exercise.reachability`). The probe reads the
+  interface list from the kernel by `ioctl`, not from a name lookup.
+- Driving the whole interface over loopback produced **39 socket calls, all
+  loopback, zero DNS resolutions**.
+- In the browser, **every one of the 30 requests the page issued** went to the
+  loopback origin, and the served Content-Security-Policy pins `default-src` and
+  `connect-src` to `'self'`.
+
+What this costs, stated plainly: the passphrase is posted to `127.0.0.1` in a
+request body. It does not leave the host and it is never written to disk, to a
+log line, or to a URL — but it does cross a socket, which it did not before. Any
+process running as this user could already read the journal file and the process
+memory, so this does not widen the trust boundary; it does move where the secret
+appears inside it.
+
+The `Host` header is pinned and every `/api` call needs a per-run token embedded
+in the page, so a page on the open internet cannot reach the interface by
+pointing a name at 127.0.0.1. Both are guarded in `tests/test_ui.py` and both are
+mutation-tested.
+

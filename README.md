@@ -7,10 +7,10 @@ A client-side longitudinal well-being instrument, built for
 > run. Claims about parts that do not exist yet are not made here. Every claim
 > below is backed by a checked-in artifact under `audit/`.
 >
-> As of build increment 8 there is a working application. As of build increment
-> 7 there is a shippable model build. Neither of those makes the score good —
-> `docs/limitations.md` §1 is the thing to read before believing any number
-> this produces.
+> As of build increment 9 there is a working application **with an interface**.
+> As of build increment 7 there is a shippable model build. None of that makes
+> the score good — `docs/limitations.md` §1 is the thing to read before believing
+> any number this produces.
 
 ## What it is meant to be
 
@@ -19,6 +19,15 @@ clinician actually treating them — not an AI that acts as a therapist. Inferen
 runs locally over the user's own writing and nothing leaves the device; the
 output is per-span attribution over their words and a trajectory over time, not
 generated advice.
+
+The interface is a local one: `python -m ledger.ui` binds `127.0.0.1` and opens
+in the browser you already have. Earlier versions of this README said the project
+had **"no server component at all"**. That sentence is **withdrawn** as of
+increment 9, because it stopped being true when the interface arrived — see
+`docs/limitations.md` §7.6 for what replaced it and how each replacement was
+measured. It is not reinterpreted to mean "no *remote* server"; the wording was
+pre-committed in `export/INCREMENT_8_PREREGISTRATION.md` before the measurement
+that would have made it awkward.
 
 **The delivery target changed, and the reason is a measurement, not a
 preference.** The plan was a browser app. Meeting the size ceiling set on day one
@@ -49,13 +58,16 @@ it, written before the measurement.
 | Desktop target with the 0.880 scorer | **built, measured and ADOPTED** since increment 7 — CEIL-2 met at 1.484 MiB vs 2.000 MiB, `verify.py` exits 0, `int8_embed` selected | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
 | `ledger/store/` — encrypted local journal, one-click wipe | **built, tested** | `tests/test_store.py` (25 guards), `docs/limitations.md` §7.2–7.3 |
 | `ledger/app/` — entry → route → score → per-span attribution → store → report | **built, runs end to end** | `audit/runs/inc8_cli_demo_*.txt`, `artifacts/span_additivity.json` |
-| Zero egress | **measured on the running application**: 0 socket calls of any kind | `artifacts/egress_audit.json`, `docs/limitations.md` §7.1 |
+| Zero egress | **measured twice**: 0 socket calls of any kind with the CLI; 39 calls, all loopback, with the interface running | `artifacts/egress_audit.json`, `artifacts/egress_audit_ui.json`, `docs/limitations.md` §7.1 |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
 | A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
 | CLI front-end (`python -m ledger.app.cli`) | **built** | `audit/runs/inc8_cli_demo_*.txt` |
-| Visual UI / accessibility audit (plan.md C6) | **not built** — a CLI is not a designed interface | `docs/limitations.md` §7.4 |
+| Visual interface (`python -m ledger.ui`) | **built** — six views, served from 127.0.0.1, no third-party asset | `artifacts/a11y/screens/`, `tests/test_ui.py` (26 guards) |
+| Accessibility (plan.md C6) | **measured in a real browser**: axe-core 0 violations / 0 incomplete on all six views; whole flow keyboard-only; focus verified optically | `artifacts/a11y_report.json` |
+| Screen-reader traversal | **not done, not claimed** — needs a human | `docs/limitations.md` §7.4 |
+| The listener is local and unreachable | **measured**: only bind `127.0.0.1`; port refused on all 9 non-loopback addresses | `artifacts/egress_audit_ui.json` |
 | 4-minute submission video | **not produced**, and will not be faked | — |
 
 All tests pass offline: `python3 -m pytest tests/`. What they assert is that the
@@ -469,3 +481,85 @@ Still open, and stated plainly:
   `[NOT ESTABLISHED]` everywhere it appears rather than averaging it away.
 - **The egress measurement is process-level, not a packet capture.**
   `docs/limitations.md` §7.1 says exactly how far it reaches.
+
+
+## Build increment 9 — the interface, and what measuring it actually found
+
+`plan.md` C6 is graded on "visual design quality, ease of navigation, intuitive
+user flows, and adherence to accessibility standards". Through increment 8 it had
+**zero** artifact, declared as a deliberate hole before that increment started.
+This increment closes it — partly.
+
+Run it with `python -m ledger.ui`. Six views: open the journal, write, read the
+per-span attribution, history, report, journal & safety. Screenshots of every one
+of them, as rendered by the browser the harness drove, are in
+`artifacts/a11y/screens/`.
+
+### What was measured, and against what
+
+Every threshold below was written into `export/INCREMENT_9_PREREGISTRATION.md`
+and committed **before** the interface existed.
+
+| Rule | Result |
+|---|---|
+| R9-1 keyboard completeness | The whole primary flow — create journal → write → attribution → history → report → decline the wipe — with **0 pointer events**. A keyboard-activated button fires `click` with `detail === 0`; a mouse one does not, so the counter can tell them apart. |
+| R9-2 visible focus, optically | **48 of 48** focusable elements. The element's own box is screenshotted focused and unfocused and diffed; minimum **1.9%** of pixels changed against a 0.5% rule. A `:focus { outline: none }` that repaints invisibly passes a style check and fails this one. |
+| R9-3 axe-core | **0 violations, 0 incomplete**, six views, `wcag2a, wcag2aa, wcag21a, wcag21aa`. |
+| R9-4 contrast + forced colours | axe's `color-contrast` **ran** (it needs real layout — this is why a browser, not jsdom) and passed on every view. An independent pass over every text-bearing element measures **7.38:1 minimum** by default and **13.99:1** under `forced-colors: active`, where the flow completes again unchanged. |
+| R9-5 reduced motion | **744 elements** enumerated in the live DOM, every one reporting `0s` animation and transition. |
+| R9-6 announcements | The live region carries the scored result and the crisis routing, and it **is** a live region — `aria-live="polite"`, `role="status"`, crisis panel `role="alert"`. |
+| R9-7 the listener is local | Only bind is `127.0.0.1`. The port is **refused on all nine non-loopback addresses** on this host. The interface list is read from the kernel by `ioctl`, not from a name lookup. |
+| R9-8 zero egress survives | 39 socket calls driving the interface in-process, **all loopback**, zero DNS. In the browser, **30 of 30** requests to the loopback origin. |
+| R9-9 no new claims | `head_is_trained` still `false`. Every dimension below the 0.70 floor renders a **NOT ESTABLISHED** badge with its AUC. The banned-vocabulary check now runs over the **rendered page text**. |
+| R9-10 nothing else moved | No `CEILINGS` value edited, `export/common.py` byte-identical, `verify.py` exits 0 with `int8_embed`, suite green. |
+
+### Five defects, four of them found by measuring rather than by reading
+
+The first run of the harness came back green on every rule. Four of those greens
+were wrong, and the way they were found is the point.
+
+1. **DEFECT-INC9-001** — R9-8(b) counted the forced-colours pass's own loopback
+   server as "external", failing a rule the product had not broken. The rule is
+   about `127.0.0.1`; the check had been written about one port.
+2. **DEFECT-INC9-002** — R9-2 reported **PASS on two views where it measured
+   nothing**. It scanned a section that was hidden at the time, found zero
+   focusable elements, and found zero failures among them. A vacuity guard now
+   fails a view that measures nothing, and the scan covers the whole document —
+   the skip link and the section rail live outside every view and were never
+   being looked at.
+3. **DEFECT-INC9-003** — R9-6 read the live region 30 ms too early and passed on
+   the **previous** message ("Reading your entry on this machine…"). It now waits
+   for the text it expects.
+4. **DEFECT-INC9-004** — R9-2 called a radio button "unreachable" because Tab
+   skipped it. Tab is *supposed* to skip it: a radio group is one tab stop and
+   the arrow keys move within it. The harness was wrong, not the interface.
+5. **DEFECT-INC9-005** — found by looking at a rendered screenshot: the
+   NOT ESTABLISHED card said "threshold fixed before it was measured" **twice**,
+   once from the page's own template and once from `ledger/app/evidence.py`. One
+   source, one sentence.
+
+### Then the guards were mutated, and two of them were too weak
+
+`export/mutation_check_inc9.py` breaks each property and checks that the guard
+notices. The first full run caught **17 of 19**. The two misses were real:
+
+- Stripping `role="status" aria-live="polite"` off the status element left R9-6
+  **green** — the text still arrived, so a check that only read `textContent`
+  could not tell an announcement from a repaint. R9-6 now checks the attributes.
+- Removing a `<label>` from the textarea left axe **green**, because axe-core
+  accepts a non-empty `placeholder` as an accessible name. A placeholder vanishes
+  the moment someone types. R9-3 now also requires every control to be named by a
+  label, `aria-label` or `aria-labelledby` — a **tightening** of the rule after a
+  mutation showed it was too loose, recorded here rather than quietly folded in.
+
+After both fixes: **19 of 19 caught**.
+
+### What is still not true
+
+- **No screen-reader traversal exists**, and none is claimed. Conformance is a
+  floor, not a substitute for someone listening to the thing.
+- **The 4-minute video is still missing** and will not be faked.
+- **The head is still untrained** and `activation` still sits at 0.600 against a
+  0.700 floor, labelled everywhere it appears.
+- **The packet-level capture is still owed**; the egress measurement is
+  process-level and is described as such.

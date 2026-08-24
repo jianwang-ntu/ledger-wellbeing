@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/a11y/audit_a11y.py", line 558, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/a11y/audit_a11y.py", line 454, in main
+    tab_until(rm_page, "() => document.activeElement "
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                       "&& document.activeElement.id === 'passphrase'")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/wj/wj_code/dl_hackathon/devpost_dirs/workspaces/hack-for-humanity-summer-26/project/a11y/audit_a11y.py", line 130, in tab_until
+    raise AssertionError(f"never reached: {predicate} after {limit} Tab presses")
+AssertionError: never reached: () => document.activeElement && document.activeElement.id === 'passphrase' after 80 Tab presses
