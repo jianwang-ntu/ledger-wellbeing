@@ -24,6 +24,7 @@ attribution over their words and a trajectory over time, not generated advice.
 | In-browser inference (`onnxruntime-web`, WASM) | **runs**; no shippable build yet | `artifacts/wasm/bench_*.json` |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
+| A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
 | UI | not started | — |
 
 All tests pass offline: `python -m unittest discover -s tests`. What they assert is that the numbers in this README are re-derivable from the artifacts, not that the project works.
@@ -150,6 +151,54 @@ Full numbers, protocol and the routes that remain: `docs/limitations.md` §1 and
 ```
 python export/encoder_ablation.py    # exits 2 while no candidate is selectable
 ```
+
+## The scorer that works, and why it is not in this build
+
+Increment 3 left four routes out of a head that scores at chance. Increment 4
+measured the one that was unmeasured — polarity-aware scoring — under the same
+held-out protocol, the same positive control, and the same 0.70 / 0.75
+thresholds, imported from the increment-3 script rather than re-typed.
+
+| Scorer | Held-out AUC | Positive control | Additive? | Projected int8-embed |
+|---|---:|---:|:---:|---:|
+| `all-MiniLM-L6-v2`, centroid difference *(incumbent)* | 0.504 | 0.860 | yes | 52.55 MiB |
+| `all-MiniLM-L6-v2`, shrunk LDA | 0.544 | 0.864 | yes | 52.55 MiB |
+| `distilbert…sst-2` body, mean-pooled | 0.672 | **0.584** | yes | 184.96 MiB |
+| **`nli-distilroberta-base-v2`, centroid difference** | **0.880** | **0.916** | **yes** | **201.68 MiB** |
+| `cross-encoder/nli-distilroberta-base` | 0.784 | **0.656** | no | 201.69 MiB |
+| `cross-encoder/nli-MiniLM2-L6-H768` | 0.896 | **0.684** | no | 201.69 MiB |
+| one global sentiment score *(diagnostic)* | 0.792 | **0.608** | no | 187.22 MiB |
+
+Three things in that table, in the order they matter.
+
+**A bold control number is a disqualification, not a footnote.** Four scorers —
+including the 0.896, the best held-out number anywhere in this project — have a
+positive control under the 0.75 floor. That floor means the scorer cannot tell
+two different dimensions apart, so its pole separation is not evidence about the
+dimension it is credited to. The floor was fixed in increment 3 before any of
+this was run. That is the only thing that makes it legitimate to apply it to a
+number we would have liked to keep.
+
+**One scorer clears every gate.** An NLI-supervised bi-encoder, still mean-pooled
+and still read out by a fixed linear row, takes held-out macro from 0.504 to
+**0.880** on the highest control in the table. `anxiety` goes 0.240 → 0.880,
+`sleep_disruption` 0.360 → 0.960. The attribution identity is untouched, because
+the head did not change. **`activation` is 0.600 and remains below the usable
+threshold** — the macro clears, that dimension does not, and it is named here
+rather than averaged away.
+
+**And it is 201.68 MiB against a 32 MiB ceiling.** So it was *not* adopted.
+`export/common.py` still holds the incumbent, and
+`tests/test_scorer_ablation.py` fails if the repository adopts a scorer that
+breaches a ceiling *or* declines to adopt one that does not. The state of this
+project is: the defect is understood and demonstrably fixable, and it is not
+fixed in any artifact here.
+
+```
+python export/scorer_ablation.py     # exits 0; the selection it makes is not adopted
+```
+
+Full numbers and the routes remaining: `docs/limitations.md` §1a.
 
 Reproduce all of the above:
 

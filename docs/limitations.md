@@ -5,7 +5,7 @@ state, in the place a reader will actually look, what this tool has *not* shown.
 Everything here is a measurement in this repository, not a caveat written to
 sound careful.
 
-Last updated: build increment 3, 2026-08-24.
+Last updated: build increment 4, 2026-08-24.
 
 ---
 
@@ -73,9 +73,93 @@ That geometry rules out the cheap fixes. **More anchor sentences cannot buy
 polarity out of a representation that does not carry it**, and neither can a
 different frozen encoder: the same measurement over three `google/bert_uncased_*`
 miniatures gives held-out macro AUC 0.392–0.432, all at chance, with positive
-controls of 0.82–0.84. The remaining routes are supervision (blocked on plan.md
-R-1, corpus licence), a polarity-aware encoder, or reducing the product to the
-one dimension that is measured to work.
+controls of 0.82–0.84.
+
+Increment 4 tested the last cheap explanation and it did not survive either.
+**It is not the readout.** A covariance-aware linear readout — shrunk LDA,
+ridge 0.1 of the mean eigenvalue, refitted inside the same held-out loop — over
+the *same* incumbent representation reaches 0.544 against the centroid
+difference's 0.504. Both are chance. The direction really is absent from the
+space, exactly as the geometry said, and no linear rearrangement of that space
+recovers it.
+
+### §1a. A polarity-supervised encoder does fix the separation — and cannot ship
+
+**Measured:** `artifacts/scorer_ablation.json`, reproducible with
+`python export/scorer_ablation.py`. Same held-out protocol, same positive
+control, same thresholds — 0.70 usable, 0.75 control floor — imported from
+`export/encoder_ablation.py` rather than re-typed so they could not drift.
+
+Seven scorers, three families. The question was whether *polarity-aware* scoring
+recovers what mean-pooled similarity cannot, and at what cost to the exactly
+additive attribution head (§6).
+
+| Scorer | Held-out AUC | In-sample | Positive control | Additive? | Projected int8-embed |
+|---|---:|---:|---:|:---:|---:|
+| `all-MiniLM-L6-v2`, centroid difference *(incumbent)* | 0.504 | 1.000 | 0.860 | yes | 52.55 MiB |
+| `all-MiniLM-L6-v2`, shrunk LDA | 0.544 | 1.000 | 0.864 | yes | 52.55 MiB |
+| `distilbert…sst-2`, body mean-pooled | 0.672 | 0.920 | **0.584** | yes | 184.96 MiB |
+| **`nli-distilroberta-base-v2`, centroid difference** | **0.880** | 1.000 | **0.916** | **yes** | **201.68 MiB** |
+| `cross-encoder/nli-distilroberta-base`, entailment | 0.784 | — | **0.656** | no | 201.69 MiB |
+| `cross-encoder/nli-MiniLM2-L6-H768`, entailment | 0.896 | — | **0.684** | no | 201.69 MiB |
+| `distilbert…sst-2`, one global sentiment score *(diagnostic)* | 0.792 | — | **0.608** | no | 187.22 MiB |
+
+**Four of the seven have a positive control below the 0.75 floor, and their
+held-out numbers are therefore not readable** — including the two that score
+highest of all. A control below the floor means the scorer cannot tell two
+*different* dimensions apart, so a high pole-separation number is being produced
+by something other than the dimension it is attributed to. The floor was fixed in
+increment 3, before any of this was run, which is the only reason it can be
+applied to a 0.896 without it looking like an excuse. This is not a finding that
+cross-encoders are bad at this task: it is a finding that **under this protocol
+their numbers cannot be read**, and a protocol that can read them was not built.
+
+The global-sentiment row is a deliberate diagnostic, excluded from selection
+before it was run. It separates poles well (0.792) and fails the control (0.608)
+because one number cannot distinguish five dimensions. That is the clean
+demonstration of the trade-off: polarity without topic is as useless here as
+topic without polarity.
+
+What survives every gate is one scorer. `nli-distilroberta-base-v2` —
+NLI-supervised, still mean-pooled, still a fixed linear row — reaches **held-out
+macro 0.880 on the highest positive control in the table (0.916)**, and it keeps
+the attribution identity intact, because nothing about the head changed.
+
+Per dimension, under the selected scorer, against the incumbent:
+
+| Dimension | Incumbent | `nli-distilroberta-base-v2` |
+|---|---:|---:|
+| `low_mood` | 0.960 | 1.000 |
+| `sleep_disruption` | 0.360 | 0.960 |
+| `social_withdrawal` | 0.560 | 0.960 |
+| `anxiety` | 0.240 | 0.880 |
+| **`activation`** | 0.400 | **0.600** |
+
+**`activation` is still below the 0.70 usable threshold.** The macro clears it;
+that one dimension does not, and a macro average is exactly the number that would
+hide it. Whatever ships, `activation` is not a dimension this project has shown
+to work.
+
+### And then the size, which is the reason it is not adopted
+
+`sentence-transformers/nli-distilroberta-base-v2` projects to **201.68 MiB** as
+an embeddings-only int8 build, against CEIL-1's 32 MiB, and to 213 MiB of cold payload against CEIL-3's
+64 MiB. It is **6.3× over** a ceiling fixed in `export/SIZE_BUDGET.md` before
+anything was ever exported.
+
+So `export/common.py` **still holds the incumbent encoder.** The scorer that
+separates was selected and not adopted, and
+`tests/test_scorer_ablation.py::TestASelectionIsNotAnAdoption` fails if the
+repository ever adopts a scorer that breaches a ceiling, or quietly declines to
+adopt one that does not.
+
+That leaves R4-CEIL-001 as the binding defect again, with its terms changed: the
+problem is no longer "no build clears the ceilings", it is "the only scorer
+measured to work is six times the budget". The routes through, in the order they
+will be measured, are a *small* NLI-supervised bi-encoder (the candidate list is
+to be fixed before the next increment runs, not chosen from its results), and
+plan.md R-4 — a local desktop app, which keeps the zero-egress claim and drops
+the in-browser one rather than fudging it.
 
 ### What is therefore not claimed anywhere
 
@@ -83,6 +167,10 @@ one dimension that is measured to work.
 - That a trajectory of these scores over time means anything.
 - That any of this is diagnostic, screening, or clinically validated. There has
   been no clinical validation of any kind and none is planned inside this event.
+- That the 0.880 in §1a is a property of anything that ships. It is a property of
+  a 201.68 MiB scorer that this project has **not** adopted, measured on 50
+  sentences written for it. It says the defect is fixable. It does not say it is
+  fixed.
 
 `tests/test_encoder_ablation.py` fails if the README starts making those claims
 while the measurement stands.
@@ -101,6 +189,12 @@ this repository may be described as fine-tuned; a test enforces that.
 (21.78 MiB) misses CEIL-5 at max score delta 0.0404 against 0.02; the
 embeddings-only int8 build (52.04 MiB) meets CEIL-5 at 0.0094 but breaches CEIL-1
 and CEIL-3. Details and the full ceiling table are in `export/SIZE_BUDGET.md`.
+
+Increment 4 made this worse before it made it better, and the honest order to
+read the two facts in is: the only scorer measured to separate held-out text
+(§1a) is **201.68 MiB**, six times CEIL-1, so there is now a working scorer and a
+shippable size and they are not the same artifact. Neither ceiling was moved to
+close that gap.
 
 The narrower-encoder route recorded at the end of increment 2 was measured in
 increment 3 and **not taken**: `google/bert_uncased_L-6_H-256_A-4` does project

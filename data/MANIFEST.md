@@ -17,11 +17,13 @@ be complete: if something is used and is not ours, it is listed here.
 
 ### Downloaded and measured, not shipped
 
-`export/encoder_ablation.py` (build increment 3) downloads three further
-checkpoints to measure whether a narrower encoder could clear CEIL-1. None of
-them is shipped and none is in any exported artifact — the ablation selected
-nothing and `export/common.py` still holds the incumbent above — but they were
-used, so rule 2 requires that they be attributed.
+Two ablations download checkpoints purely to measure them. None of these is
+shipped and none appears in any exported artifact — `export/common.py` still
+holds the incumbent above — but rule 2 requires attribution for resources
+*used*, not only for resources shipped, so every one of them is listed.
+
+`export/encoder_ablation.py` (build increment 3) downloads three checkpoints to
+measure whether a narrower encoder could clear CEIL-1.
 
 | Asset | Pinned revision | Licence | Gated |
 |---|---|---|---|
@@ -29,11 +31,29 @@ used, so rule 2 requires that they be attributed.
 | `google/bert_uncased_L-6_H-256_A-4` | `67ada51801f40684c01ca3f20c97a35fa7a67d36` | **Apache-2.0** | No |
 | `google/bert_uncased_L-4_H-256_A-4` | `387825ce42dbb39b87911cdf8e383ee3b25184f8` | **Apache-2.0** | No |
 
-Licences read from the Hugging Face model API (`cardData.license` and the
-`license:apache-2.0` tag) on 2026-08-24, not from a README badge. Upstream: Turc,
-Chang, Lee & Toutanova, *Well-Read Students Learn Better* (2019).
-`tests/test_encoder_ablation.py` fails if a model the ablation downloads is
-missing from this table.
+Upstream: Turc, Chang, Lee & Toutanova, *Well-Read Students Learn Better* (2019).
+
+`export/scorer_ablation.py` (build increment 4) downloads four further
+checkpoints to measure whether any *polarity-aware* scorer separates held-out
+anchors where the mean-pooled anchor head does not.
+
+| Asset | Pinned revision | Licence | Gated | Measured as |
+|---|---|---|---|---|
+| `distilbert-base-uncased-finetuned-sst-2-english` | `714eb0fa89d2f80546fda750413ed43d93601a13` | **Apache-2.0** | No | sentiment-tuned encoder body (classification head discarded), and separately as a global-polarity diagnostic |
+| `sentence-transformers/nli-distilroberta-base-v2` | `cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d` | **Apache-2.0** | No | NLI-supervised bi-encoder, mean-pooled |
+| `cross-encoder/nli-distilroberta-base` | `b14d131f9d32668a5e6a982729b57ff6ed5dfcbd` | **Apache-2.0** | No | zero-shot entailment cross-encoder |
+| `cross-encoder/nli-MiniLM2-L6-H768` | `b95119ce93d3e065de6214e38cd4a97b0f2f2c6d` | **Apache-2.0** | No | zero-shot entailment cross-encoder |
+
+Upstream for the two cross-encoders and the NLI bi-encoder: Reimers & Gurevych,
+*Sentence-BERT* (2019) and the SBERT cross-encoder NLI models trained on SNLI +
+MultiNLI; for the SST-2 checkpoint, Sanh et al., *DistilBERT* (2019) fine-tuned
+on SST-2 (Socher et al., 2013).
+
+All licences on this page were read from the Hugging Face model API
+(`cardData.license` and the `license:apache-2.0` tag) on 2026-08-24, not from a
+README badge. `tests/test_encoder_ablation.py` and
+`tests/test_scorer_ablation.py` fail if a model either ablation downloads is
+missing from this file, or is listed without its pinned revision.
 
 ## Runtime
 

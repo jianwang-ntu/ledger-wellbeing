@@ -1,0 +1,465 @@
+{
+ "measured_at_utc": "2026-08-24T15:30:49Z",
+ "increment": 4,
+ "question": "R4-HEAD-003 option B: does any polarity-aware scorer separate held-out anchors, and does the exactly-additive attribution head survive it?",
+ "selection_rule": "Fixed before any variant was measured. (1) A variant is READABLE only if its positive control holds at >= 0.75. (2) It is USABLE only if macro held-out AUC >= 0.7. (3) Among usable variants, additivity-preserving ones are preferred outright - a non-additive scorer is chosen only if NO additive one is usable, and choosing it costs the C4 claim. (4) Tie-break on macro held-out AUC. (5) If nothing is usable, option B is closed and the fallback is C or D.",
+ "thresholds_inherited_from_increment_3": {
+  "usable_held_out_auc": 0.7,
+  "positive_control_floor": 0.75,
+  "note": "imported from export/encoder_ablation.py, not re-typed, so they cannot drift"
+ },
+ "lda_shrinkage": 0.1,
+ "hypotheses": {
+  "low_mood": "The writer describes feeling low, flat or down.",
+  "anxiety": "The writer describes feeling anxious, worried or on edge.",
+  "sleep_disruption": "The writer describes sleeping badly.",
+  "social_withdrawal": "The writer describes avoiding or withdrawing from other people.",
+  "activation": "The writer describes having energy and getting things done."
+ },
+ "variants": [
+  {
+   "variant": "incumbent_centroid",
+   "family": "linear readout over a mean-pooled frozen encoder",
+   "model": "sentence-transformers/all-MiniLM-L6-v2",
+   "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+   "readout": "centroid_difference",
+   "role": "baseline - increment 3's incumbent, recomputed inside this run so every number in the table comes from one execution",
+   "additivity_preserved": true,
+   "selection_candidate": true,
+   "hidden_size": 384,
+   "num_hidden_layers": 6,
+   "total_parameters": 22713216,
+   "int8embed_projected_MiB": 52.55,
+   "int8embed_projected_bytes": 55099392,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.24,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.36,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.4,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.504,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.2,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 0.88,
+    "low_mood|activation": 0.92,
+    "anxiety|sleep_disruption": 1.0,
+    "anxiety|social_withdrawal": 0.72,
+    "anxiety|activation": 0.92,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 0.96
+   },
+   "positive_control_macro": 0.86,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "elapsed_s": 1.85
+  },
+  {
+   "variant": "incumbent_shrunk_lda",
+   "family": "linear readout over a mean-pooled frozen encoder",
+   "model": "sentence-transformers/all-MiniLM-L6-v2",
+   "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+   "readout": "shrunk_lda",
+   "role": "control on increment 3's diagnosis: same representation, a covariance-aware linear readout instead of the centroid difference. If this recovers polarity, the readout was the problem and not the space.",
+   "additivity_preserved": true,
+   "selection_candidate": true,
+   "hidden_size": 384,
+   "num_hidden_layers": 6,
+   "total_parameters": 22713216,
+   "int8embed_projected_MiB": 52.55,
+   "int8embed_projected_bytes": 55099392,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.28,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.4,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.64,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.44,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.544,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.2,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 0.76,
+    "low_mood|activation": 1.0,
+    "anxiety|sleep_disruption": 1.0,
+    "anxiety|social_withdrawal": 0.72,
+    "anxiety|activation": 0.96,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 1.0
+   },
+   "positive_control_macro": 0.864,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "elapsed_s": 1.65
+  },
+  {
+   "variant": "sst2_body_centroid",
+   "family": "linear readout over a mean-pooled polarity-tuned encoder",
+   "model": "distilbert-base-uncased-finetuned-sst-2-english",
+   "revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+   "readout": "centroid_difference",
+   "role": "sentiment-supervised body, classification head discarded. Its encoder has seen a direction signal that the sentence-similarity distillations have not.",
+   "additivity_preserved": true,
+   "selection_candidate": true,
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 66362880,
+   "int8embed_projected_MiB": 184.96,
+   "int8embed_projected_bytes": 193949184,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.64,
+     "in_sample_auc": 0.84
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": 0.76
+    },
+    "social_withdrawal": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.16,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.672,
+   "macro_in_sample_auc": 0.92,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.72,
+    "low_mood|sleep_disruption": 0.76,
+    "low_mood|social_withdrawal": 0.76,
+    "low_mood|activation": 0.72,
+    "anxiety|sleep_disruption": 0.32,
+    "anxiety|social_withdrawal": 0.4,
+    "anxiety|activation": 0.32,
+    "sleep_disruption|social_withdrawal": 0.72,
+    "sleep_disruption|activation": 0.56,
+    "social_withdrawal|activation": 0.56
+   },
+   "positive_control_macro": 0.584,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "elapsed_s": 1.63
+  },
+  {
+   "variant": "nli_sbert_centroid",
+   "family": "linear readout over a mean-pooled polarity-tuned encoder",
+   "model": "sentence-transformers/nli-distilroberta-base-v2",
+   "revision": "cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d",
+   "readout": "centroid_difference",
+   "role": "NLI-supervised bi-encoder: entailment/contradiction structure pushed into a pooled embedding, which is the strongest polarity signal available without giving up additivity.",
+   "additivity_preserved": true,
+   "selection_candidate": true,
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 82118400,
+   "int8embed_projected_MiB": 201.68,
+   "int8embed_projected_bytes": 211476480,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": 1.0
+    },
+    "anxiety": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": 1.0
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.96,
+     "in_sample_auc": 1.0
+    },
+    "activation": {
+     "held_out_auc": 0.6,
+     "in_sample_auc": 1.0
+    }
+   },
+   "macro_held_out_auc": 0.88,
+   "macro_in_sample_auc": 1.0,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.52,
+    "low_mood|sleep_disruption": 1.0,
+    "low_mood|social_withdrawal": 0.92,
+    "low_mood|activation": 0.96,
+    "anxiety|sleep_disruption": 0.96,
+    "anxiety|social_withdrawal": 0.8,
+    "anxiety|activation": 1.0,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 1.0
+   },
+   "positive_control_macro": 0.916,
+   "protocol_note": "identical to increment 3: withhold one anchor from each pole together, refit from the remaining 4+4, rank the two withheld. 25 pairs per dimension.",
+   "elapsed_s": 0.97
+  },
+  {
+   "variant": "nli_crossenc_distilroberta",
+   "family": "cross-encoder entailment (breaks C4)",
+   "model": "cross-encoder/nli-distilroberta-base",
+   "revision": "b14d131f9d32668a5e6a982729b57ff6ed5dfcbd",
+   "readout": "p_entailment",
+   "role": "zero-shot entailment of the dimension hypothesis. Polarity-aware by construction; the attribution identity does not survive it.",
+   "additivity_preserved": false,
+   "selection_candidate": true,
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 82120707,
+   "int8embed_projected_MiB": 201.69,
+   "int8embed_projected_bytes": 211485708,
+   "id2label": {
+    "0": "contradiction",
+    "1": "entailment",
+    "2": "neutral"
+   },
+   "entailment_index": 1,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": null
+    },
+    "anxiety": {
+     "held_out_auc": 0.76,
+     "in_sample_auc": null
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.8,
+     "in_sample_auc": null
+    },
+    "social_withdrawal": {
+     "held_out_auc": 0.92,
+     "in_sample_auc": null
+    },
+    "activation": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": null
+    }
+   },
+   "macro_held_out_auc": 0.784,
+   "macro_in_sample_auc": null,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.52,
+    "low_mood|sleep_disruption": 0.4,
+    "low_mood|social_withdrawal": 0.44,
+    "low_mood|activation": 0.56,
+    "anxiety|sleep_disruption": 0.48,
+    "anxiety|social_withdrawal": 0.64,
+    "anxiety|activation": 0.72,
+    "sleep_disruption|social_withdrawal": 1.0,
+    "sleep_disruption|activation": 1.0,
+    "social_withdrawal|activation": 0.8
+   },
+   "positive_control_macro": 0.656,
+   "protocol_note": "NOT LITERALLY THE INCREMENT-3 COMPUTATION, and the difference is in our favour to state: a cross-encoder fits nothing, so there is no direction to rebuild and no in-sample number to report. The AUC is over the same 25 (positive_i, negative_j) comparisons per dimension, which is what makes the column comparable. The control uses dimension a's hypothesis to rank a's positives above b's, the same question the linear control asks.",
+   "elapsed_s": 1.17
+  },
+  {
+   "variant": "nli_crossenc_minilm2",
+   "family": "cross-encoder entailment (breaks C4)",
+   "model": "cross-encoder/nli-MiniLM2-L6-H768",
+   "revision": "b95119ce93d3e065de6214e38cd4a97b0f2f2c6d",
+   "readout": "p_entailment",
+   "role": "second cross-encoder, so the family is not judged on one checkpoint's quirk.",
+   "additivity_preserved": false,
+   "selection_candidate": true,
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 82120707,
+   "int8embed_projected_MiB": 201.69,
+   "int8embed_projected_bytes": 211485708,
+   "id2label": {
+    "0": "contradiction",
+    "1": "entailment",
+    "2": "neutral"
+   },
+   "entailment_index": 1,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 0.84,
+     "in_sample_auc": null
+    },
+    "anxiety": {
+     "held_out_auc": 0.88,
+     "in_sample_auc": null
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.92,
+     "in_sample_auc": null
+    },
+    "social_withdrawal": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": null
+    },
+    "activation": {
+     "held_out_auc": 0.84,
+     "in_sample_auc": null
+    }
+   },
+   "macro_held_out_auc": 0.896,
+   "macro_in_sample_auc": null,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.72,
+    "low_mood|sleep_disruption": 0.24,
+    "low_mood|social_withdrawal": 0.68,
+    "low_mood|activation": 0.8,
+    "anxiety|sleep_disruption": 0.44,
+    "anxiety|social_withdrawal": 0.68,
+    "anxiety|activation": 0.6,
+    "sleep_disruption|social_withdrawal": 0.84,
+    "sleep_disruption|activation": 0.96,
+    "social_withdrawal|activation": 0.88
+   },
+   "positive_control_macro": 0.684,
+   "protocol_note": "NOT LITERALLY THE INCREMENT-3 COMPUTATION, and the difference is in our favour to state: a cross-encoder fits nothing, so there is no direction to rebuild and no in-sample number to report. The AUC is over the same 25 (positive_i, negative_j) comparisons per dimension, which is what makes the column comparable. The control uses dimension a's hypothesis to rank a's positives above b's, the same question the linear control asks.",
+   "elapsed_s": 1.52
+  },
+  {
+   "variant": "sst2_global_polarity",
+   "family": "diagnostic - not a scorer",
+   "model": "distilbert-base-uncased-finetuned-sst-2-english",
+   "revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+   "readout": "p_negative_sentiment_for_every_dimension",
+   "role": "DIAGNOSTIC ONLY, excluded from selection by construction: one global sentiment probability used as the score for all five dimensions. It cannot tell two dimensions apart, so it is *expected* to fail the positive control. It is here to separate the two things that could be missing - polarity, or the ability to attach polarity to a topic - because the route through differs.",
+   "additivity_preserved": false,
+   "selection_candidate": false,
+   "hidden_size": 768,
+   "num_hidden_layers": 6,
+   "total_parameters": 66955010,
+   "int8embed_projected_MiB": 187.22,
+   "int8embed_projected_bytes": 196317704,
+   "id2label": {
+    "0": "NEGATIVE",
+    "1": "POSITIVE"
+   },
+   "negative_index": 0,
+   "per_dimension": {
+    "low_mood": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": null
+    },
+    "anxiety": {
+     "held_out_auc": 0.72,
+     "in_sample_auc": null
+    },
+    "sleep_disruption": {
+     "held_out_auc": 0.68,
+     "in_sample_auc": null
+    },
+    "social_withdrawal": {
+     "held_out_auc": 1.0,
+     "in_sample_auc": null
+    },
+    "activation": {
+     "held_out_auc": 0.56,
+     "in_sample_auc": null
+    }
+   },
+   "macro_held_out_auc": 0.792,
+   "macro_in_sample_auc": null,
+   "positive_control_pairs": {
+    "low_mood|anxiety": 0.84,
+    "low_mood|sleep_disruption": 0.84,
+    "low_mood|social_withdrawal": 0.84,
+    "low_mood|activation": 0.76,
+    "anxiety|sleep_disruption": 0.56,
+    "anxiety|social_withdrawal": 0.44,
+    "anxiety|activation": 0.44,
+    "sleep_disruption|social_withdrawal": 0.32,
+    "sleep_disruption|activation": 0.48,
+    "social_withdrawal|activation": 0.56
+   },
+   "positive_control_macro": 0.608,
+   "protocol_note": "One score for all five dimensions, so the control is a formality: it asks whether a single number can tell two dimensions apart, and it cannot. Excluded from selection before it was run.",
+   "elapsed_s": 1.32
+  }
+ ],
+ "selected": "nli_sbert_centroid",
+ "selected_model": "sentence-transformers/nli-distilroberta-base-v2",
+ "selected_revision": "cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d",
+ "selection_preserves_additivity": true,
+ "adoption": {
+  "adoption_blockers": [
+   "CEIL_1_int8_model_bytes: projected 211476480 > 33554432",
+   "CEIL_3_cold_payload_bytes: projected 223341834 > 67108864 (excl. tokenizer)"
+  ],
+  "adopted": false,
+  "rule": "A selected scorer is adopted into export/common.py only if its projected int8_embed build clears CEIL-1 and CEIL-3, which were fixed in export/SIZE_BUDGET.md before build increment 2 exported anything. If it does not, export/common.py stays on the incumbent and the blocker is recorded in docs/limitations.md. tests/test_scorer_ablation.py enforces both directions.",
+  "added_after_measurement": "This block is reporting only. It was written after the variants were measured; it changes no threshold, no measured number and no selection."
+ },
+ "readable_variants": [
+  "incumbent_centroid",
+  "incumbent_shrunk_lda",
+  "nli_sbert_centroid"
+ ],
+ "unreadable_variants": [
+  "sst2_body_centroid",
+  "nli_crossenc_distilroberta",
+  "nli_crossenc_minilm2"
+ ],
+ "usable_variants": [
+  "nli_sbert_centroid"
+ ],
+ "baseline_reference": {
+  "variant": "incumbent_centroid",
+  "macro_held_out_auc": 0.504,
+  "increment_3_value": 0.504,
+  "note": "recomputed here; must reproduce increment 3 or one of the two runs is wrong"
+ },
+ "option_c_basis": {
+  "measured_under": "nli_sbert_centroid",
+  "dimensions_at_or_above_usable_threshold": {
+   "low_mood": 1.0,
+   "anxiety": 0.88,
+   "sleep_disruption": 0.96,
+   "social_withdrawal": 0.96
+  },
+  "per_dimension_held_out_auc": {
+   "low_mood": 1.0,
+   "anxiety": 0.88,
+   "sleep_disruption": 0.96,
+   "social_withdrawal": 0.96,
+   "activation": 0.6
+  }
+ },
+ "verdict": "SELECT nli_sbert_centroid (sentence-transformers/nli-distilroberta-base-v2), macro held-out 0.88. Option B is open on separation and C4 survives: the head is still a fixed linear row over a mean-pooled vector, so the attribution identity is untouched. NOT ADOPTED THIS INCREMENT: it breaches 2 size ceiling(s) - CEIL_1_int8_model_bytes: projected 211476480 > 33554432; CEIL_3_cold_payload_bytes: projected 223341834 > 67108864 (excl. tokenizer). The scorer that separates is 201.68 MiB against CEIL-1's 32, so R4-CEIL-001 returns as the binding defect and export/common.py is left on the incumbent."
+}
