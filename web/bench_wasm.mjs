@@ -9,6 +9,7 @@
 // Usage: node web/bench_wasm.mjs <model.onnx> <build-name>
 
 import * as ort from 'onnxruntime-web';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,9 +65,15 @@ for (let t = 0; t < T; t++) for (let k = 0; k < K; k++) summed[k] += Number(attr
 const identityResidual = Math.max(
   ...summed.map((s, k) => Math.abs(wasmLogits[k] - (s + bench.head_bias[k]))));
 
+// DEFECT-INC6-001: a bench report carried no identity of the model it timed, so
+// export/verify.py read a stale bench_*.json from a previous encoder as if it
+// described the current build. The sha is emitted here and checked there.
+const modelSha = crypto.createHash('sha256').update(fs.readFileSync(modelPath)).digest('hex');
+
 console.log(JSON.stringify({
   build: buildName,
   model_path: path.relative(ROOT, modelPath),
+  model_sha256: modelSha,
   runtime: 'onnxruntime-web WASM (node host)',
   onnxruntime_web_version: JSON.parse(fs.readFileSync(
     path.join(HERE, 'node_modules', 'onnxruntime-web', 'package.json'), 'utf8')).version,

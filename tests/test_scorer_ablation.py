@@ -196,12 +196,24 @@ class TestASelectionIsNotAnAdoption(unittest.TestCase):
             raise unittest.SkipTest("no blocked adoption")
         import sys
         sys.path.insert(0, str(ROOT / "export"))
+        sys.path.insert(0, str(ROOT / "tests"))
         from common import BASE_MODEL, BASE_REVISION
         incumbent = variant(report, "incumbent_centroid")
-        self.assertEqual(BASE_MODEL, incumbent["model"],
-                         "the selected scorer breaches a size ceiling, so export/common.py must "
-                         "still hold the incumbent")
-        self.assertEqual(BASE_REVISION, incumbent["revision"])
+        if BASE_MODEL == incumbent["model"]:
+            self.assertEqual(BASE_REVISION, incumbent["revision"])
+            return
+        # Increment 6: the pin moved to this ablation's own selection, because the
+        # two blockers it recorded - CEIL-1 and CEIL-3 - stopped being enforced
+        # when plan.md R-4's desktop fallback was taken. The guard is not dropped;
+        # it is replaced by a stricter one that still forbids moving the pin to a
+        # model no ablation chose, or while any recorded blocker still gates.
+        from pin_invariant import pin_is_legal
+        legal, why = pin_is_legal()
+        self.assertTrue(legal, f"the selected scorer was blocked and the pin moved anyway: {why}")
+        blockers = set(report["adoption"]["adoption_blockers"])
+        from common import enforced_ceilings
+        self.assertEqual(blockers & set(enforced_ceilings()), set(),
+                         "a blocker that still gates cannot be cleared by a target change")
 
     def test_an_unblocked_adoption_is_actually_applied(self):
         report = load()

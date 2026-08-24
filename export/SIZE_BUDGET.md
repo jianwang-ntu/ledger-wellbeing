@@ -122,3 +122,116 @@ properties of the model, not of the delivery target.
 
 `export/common.py` is unchanged. `BASE_MODEL` still holds the incumbent, and no
 build has been shipped.
+
+---
+
+## Build increment 6 — the fallback was taken, and it was not enough
+
+No ceiling in the table above has been edited. `CEILINGS` in `export/common.py`
+is byte-identical to the day-1 values and
+`tests/test_size_feasible_scorer.py::TestNoCeilingMoved` still asserts it.
+
+What changed is **which** ceilings gate, and that change is scoped to a delivery
+target rather than applied to a number. `export/common.py` now carries
+`DELIVERY_TARGET = "desktop"` and an `ENFORCED_BY_TARGET` map:
+
+| Ceiling | Bounds | Enforced on `desktop` |
+|---|---|---|
+| CEIL-1 model bytes | an HTTP first-load | **no** — measured, reported, not gating |
+| CEIL-2 tokenizer bytes | an HTTP first-load | **yes** |
+| CEIL-3 cold payload | an HTTP first-load | **no** — measured, reported, not gating |
+| CEIL-4 p95 latency | the model + runtime | **yes**, on native ORT rather than WASM |
+| CEIL-5 int8-vs-fp32 | the model | **yes**, unchanged |
+
+Two ceilings this artifact fails stopped gating. That is a relaxation and is
+recorded as one, with the decision written down in
+`export/INCREMENT_6_PREREGISTRATION.md` **before** the body was swapped or
+anything was measured. Every build still reports `would_fail_web_target_on`, so
+the claim that was dropped is visible in the artifact rather than absent from it.
+The CEIL-4 basis change from single-threaded WASM to single-threaded native ORT
+makes that ceiling *easier* and is logged in the same file as the one genuine
+loosening in this increment.
+
+### What was measured
+
+Body swapped to `sentence-transformers/nli-distilroberta-base-v2` @ `cc35a0bf`
+— 82,118,400 parameters, 6 layers, hidden 768 — the scorer increment 4 measured
+at macro held-out AUC 0.880.
+
+| Build | Model | Cold | Native p95 | Pearson r (worst dim) | max Δ score | CEIL-5 |
+|---|---:|---:|---:|---:|---:|---|
+| `int8_full` | 78.20 MiB | 92.91 MiB | **75.8 ms** | 0.99282 | **0.0770** | **fail** |
+| `int8_embed` | 199.49 MiB | 214.20 MiB | 224.98 ms | 0.99995 | 0.00694 | pass |
+| `fp32` | 311.07 MiB | 325.78 MiB | 226.41 ms | 1.0 | 0.0 | pass (reference) |
+
+Three of the four pre-registered predictions held. Additivity survived the body
+swap at a residual of 2.8–3.2e-07 against a 1e-04 rule (R6-1). CEIL-5 selected
+`int8_embed` exactly as predicted, and `int8_full`'s 0.077 max delta is nearly
+4× the tolerance — quantizing every MatMul in a hidden-768 body moves a displayed
+score by almost 8 points out of 100. CEIL-4 passed natively with 2.2× headroom,
+which was the prediction held with least confidence.
+
+### The prediction that was wrong, and it is the one that decides the increment
+
+> "CEIL-2 … it is met with room to spare either way."
+
+**CEIL-2 fails. 3,559,258 bytes — 3.394 MiB against a 2.000 MiB ceiling, 70%
+over.** distilroberta's tokenizer is a 50,265-entry byte-level BPE with a 50,000
+-entry merges table, against the incumbent's 30,522-entry WordPiece. CEIL-2's
+stated purpose on day 1 was to "force a rejection if someone swaps in a
+[much larger] vocab without saying so". A vocabulary 1.65× larger was swapped in,
+and the tripwire fired on it.
+
+**So no build clears every enforced ceiling, and the 0.880 scorer is NOT
+adopted.** `verify.py` exits 1. `shippable_builds` is empty.
+
+CEIL-2 bounds a download, exactly as CEIL-1 and CEIL-3 do, so there is an
+argument that it should not gate a desktop target either. That argument is not
+being made here, because the enforcement map was fixed before the measurement and
+rewriting it in the same increment that measured a 70% overage would make the
+map a description of the result rather than a test of it. If CEIL-2's scope is
+genuinely wrong for this target, it gets revisited in a later increment as its
+own decision, on the record, with this failing number already published.
+
+The open question for increment 7 is therefore narrow and testable: **is there a
+serialization of this tokenizer, with the same 50,265-entry vocabulary and
+identical encode() output, that fits 2 MiB?** If yes, CEIL-2 is met rather than
+argued away. If no, the choice between re-scoping CEIL-2 and abandoning this body
+is made explicitly and is not disguised as an engineering detail.
+
+### DEFECT-INC6-001 — a stale benchmark was being read as a current one
+
+Found by re-deriving rather than inheriting. `artifacts/wasm/bench_*.json`
+carried no identity of the model it timed, and `export/verify.py` keyed those
+files on the build *name* alone. The three bench files on disk described the
+**previous** encoder, and on the first verify run of the new body they would have
+been reported as its WASM latency — a MiniLM number printed as a distilroberta
+number, in the artifact an auditor reads for CEIL-4.
+
+`web/bench_wasm.mjs` now emits `model_sha256`; `export/verify.py` rejects any
+bench whose sha does not match the file on disk and records it under
+`wasm_benches_rejected_as_stale`. On its first run the guard rejected all three
+stale files and reported `latency_wasm_1thread: "NOT_MEASURED"`, which is the
+correct answer and the one the old code could not give.
+
+### The WASM number, measured after the guard was in place
+
+With `model_sha256` emitted and checked, `int8_embed` was re-benched under WASM
+against the new body. The fresh bench was accepted; the two remaining stale files
+(`fp32`, `int8_full`) were still rejected, so the guard was observed working in
+both directions on the same run.
+
+| | native ORT, 1 thread | WASM, 1 thread | CEIL-4 |
+|---|---:|---:|---|
+| `int8_embed` p95 | **224.98 ms** | **845.98 ms** | 500 ms |
+
+**On the original web basis CEIL-4 fails too, at 1.7× the ceiling.** This was
+pre-registered as the expected outcome, and it matters more than it looks: the
+web target is not lost only on size. Even with CEIL-1 and CEIL-3 set aside, a
+hidden-768 body does not score a 256-token entry inside the latency budget in
+single-threaded WASM. So CEIL-1, CEIL-2, CEIL-3 **and** CEIL-4 all fail on the
+web target, and the desktop fallback fails on CEIL-2 alone.
+
+The attribution identity holds in the WASM runtime as well — residual 1.4e-07 —
+and WASM and native agree on the logits to 3.3e-07, so the two runtimes are
+measuring the same model.

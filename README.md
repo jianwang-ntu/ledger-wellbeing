@@ -15,14 +15,23 @@ runs locally over the user's own writing and nothing leaves the device; the
 output is per-span attribution over their words and a trajectory over time, not
 generated advice.
 
-**The delivery target changed in build increment 5, and the reason is a
-measurement, not a preference.** The plan was a browser app. Meeting the size
-ceiling set on day one requires an encoder small enough that no
-entailment-supervised checkpoint we could find both fits it and separates
-held-out text — the one that fits scores at chance. Rather than move the ceiling
-or drop the claim quietly, plan.md's pre-written R-4 fallback is taken: a local
-desktop app. Zero-egress survives, because it never depended on the browser. The
-in-browser claim does not. `docs/limitations.md` §1b has the table.
+**The delivery target changed, and the reason is a measurement, not a
+preference.** The plan was a browser app. Meeting the size ceiling set on day one
+requires an encoder small enough that no entailment-supervised checkpoint we could
+find both fits it and separates held-out text — the one that fits scores at
+chance. Rather than move the ceiling or drop the claim quietly, plan.md's
+pre-written R-4 fallback was taken in increment 5 and **exercised** in increment
+6: `export/common.py` now pins the 0.880 scorer and `DELIVERY_TARGET = "desktop"`.
+Zero-egress survives, because it never depended on the browser. The in-browser
+claim does not.
+
+Increment 6 also settled that the browser was not lost on size alone. Re-measured
+on the new body, the web target fails **four** ceilings — model bytes, tokenizer
+bytes, cold payload, and latency at **845.98 ms in single-threaded WASM against a
+500 ms ceiling**. And it did not end in a shippable build either: **CEIL-2 fails
+at 3.394 MiB against 2.000 MiB**, so no build was adopted. `export/SIZE_BUDGET.md`
+has both tables; `export/INCREMENT_6_PREREGISTRATION.md` has the rule that decided
+it, written before the measurement.
 
 ## What is built and verified so far
 
@@ -31,7 +40,8 @@ in-browser claim does not. `docs/limitations.md` §1b has the table.
 | `ledger/safety/` — deterministic crisis router | **built, tested** | `../audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `../audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
 | `ledger/model/` — encoder + additive attribution head | **built** | `artifacts/verify_report.json` |
 | `export/` — ONNX export, int8 quantization, verification | **built, and currently failing its own ceiling** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
-| In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — no build meets the ceilings | `artifacts/wasm/bench_*.json`, `docs/limitations.md` §1b |
+| In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — fails 4 of 6 ceilings on the current body, including latency at 845.98 ms | `artifacts/wasm/bench_int8_embed.json`, `export/SIZE_BUDGET.md` |
+| Desktop target with the 0.880 scorer | **built and measured; NOT adopted** — CEIL-2 (tokenizer) fails at 3.394 MiB vs 2.000 MiB | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
 | Head training | **not started** — blocked on a permissively-licensed corpus | `data/MANIFEST.md` |
 | Held-out separation of the five dimensions | **measured, and at chance on 4 of 5** | `artifacts/encoder_ablation.json`, `docs/limitations.md` §1 |
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
@@ -71,9 +81,12 @@ logit_k  ==  sum over tokens i of token_attr[i, k]  +  bias_k
 
 holds *exactly*, not approximately. The explanation is not a saliency map fitted
 to the score afterwards — it is the arithmetic the score is made of. Measured
-residual: **2.4e-07 in the browser runtime**, 2.4e-07 natively
-(`artifacts/wasm/bench_*.json`, `artifacts/verify_report.json`), asserted on
-every build by `tests/test_export_pipeline.py`.
+residual on the current body: **1.4e-07 in the WASM runtime**, 2.8–3.2e-07
+natively across all three builds (`artifacts/wasm/bench_int8_embed.json`,
+`artifacts/verify_report.json`), asserted on every build by
+`tests/test_export_pipeline.py` and by
+`tests/test_delivery_target.py::TestAdditivitySurvivedTheBodySwap`. The identity
+survived the increment-6 encoder swap; it was re-measured rather than inherited.
 
 **The head is not trained.** Each row is the difference between two centroids of
 anchor phrases written for this project (`ledger/model/dimensions.py`), affinely
@@ -263,3 +276,51 @@ they learn it here rather than discovering it.
 ## Licence
 
 MIT — see `LICENSE`.
+
+## Build increment 6 — the fallback taken, and what it cost
+
+The body is now `sentence-transformers/nli-distilroberta-base-v2` @ `cc35a0bf`
+(82.1M parameters, 6 layers, hidden 768, Apache-2.0), the scorer increment 4
+measured at macro held-out AUC **0.880** where the previous body sits at 0.504 —
+chance. `DELIVERY_TARGET` is `desktop`.
+
+| Build | Model | Cold | native p95 | WASM p95 | worst-dim r | max Δ score | CEIL-5 |
+|---|---:|---:|---:|---:|---:|---:|---|
+| `int8_full` | 78.20 MiB | 92.91 MiB | 75.8 ms | not measured | 0.99282 | **0.0770** | **fail** |
+| `int8_embed` | 199.49 MiB | 214.20 MiB | 224.98 ms | **845.98 ms** | 0.99995 | 0.00694 | pass |
+| `fp32` (reference) | 311.07 MiB | 325.78 MiB | 226.41 ms | not measured | 1.0 | 0.0 | pass |
+
+**No build was adopted.** `export/verify.py` exits 1 and `shippable_builds` is
+empty, because CEIL-2 — the tokenizer, at **3,559,258 B against a 2,097,152 B
+ceiling** — is enforced on the desktop target and fails. distilroberta's 50,265
+-entry byte-level BPE is 1.65× the previous WordPiece vocabulary, and CEIL-2's
+written purpose on day one was to force exactly this rejection.
+
+CEIL-1 and CEIL-3 bound an HTTP first-load and stopped gating when the target
+stopped being a download. That is the one relaxation in this increment and it is
+bounded three ways: no ceiling *value* was edited, every build still reports
+`would_fail_web_target_on`, and `tests/test_delivery_target.py` fails if anything
+beyond CEIL-1 and CEIL-3 is ever dropped. CEIL-4's basis moved from WASM to native
+ORT for the same reason, which makes it easier, and that is logged as a relaxation
+in the pre-registration rather than absorbed silently.
+
+CEIL-2 also bounds a download, so there is an argument it should not gate a
+desktop target either. That argument is not made here. The enforcement map was
+fixed before the measurement, and rewriting it in the increment that measured a
+70% overage would turn the map into a description of the result. It is a decision
+for a later increment, on the record, with the failing number already published.
+
+### A defect found by re-deriving rather than inheriting
+
+`artifacts/wasm/bench_*.json` carried no identity of the model it timed, and
+`export/verify.py` keyed those files on the build *name*. The three benches on
+disk described the **previous** encoder, so on the first run against the new body
+a MiniLM latency would have been reported as a distilroberta latency, in the
+artifact an auditor reads for CEIL-4. `web/bench_wasm.mjs` now emits
+`model_sha256`; `export/verify.py` rejects any bench whose sha does not match the
+file on disk. On its first run the guard rejected all three stale files.
+
+87 tests pass (73 before). The 22 new guards were verified against 12 targeted
+mutations — including raising CEIL-2 to 4 MiB, dropping CEIL-2 or CEIL-4 from the
+desktop enforcement map, and re-pinning the encoder to a model no ablation
+selected — and caught 12 of 12.

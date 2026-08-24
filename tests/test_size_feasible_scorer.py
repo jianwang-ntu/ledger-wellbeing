@@ -259,8 +259,31 @@ class TestTheOutcomeIsHonouredInTheRepository(unittest.TestCase):
         if report["selected"] is not None:
             raise unittest.SkipTest("a scorer was selected")
         sys.path.insert(0, str(ROOT / "export"))
+        sys.path.insert(0, str(ROOT / "tests"))
         from common import BASE_MODEL, BASE_REVISION
         incumbent = variant(report, "incumbent_centroid")
+        if BASE_MODEL != incumbent["model"]:
+            # THIS run selected nothing, so it cannot be what moved the pin.
+            # Increment 6 moved it under plan.md R-4 to scorer_ablation.json's
+            # selection. tests/pin_invariant.py checks that is legal; a null
+            # selection is never itself a legal destination.
+            from pin_invariant import pin_is_legal
+            legal, why = pin_is_legal()
+            self.assertTrue(legal, f"a null selection coincided with a pin move: {why}")
+            # A model this run put up as a SELECTION CANDIDATE and then declined
+            # may never become the pin - that is what a null selection means. A
+            # model this run carried only as a reference is a different thing: it
+            # was never eligible here, so declining to select it says nothing.
+            # nli-distilroberta-base-v2 is the second kind (nli_sbert_768_reference,
+            # selection_candidate=False) because this run's question was scoped to
+            # hidden <= 384 and that model is hidden 768. It was the target being
+            # aimed at, not a candidate that lost.
+            declined = [v.get("model") for v in report["variants"]
+                        if v.get("selection_candidate")]
+            self.assertNotIn(BASE_MODEL, declined,
+                             "the pin moved to a model THIS null-selection run put up as a "
+                             "candidate and then declined")
+            return
         self.assertEqual(BASE_MODEL, incumbent["model"])
         self.assertEqual(BASE_REVISION, incumbent["revision"])
 

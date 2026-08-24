@@ -82,14 +82,24 @@ class TestTheRepositoryHonoursTheSelection(unittest.TestCase):
         report = load()
         import sys
         sys.path.insert(0, str(ROOT / "export"))
+        sys.path.insert(0, str(ROOT / "tests"))
         from common import BASE_MODEL, BASE_REVISION
 
         if report["selected"] is None:
             incumbent = next(c for c in report["candidates"]
                              if c["role"].startswith("incumbent"))
-            self.assertEqual(BASE_MODEL, incumbent["model"],
-                             "encoder_ablation.json selected nothing, so export/common.py must "
-                             "still hold the incumbent encoder")
+            if BASE_MODEL != incumbent["model"]:
+                # Increment 6 moved the pin under plan.md R-4. THIS ablation still
+                # selected nothing, so it may not be the thing that moved it: the
+                # move has to be legal under the shared invariant, which requires
+                # some ablation to have selected the new pin and every blocker it
+                # recorded to be unenforced on the current target. See
+                # tests/pin_invariant.py for why this is stricter, not looser.
+                from pin_invariant import pin_is_legal
+                legal, why = pin_is_legal()
+                self.assertTrue(legal, "encoder_ablation.json selected nothing and the pin "
+                                       f"moved anyway: {why}")
+                return
             self.assertEqual(BASE_REVISION, incumbent["revision"])
         else:
             self.assertEqual(BASE_MODEL, report["selected"])
@@ -102,6 +112,7 @@ class TestTheRepositoryHonoursTheSelection(unittest.TestCase):
             raise unittest.SkipTest("data/MANIFEST.md absent")
         import sys
         sys.path.insert(0, str(ROOT / "export"))
+        sys.path.insert(0, str(ROOT / "tests"))
         from common import BASE_MODEL, BASE_REVISION
 
         text = MANIFEST.read_text()

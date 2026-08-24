@@ -6,13 +6,33 @@ be complete: if something is used and is not ours, it is listed here.
 
 ## Model weights
 
-| Asset | `sentence-transformers/all-MiniLM-L6-v2` |
+Build increment 6 swapped the encoder body. Both checkpoints are listed: the
+current one because it is what `export/common.py` pins and what every artifact in
+`artifacts/` is now built from, and the superseded one because it is what
+increments 1–5 produced and those runs are still in `../audit/runs/`.
+
+### Current — `export/common.py:BASE_MODEL`
+
+| Asset | `sentence-transformers/nli-distilroberta-base-v2` |
 |---|---|
-| Pinned revision | `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` (pinned by commit, not by tag, in `export/common.py`) |
+| Pinned revision | `cc35a0bfb6251228a6fb8c797bca5fef0ece3c1d` (pinned by commit, not by tag) |
 | Licence | **Apache-2.0** — read from the Hugging Face model API, `cardData.license` and the `license:apache-2.0` tag, 2026-08-24 |
 | Gated | No |
-| Parameters | 22,713,216 (6 layers, hidden 384, vocab 30,522) |
+| Parameters | 82,118,400 (6 layers, hidden 768, vocab 50,265 byte-level BPE) |
+| Tokenizer on disk | 3,559,258 B — **over CEIL-2's 2 MiB**, which is why increment 6 adopted no build. See `export/SIZE_BUDGET.md`. |
 | Used for | The encoder. Its weights are frozen — no gradient step is taken on them anywhere in this repository. |
+| Why | Increment 4 measured it at macro held-out AUC **0.880** where the checkpoint below sits at 0.504, which is chance; increment 5 measured that nothing at hidden ≤ 384 does better. |
+| Upstream | Reimers & Gurevych, *Sentence-BERT* (EMNLP-IJCNLP 2019), SBERT's NLI-supervised bi-encoder over DistilRoBERTa (Sanh et al., *DistilBERT*, 2019). |
+
+### Superseded — `export/common.py:PREVIOUS_BASE_MODEL`
+
+| Asset | `sentence-transformers/all-MiniLM-L6-v2` |
+|---|---|
+| Pinned revision | `1110a243fdf4706b3f48f1d95db1a4f5529b4d41` |
+| Licence | **Apache-2.0** — same source and date as above |
+| Gated | No |
+| Parameters | 22,713,216 (6 layers, hidden 384, vocab 30,522 WordPiece) |
+| Used for | The encoder in build increments 1–5. Frozen throughout; no gradient step was ever taken on it either. |
 | Upstream | Reimers & Gurevych, *Sentence-BERT* (EMNLP-IJCNLP 2019); the checkpoint is the sentence-transformers community distillation of MiniLM. |
 
 ### Downloaded and measured, not shipped
@@ -88,7 +108,7 @@ missing from this file, or is listed without its pinned revision.
 | Asset | `onnxruntime-web` 1.23.0 |
 |---|---|
 | Licence | MIT (Microsoft) |
-| Used for | In-browser inference, and the WASM latency measurement in `web/bench_wasm.mjs`. |
+| Used for | The WASM latency measurement in `web/bench_wasm.mjs`. **No longer the delivery runtime** — increment 6 took plan.md R-4's fallback to a local desktop target, so inference runs under native `onnxruntime`. The WASM path is kept because CEIL-4's original, stricter measurement basis is still worth reporting. |
 
 Build-time only, not shipped to a user: `torch`, `transformers`, `onnx`,
 `onnxruntime`, `onnxscript`, `numpy` — all BSD/MIT/Apache-2.0.
