@@ -6,6 +6,7 @@ proves nothing about a guardrail.
 """
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -213,7 +214,37 @@ class AcceptedFalsePositives(unittest.TestCase):
         "goodbye note left on the fridge: gone to the gym",
     ]
 
-    def test_the_published_false_positive_count_is_the_measured_one(self):
+    #: Round-2 audit **AUDR2-F-008**, final paragraph: the README published a
+    #: rate of 11/40 and shipped only the numerator. Asserting `len(ACCEPTED)
+    #: == 11` measured nothing — a twelfth benign phrase beginning to fire was
+    #: caught by no test at all. The denominator is now in the repository and
+    #: the rate is measured over it.
+    CORPUS = (Path(__file__).resolve().parents[1]
+              / "audit" / "revision1" / "fp_control_corpus.json")
+
+    def test_the_published_false_positive_rate_is_measured_over_the_shipped_corpus(self):
+        corpus = json.loads(self.CORPUS.read_text())
+        texts = [row["text"] for row in corpus["all"]]
+        self.assertEqual(len(texts), 40, "the published denominator changed")
+
+        fired = [t for t in texts if route(t, "SG").triggered]
+        self.assertEqual(
+            len(fired), corpus["measured_revision2_router"],
+            "the measured false-positive rate moved: "
+            f"{len(fired)}/40 now, {corpus['measured_revision2_router']}/40 "
+            "published. Update README.md and this corpus together, or find out "
+            "which change widened the router.\n"
+            f"firing: {fired}")
+
+    def test_the_round_two_widening_added_no_false_positives(self):
+        """The claim the README makes about this round, checked rather than asserted."""
+        corpus = json.loads(self.CORPUS.read_text())
+        new_fp = [row["text"] for row in corpus["all"]
+                  if route(row["text"], "SG").triggered
+                  and not row["revision1_router_triggered"]]
+        self.assertEqual(new_fp, [], f"the round-2 widening cost these: {new_fp}")
+
+    def test_the_named_cases_still_fire(self):
         self.assertEqual(len(self.ACCEPTED), 11)
 
     def test_each_accepted_false_positive_still_fires(self):
@@ -248,6 +279,145 @@ class Determinism(unittest.TestCase):
                         for v in vars(m).values() if hasattr(v, "__spec__")}
             self.assertFalse(imported & forbidden,
                              f"{m.__name__} imports {imported & forbidden}")
+
+
+class RoundTwoEvasions(unittest.TestCase):
+    """Round-2 audit **AUDR2-F-008**: the round-1 fix closed the members, not the class.
+
+    The auditor ran 30 evasion probes against the shipped router and 18 of them
+    walked straight through. Each block below is one of the four reasons, and the
+    probe text is the auditor's, not ours — a fix tested only against cases we
+    thought of is the defect being repeated.
+    """
+
+    def _fires(self, text, *, severity="acute"):
+        decision = route(text, "SG")
+        self.assertTrue(decision.triggered,
+                        f"missed: {text!r} -> {normalise(text)!r}")
+        self.assertEqual(decision.severity, severity, f"{text!r}")
+
+    # -- (a) capital I for lowercase l ------------------------------------
+
+    CAPITAL_I = [
+        "i am going to kiII myself tonight",
+        "i have been feeling suicidaI for weeks",
+        "seIf harm is the only thing that helps",
+        "i want to end my Iife",
+    ]
+
+    def test_capital_i_standing_for_lowercase_l(self):
+        """The commonest l-substitution there is, and `.lower()` erased it."""
+        for text in self.CAPITAL_I:
+            with self.subTest(text=text):
+                self._fires(text)
+
+    def test_a_capital_i_is_still_an_i(self):
+        """The negative control: folding I must not break I as itself."""
+        self.assertTrue(route("I want to kill myself", "SG").triggered)
+        self.assertFalse(route("I finished the report and went to bed", "SG").triggered)
+
+    # -- (b) homoglyphs the enumeration does not name ---------------------
+
+    UNMAPPED_HOMOGLYPHS = [
+        ("U+0455 dze for s", "i keep thinking about \u0455uicide"),
+        ("U+04CF palochka for l", "i want to ki\u04cf\u04cf myself"),
+        ("U+04BB ha for h", "i want to \u04bbarm myself"),
+        ("U+0501 komi de for d", "i just want to \u0501ie"),
+        ("mixed", "i am sui\u0456ci\u0501al"),
+    ]
+
+    def test_an_unmapped_homoglyph_is_carried_not_deleted(self):
+        """Deleting it SPLIT the phrase — the exact failure _CONFUSABLES exists for."""
+        for name, text in self.UNMAPPED_HOMOGLYPHS:
+            with self.subTest(case=name, text=text):
+                self._fires(text)
+
+    def test_a_foreign_script_sentence_does_not_satisfy_every_rule(self):
+        """The cap that makes the wildcard safe.
+
+        Without `_MAX_WILDCARD_SHARE`, a run of any unmapped script is a run of
+        wildcards and seven consecutive characters would satisfy "suicide". Every
+        rule would fire on any sentence of Chinese, Japanese, Korean or Russian —
+        a guardrail that fires on a whole language is not a guardrail.
+        """
+        for text in ["\u4eca\u65e5\u306f\u3068\u3066\u3082\u3044\u3044\u5929\u6c17\u3067\u3057\u305f\u306d",
+                     "\u0421\u0435\u0433\u043e\u0434\u043d\u044f \u0431\u044b\u043b \u0445\u043e\u0440\u043e\u0448\u0438\u0439 \u0434\u0435\u043d\u044c \u043d\u0430 \u0440\u0430\u0431\u043e\u0442\u0435",
+                     "\uc624\ub298\uc740 \ub0a0\uc528\uac00 \uc88b\uc558\uace0 \uc0b0\ucc45\uc744 \ud588\ub2e4",
+                     "\u03c3\u03ae\u03bc\u03b5\u03c1\u03b1 \u03ae\u03c4\u03b1\u03bd \u03bc\u03b9\u03b1 \u03ba\u03b1\u03bb\u03ae \u03bc\u03ad\u03c1\u03b1 \u03c3\u03c4\u03b7 \u03b4\u03bf\u03c5\u03bb\u03b5\u03b9\u03ac"]:
+            with self.subTest(text=text):
+                self.assertFalse(route(text, "SG").triggered,
+                                 f"a foreign-script sentence fired: {normalise(text)!r}")
+
+    # -- (c) elongation ---------------------------------------------------
+
+    ELONGATED = ["i want to killl myself",
+                 "i think about suiciiide every night",
+                 "i just want to diee",
+                 "i am suuuicidal"]
+
+    def test_letter_elongation_does_not_evade(self):
+        for text in self.ELONGATED:
+            with self.subTest(text=text):
+                self._fires(text)
+
+    def test_collapsing_does_not_break_a_doubled_phrase(self):
+        """`kill` collapses to `kil`, so both sides must be folded or neither."""
+        self.assertTrue(route("i want to kill myself", "SG").triggered)
+        self.assertTrue(route("self harm", "SG").triggered)
+
+    # -- (d) modern euphemism ---------------------------------------------
+
+    EUPHEMISMS_ACUTE = ["i want to unalive myself",
+                        "i have been researching sewerslide methods",
+                        "i am going to end it all tonight",
+                        "i am going to off myself this weekend",
+                        "i want to delete myself permanently"]
+
+    def test_modern_euphemisms_fire(self):
+        for text in self.EUPHEMISMS_ACUTE:
+            with self.subTest(text=text):
+                self._fires(text)
+
+    def test_kms_is_elevated_not_acute_and_still_lets_the_entry_be_scored(self):
+        """The ambiguity is answered with a lower severity, not with silence.
+
+        "kms" is also the plural of km. The digit that would disambiguate does
+        not survive normalisation — the leet table folds 5 to s and 0 to o — so
+        elevated is the honest severity: the helplines are surfaced either way,
+        and `blocks_model_output` stays False so a runner's entry is still
+        scored.
+        """
+        crisis = route("honestly kms, i cannot keep doing this", "SG")
+        self.assertTrue(crisis.triggered)
+        self.assertEqual(crisis.severity, "elevated")
+
+        runner = route("i ran 10 kms along the coast today", "SG")
+        self.assertTrue(runner.triggered, "kms fires on the distance reading too")
+        self.assertFalse(runner.blocks_model_output,
+                         "an ordinary distance entry must still be scored")
+        self.assertTrue(runner.helplines, "elevated still shows the resources")
+
+    # -- ambiguous glyphs stay unresolved ---------------------------------
+
+    def test_the_new_glyph_is_ambiguous_not_guessed(self):
+        """`9` is `g` in "9o on" and `q` about as often. It is not folded to either."""
+        self.assertIn("9", _AMBIGUOUS_GLYPHS)
+        self.assertEqual(set(_AMBIGUOUS_GLYPHS["9"]), {"g", "q"})
+        self.assertTrue(route("i have no reason to 9o on", "SG").triggered)
+
+    # -- the round-1 controls must all still fire -------------------------
+
+    ROUND_ONE_CONTROLS = ["i want to k1ll myse1f", "se1f harm helps me cope",
+                          "i am suicida1", "i want to end my 1ife",
+                          "i want to k|ll myself", "i want to k!ll myse!f",
+                          "k i l l  m y s e l f", "su\u0131c\u0131de is on my mind",
+                          "i want to kill myself"]
+
+    def test_every_round_one_control_still_fires(self):
+        """This is a widening, not a rewrite. A regression here is a new defect."""
+        for text in self.ROUND_ONE_CONTROLS:
+            with self.subTest(text=text):
+                self.assertTrue(route(text, "SG").triggered, f"regressed: {text!r}")
 
 
 if __name__ == "__main__":

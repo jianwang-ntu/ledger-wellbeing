@@ -36,6 +36,19 @@ value, because it was never written anywhere it could be read from. The store is
 mode 0600 to exclude other local users; this is what stops the listener from
 undoing that while unlocked.
 
+**The session guards destruction and eviction too, not only reading.** Round-2
+audit finding **AUDR2-F-001** showed that closing F-04 for confidentiality left
+destruction open: ``/api/wipe`` sat outside the session-guarded set, so the same
+scraped run token let an unrelated local process overwrite and unlink the
+encrypted journal irrecoverably, without ever supplying the passphrase. Wipe
+still does not require the journal to be *open* — someone who needs their
+journal gone should not have to read it first — but it now requires proof of
+ownership: either the session token, or the passphrase in the request body.
+``/api/lock`` is likewise session-guarded (**AUDR2-F-002**), a failed unlock no
+longer evicts the session it does not hold, failed passphrase attempts back off
+exponentially, and the unauthenticated ``/api/state`` no longer discloses the
+store path or whether a key is currently in memory.
+
 **An idle key drop.** ``IDLE_LOCK_SECONDS`` (default 900) bounds how long the
 derived key stays in memory after the last authenticated request. On expiry the
 journal handle and the session token are both dropped and the passphrase is
@@ -98,10 +111,31 @@ MAX_BODY_BYTES = 256 * 1024
 #: Configurable downward for tests; there is deliberately no way to disable it.
 IDLE_LOCK_SECONDS = float(os.environ.get("LEDGER_IDLE_LOCK_SECONDS", 900))
 
+#: How long a client that got the passphrase wrong must wait before the next
+#: attempt. Doubles per consecutive failure and is capped, so an unattended local
+#: guesser is bounded in rate while a person who mistyped waits a second or two.
+UNLOCK_BACKOFF_SECONDS = float(os.environ.get("LEDGER_UNLOCK_BACKOFF_SECONDS", 1.0))
+UNLOCK_BACKOFF_MAX_SECONDS = float(
+    os.environ.get("LEDGER_UNLOCK_BACKOFF_MAX_SECONDS", 60.0))
+
 #: Endpoints that can reach journal plaintext. These need the session token that
 #: only a client which supplied the passphrase has ever seen — not just the run
 #: token, which any local process can scrape out of the served page (F-04).
 PLAINTEXT_PATHS = frozenset({"/api/entries", "/api/report", "/api/entry"})
+
+#: Endpoints that act on another client's behalf without reading anything:
+#: ``/api/lock`` ends the session and drops the derived key. AUDR2-F-002 (b):
+#: outside this set, the scraped run token was enough to lock the legitimate
+#: user out of their own journal at will.
+CONTROL_PATHS = frozenset({"/api/lock"})
+
+#: Everything the run token alone must not be enough for.
+#:
+#: ``/api/wipe`` is deliberately NOT in here, and that is not an oversight: it is
+#: the one endpoint that accepts the passphrase *in place of* a session, so that
+#: the owner who cannot or will not open their journal can still destroy it.
+#: ``_wipe`` enforces the choice itself. See AUDR2-F-001.
+SESSION_PATHS = PLAINTEXT_PATHS | CONTROL_PATHS
 
 
 class UIState:
@@ -122,6 +156,10 @@ class UIState:
         self.session: str | None = None
         self.unlocked_at: float | None = None
         self.last_seen: float | None = None
+        #: Consecutive wrong passphrases, and the monotonic time before which
+        #: the next attempt is refused. AUDR2-F-002 (c).
+        self.failed_attempts = 0
+        self.blocked_until = 0.0
         self._engine = None
         self._lock = threading.Lock()
 
@@ -149,13 +187,39 @@ class UIState:
         self.close_session()
         return True
 
-    def session_ok(self, presented: str | None) -> bool:
+    def session_matches(self, presented: str | None) -> bool:
+        """Whether this client holds the current session — without touching the clock.
+
+        Separate from `session_ok` because `/api/state` is polled by the page.
+        Refreshing the idle timer from a poll would mean the journal never
+        idle-locks while a tab is open, which is the opposite of what
+        `IDLE_LOCK_SECONDS` is for.
+        """
         if self.session is None:
             return False
-        if not secrets.compare_digest(presented or "", self.session):
+        return secrets.compare_digest(presented or "", self.session)
+
+    def session_ok(self, presented: str | None) -> bool:
+        if not self.session_matches(presented):
             return False
         self.last_seen = time.monotonic()
         return True
+
+    # -- passphrase attempt rate limiting (AUDR2-F-002 c) ------------------
+
+    def throttle_remaining(self) -> float:
+        """Seconds until the next passphrase attempt is allowed. 0.0 when open."""
+        return max(0.0, self.blocked_until - time.monotonic())
+
+    def record_failed_attempt(self) -> None:
+        self.failed_attempts += 1
+        delay = min(UNLOCK_BACKOFF_MAX_SECONDS,
+                    UNLOCK_BACKOFF_SECONDS * (2 ** (self.failed_attempts - 1)))
+        self.blocked_until = time.monotonic() + delay
+
+    def clear_failed_attempts(self) -> None:
+        self.failed_attempts = 0
+        self.blocked_until = 0.0
 
     def engine(self):
         # Deferred and cached: ~200 MB of model, loaded on first score, never on
@@ -193,7 +257,8 @@ class LedgerHandler(BaseHTTPRequestHandler):
         if os.environ.get("LEDGER_UI_LOG"):
             super().log_message(fmt, *args)
 
-    def _headers(self, status: int, content_type: str, length: int) -> None:
+    def _headers(self, status: int, content_type: str, length: int,
+                 extra: dict | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
@@ -201,16 +266,23 @@ class LedgerHandler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Cache-Control", "no-store")
+        # Threaded through rather than sent by a caller of send_header, so that
+        # every response still leaves by this one door and the policy above
+        # cannot be skipped by adding a header somewhere else.
+        for name, value in (extra or {}).items():
+            self.send_header(name, str(value))
         self.end_headers()
 
-    def _send_bytes(self, status: int, content_type: str, payload: bytes) -> None:
-        self._headers(status, content_type, len(payload))
+    def _send_bytes(self, status: int, content_type: str, payload: bytes,
+                    extra: dict | None = None) -> None:
+        self._headers(status, content_type, len(payload), extra)
         if self.command != "HEAD":
             self.wfile.write(payload)
 
-    def _send_json(self, payload: dict, status: int = 200) -> None:
+    def _send_json(self, payload: dict, status: int = 200,
+                   extra: dict | None = None) -> None:
         self._send_bytes(status, "application/json; charset=utf-8",
-                         json.dumps(payload).encode("utf-8"))
+                         json.dumps(payload).encode("utf-8"), extra)
 
     def _error(self, status: int, message: str) -> None:
         self._send_json({"error": message}, status)
@@ -236,7 +308,7 @@ class LedgerHandler(BaseHTTPRequestHandler):
             if not self._token_ok():
                 return self._error(HTTPStatus.FORBIDDEN, "missing or wrong token")
             self.state.expire_if_idle()
-            if path in PLAINTEXT_PATHS and not self._session_ok():
+            if path in SESSION_PATHS and not self._session_ok():
                 return self._locked()
             return self._api_get(path)
         return self._static(path)
@@ -252,7 +324,7 @@ class LedgerHandler(BaseHTTPRequestHandler):
             return self._error(HTTPStatus.FORBIDDEN, "missing or wrong token")
         self.state.expire_if_idle()
         path = self.path.split("?", 1)[0]
-        if path in PLAINTEXT_PATHS and not self._session_ok():
+        if path in SESSION_PATHS and not self._session_ok():
             return self._locked()
         try:
             body = self._read_json()
@@ -332,11 +404,23 @@ class LedgerHandler(BaseHTTPRequestHandler):
         return self._error(HTTPStatus.NOT_FOUND, "no such endpoint")
 
     def _state_payload(self) -> dict:
+        # AUDR2-F-002 (the disclosure half). The absolute store path and "is a
+        # key in memory right now" told an unauthenticated local process where
+        # the journal lives and exactly when destroying or reading it would cost
+        # the most. Both are now behind the session.
+        #
+        # `unlocked` is reported as "unlocked FOR YOU", which is also the truer
+        # answer: a client without the session cannot read, write or lock this
+        # journal, so from where it stands the journal is shut. `store_exists`
+        # stays public because the page must choose between "create" and "open"
+        # before anyone has unlocked anything, and it discloses only what a stat
+        # of the documented default path already would.
+        mine = self.state.session_matches(self.headers.get("X-Ledger-Session"))
         evidence = dimension_evidence()
         return {
-            "store": str(self.state.store),
+            **({"store": str(self.state.store)} if mine else {}),
             "store_exists": self.state.store.exists(),
-            "unlocked": self.state.journal is not None,
+            "unlocked": mine and self.state.journal is not None,
             "idle_lock_seconds": IDLE_LOCK_SECONDS,
             "region": self.state.region,
             "contract": REPORT_CONTRACT,
@@ -355,15 +439,27 @@ class LedgerHandler(BaseHTTPRequestHandler):
         passphrase = body.get("passphrase") or ""
         if len(passphrase) < 1:
             return self._error(HTTPStatus.BAD_REQUEST, "a passphrase is required")
+        remaining = self.state.throttle_remaining()
+        if remaining > 0:
+            # AUDR2-F-002 (c). Checked BEFORE the scrypt derivation, so a rate
+            # limited attempt costs the machine nothing.
+            return self._throttled(remaining)
         journal = Journal(self.state.store, passphrase)
         create = not self.state.store.exists()
         try:
             self.state.journal = journal.create() if create else journal.unlock()
         except StoreError as exc:
-            self.state.close_session()
+            # AUDR2-F-002 (a): do NOT close the session here. The assignment
+            # above did not happen, so there is no half-open state to clean up,
+            # and the session that exists belongs to a client which DID supply
+            # the passphrase. Dropping it because someone else guessed wrong let
+            # any local process holding the scraped run token evict the
+            # legitimate user's key at will.
+            self.state.record_failed_attempt()
             # The message from the store layer never contains plaintext; it is
             # forwarded rather than replaced so the user learns which failure.
             return self._error(HTTPStatus.UNAUTHORIZED, str(exc))
+        self.state.clear_failed_attempts()
         # Minted here and returned here. This response body is the only place the
         # session token is ever written, which is what makes it unavailable to a
         # local client that did not supply the passphrase (F-04).
@@ -395,11 +491,57 @@ class LedgerHandler(BaseHTTPRequestHandler):
         if body.get("confirm") != "WIPE":
             return self._error(HTTPStatus.BAD_REQUEST,
                                "type WIPE to confirm; nothing was destroyed")
-        # As in the CLI: wipe does not require the passphrase. Someone who needs
-        # their journal gone should not have to open it first.
+        # AUDR2-F-001. Wipe still does not require the journal to be OPEN — the
+        # CLI reasoning holds, and someone who needs their journal gone should
+        # not have to read it first. What it now requires is proof that the
+        # caller is the owner, because this endpoint destroys the file
+        # irrecoverably (docs/limitations.md §7.3) and the run token alone is
+        # scrapeable by any local process out of the served page.
+        #
+        # Two ways to prove it, and no third: hold the session minted by a
+        # successful unlock, or supply the passphrase here. Refusals are
+        # deliberately uniform — a caller who is neither learns nothing about
+        # whether a journal exists at all.
+        if not self._session_ok():
+            remaining = self.state.throttle_remaining()
+            if remaining > 0:
+                return self._throttled(remaining)
+            if not self._passphrase_ok(body.get("passphrase") or ""):
+                self.state.record_failed_attempt()
+                return self._error(
+                    HTTPStatus.UNAUTHORIZED,
+                    "destroying this journal needs its passphrase, or a client "
+                    "that has already unlocked it; nothing was destroyed")
+            self.state.clear_failed_attempts()
         result = Journal(self.state.store, "unused").wipe()
         self.state.close_session()
         return self._send_json(result)
+
+    def _passphrase_ok(self, passphrase: str) -> bool:
+        """Verify a passphrase against the store without unlocking the session.
+
+        Deriving the key is what proves the caller is the owner. The handle is
+        discarded immediately: this must not become a second way to leave a key
+        in memory. Costs one scrypt derivation per call, which is also why the
+        caller of this method rate-limits it.
+        """
+        if not passphrase or not self.state.store.exists():
+            return False
+        try:
+            Journal(self.state.store, passphrase).unlock()
+        except StoreError:
+            return False
+        return True
+
+    def _throttled(self, remaining: float) -> None:
+        # AUDR2-F-002 (c). 429 rather than 401 so the caller can tell "wrong"
+        # from "too fast", and a Retry-After so a legitimate client that
+        # mistyped can simply wait rather than guess.
+        return self._send_json(
+            {"error": f"too many failed attempts; try again in {remaining:.1f}s",
+             "retry_after": round(remaining, 1)},
+            HTTPStatus.TOO_MANY_REQUESTS,
+            {"Retry-After": max(1, int(remaining + 0.5))})
 
 
 class LedgerUIServer(ThreadingHTTPServer):

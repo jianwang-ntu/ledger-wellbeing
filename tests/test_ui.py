@@ -449,3 +449,276 @@ class TestUnlockingOneClientDoesNotUnlockTheMachine:
             assert status == HTTPStatus.UNAUTHORIZED
         finally:
             server.shutdown_now()
+
+
+class TestTheRunTokenCannotDestroyOrEvict:
+    """Round-2 audit findings **AUDR2-F-001** (HIGH) and **AUDR2-F-002**.
+
+    Revision round 1 closed F-04 for *reading* and left *destruction* open. The
+    round-2 auditor planted a sentence, let a legitimate client unlock, then
+    acted as an unrelated local process: `GET /` unauthenticated, scraped the
+    43-character run token out of the page body, and `POST /api/wipe` with only
+    `X-Ledger-Token`. The journal was overwritten and unlinked — irrecoverably,
+    by design (docs/limitations.md §7.3) — with no passphrase at any point.
+
+    The same token also evicted the legitimate session by *failing* an unlock,
+    locked the user out via `/api/lock`, and read the store path and the
+    unlocked flag out of `/api/state`.
+
+    These tests are the shape of that attack. The F-04 tests above had the right
+    shape already and simply did not cover these verbs, which is the reason the
+    defect shipped.
+    """
+
+    @staticmethod
+    def _journal_with_an_entry(path):
+        """A store that holds something, so a wipe would destroy something."""
+        from ledger.store.journal import Journal, JournalEntry
+        journal = Journal(path, PASSPHRASE).create()
+        journal.append(JournalEntry(entry_id="planted", written_at="2026-08-25T00:00:00Z",
+                                    text="a sentence that must survive the attack"))
+        return journal
+
+    def test_a_client_with_only_the_run_token_cannot_wipe(self, tmp_path):
+        """The auditor's attack, executed against the revised server."""
+        store = tmp_path / "r2a.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            status, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            assert status == 200, "the legitimate client must be unlocked first"
+            session = json.loads(body)["session"]
+
+            # The attacker: run token only, no passphrase, no session.
+            status, body, _ = call(server, "/api/wipe", {"confirm": "WIPE"},
+                                   session=False)
+            assert status == HTTPStatus.UNAUTHORIZED, f"the wipe was allowed: {body}"
+            assert store.exists(), "the journal was destroyed by an unauthenticated client"
+
+            # And the legitimate client is untouched by the attempt.
+            status, body, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == 200
+            assert "must survive" in body.decode()
+        finally:
+            server.shutdown_now()
+
+    def test_a_wrong_passphrase_does_not_wipe(self, tmp_path):
+        store = tmp_path / "r2b.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            status, _, _ = call(server, "/api/wipe",
+                                {"confirm": "WIPE", "passphrase": "not the passphrase"},
+                                session=False)
+            assert status == HTTPStatus.UNAUTHORIZED
+            assert store.exists()
+        finally:
+            server.shutdown_now()
+
+    def test_the_owner_can_wipe_with_the_passphrase_without_unlocking(self, tmp_path):
+        """The negative control, and the reason wipe is not simply session-gated.
+
+        Someone who needs their journal gone should not have to open it first.
+        The passphrase proves ownership without putting a key in memory.
+        """
+        store = tmp_path / "r2c.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            status, body, _ = call(server, "/api/wipe",
+                                   {"confirm": "WIPE", "passphrase": PASSPHRASE},
+                                   session=False)
+            assert status == 200, body
+            assert json.loads(body)["wiped"] is True
+            assert not store.exists()
+            assert server.state.journal is None, "wipe must not leave a key in memory"
+            assert server.state.session is None
+        finally:
+            server.shutdown_now()
+
+    def test_the_unlocked_client_can_still_wipe(self, tmp_path):
+        store = tmp_path / "r2d.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            status, body, _ = call(server, "/api/wipe", {"confirm": "WIPE"},
+                                   session=session)
+            assert status == 200, body
+            assert not store.exists()
+        finally:
+            server.shutdown_now()
+
+    def test_an_empty_journal_still_cannot_authenticate_anyone(self, tmp_path):
+        """A residual, asserted so it is not mistaken for closure.
+
+        `Journal.unlock` verifies a passphrase by decrypting record 0, so a store
+        with **no records authenticates every passphrase** — its own docstring
+        says as much. The wipe gate therefore does not bind on a journal that
+        holds zero entries, and neither would a session gate, because the same
+        property means any passphrase can mint a session on it.
+
+        What this costs is bounded and it is not the finding: zero entries are
+        destroyed. Closing it means changing the on-disk format (a sealed
+        sentinel record at creation), which is not a change to make in a
+        remediation pass — revision round 1 opened AUDR2-F-001 exactly by
+        reaching further than the defect. Stated in docs/limitations.md §7.7.
+        """
+        from ledger.store.journal import Journal
+        store = tmp_path / "r2e.enc"
+        Journal(store, PASSPHRASE).create()          # created, never written to
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            status, body, _ = call(server, "/api/wipe",
+                                   {"confirm": "WIPE", "passphrase": "any string at all"},
+                                   session=False)
+            assert status == 200, "if this now refuses, the residual is closed — update §7.7"
+            assert not store.exists()
+        finally:
+            server.shutdown_now()
+
+    def test_a_wrong_passphrase_does_not_evict_the_legitimate_session(self, tmp_path):
+        """AUDR2-F-002 (a). A failed unlock used to drop the derived key."""
+        store = tmp_path / "r2f.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+
+            status, _, _ = call(server, "/api/unlock", {"passphrase": "wrong"},
+                                session=False)
+            assert status == HTTPStatus.UNAUTHORIZED
+
+            assert server.state.session == session, "the attacker evicted the session"
+            assert server.state.journal is not None, "the attacker dropped the derived key"
+            status, body, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == 200, f"the legitimate client was locked out: {body}"
+        finally:
+            server.shutdown_now()
+
+    def test_a_client_with_only_the_run_token_cannot_lock(self, tmp_path):
+        """AUDR2-F-002 (b)."""
+        store = tmp_path / "r2g.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+
+            status, _, _ = call(server, "/api/lock", {}, session=False)
+            assert status == HTTPStatus.UNAUTHORIZED
+
+            status, _, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == 200, "the attacker locked the legitimate client out"
+        finally:
+            server.shutdown_now()
+
+    def test_failed_passphrase_attempts_back_off(self, tmp_path, monkeypatch):
+        """AUDR2-F-002 (c). The guessing oracle was unlimited and silent."""
+        monkeypatch.setattr(ui_server, "UNLOCK_BACKOFF_SECONDS", 30.0)
+        store = tmp_path / "r2h.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            status, _, _ = call(server, "/api/unlock", {"passphrase": "wrong"},
+                                session=False)
+            assert status == HTTPStatus.UNAUTHORIZED
+
+            status, body, headers = call(server, "/api/unlock", {"passphrase": "wrong"},
+                                         session=False)
+            assert status == HTTPStatus.TOO_MANY_REQUESTS, "the oracle is still unlimited"
+            assert "Retry-After" in headers
+            assert json.loads(body)["retry_after"] > 0
+
+            # The wipe passphrase path is the same oracle and shares the limit.
+            status, _, _ = call(server, "/api/wipe",
+                                {"confirm": "WIPE", "passphrase": "wrong"},
+                                session=False)
+            assert status == HTTPStatus.TOO_MANY_REQUESTS
+            assert store.exists()
+        finally:
+            server.shutdown_now()
+
+    def test_the_backoff_doubles_and_a_correct_passphrase_clears_it(self, tmp_path,
+                                                                    monkeypatch):
+        monkeypatch.setattr(ui_server, "UNLOCK_BACKOFF_SECONDS", 0.05)
+        store = tmp_path / "r2i.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            delays = []
+            for _ in range(3):
+                call(server, "/api/unlock", {"passphrase": "wrong"}, session=False)
+                delays.append(server.state.throttle_remaining())
+                time.sleep(server.state.throttle_remaining() + 0.01)
+            assert delays[1] > delays[0] and delays[2] > delays[1], delays
+
+            status, _, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE},
+                                session=False)
+            assert status == 200
+            assert server.state.failed_attempts == 0
+            assert server.state.throttle_remaining() == 0.0
+        finally:
+            server.shutdown_now()
+
+    def test_the_backoff_is_capped(self, monkeypatch, tmp_path):
+        """Bounded, because the limit is global and an attacker can trip it.
+
+        The trade is recorded rather than hidden: a local process that knows the
+        run token can hold the legitimate user at the cap by guessing wrong. A
+        bounded wait for the user is the lesser cost against an unbounded
+        guessing rate for the attacker, and the CLI path is unaffected.
+        """
+        monkeypatch.setattr(ui_server, "UNLOCK_BACKOFF_SECONDS", 1.0)
+        monkeypatch.setattr(ui_server, "UNLOCK_BACKOFF_MAX_SECONDS", 4.0)
+        state = ui_server.UIState(tmp_path / "r2j.enc", "SG")
+        for _ in range(20):
+            state.record_failed_attempt()
+        assert state.throttle_remaining() <= 4.0
+
+    def test_unauthenticated_state_discloses_neither_the_path_nor_the_key(self, tmp_path):
+        """AUDR2-F-002, disclosure half."""
+        store = tmp_path / "r2k.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            assert server.state.journal is not None
+
+            status, body, _ = call(server, "/api/state", method="GET", session=False)
+            assert status == 200
+            payload = json.loads(body)
+            assert "store" not in payload, "the absolute store path leaked"
+            assert payload["unlocked"] is False, \
+                "an unauthenticated client learned a key is in memory"
+            assert str(store) not in body.decode()
+
+            # The negative control: the client that holds the session still sees both.
+            _, body, _ = call(server, "/api/state", method="GET", session=session)
+            payload = json.loads(body)
+            assert payload["store"] == str(store)
+            assert payload["unlocked"] is True
+        finally:
+            server.shutdown_now()
+
+    def test_polling_state_does_not_hold_the_journal_open(self, tmp_path, monkeypatch):
+        """`/api/state` must not refresh the idle clock, or a tab defeats it."""
+        monkeypatch.setattr(ui_server, "IDLE_LOCK_SECONDS", 0.15)
+        store = tmp_path / "r2l.enc"
+        self._journal_with_an_entry(store)
+        server = serve_in_thread(store=store, region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            for _ in range(6):
+                time.sleep(0.05)
+                call(server, "/api/state", method="GET", session=session)
+            status, _, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == HTTPStatus.UNAUTHORIZED, \
+                "polling /api/state kept the derived key alive past the idle limit"
+            assert server.state.journal is None
+        finally:
+            server.shutdown_now()

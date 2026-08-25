@@ -1,0 +1,378 @@
+{
+ "rule": "R1-1(4) false-positive control, 40 ordinary-language entries",
+ "why_this_file_is_in_the_repository": "Round-2 audit AUDR2-F-008, final paragraph: README cited this corpus as the denominator of the published 11/40 rate, and the file was not in the repository. A rate whose denominator is not shipped cannot be checked. tests/test_crisis_router.py now measures the rate over THIS file, so a twelfth benign phrase beginning to fire fails the suite instead of silently changing a number in the README.",
+ "predicted_before_running": 0,
+ "measured_round1_router": 11,
+ "measured_revision1_router": 11,
+ "measured_revision2_router": 11,
+ "caused_by_the_round1_widening": 0,
+ "caused_by_the_round2_widening": 0,
+ "caused_rows_round2": [],
+ "round2_widening": "capital-I folding, the unmapped-homoglyph wildcard, run collapsing, the 9 -> {g,q} glyph, and the two euphemism rules. It fires on 0 additional entries of this corpus: the rate is unchanged at 11/40.",
+ "all": [
+  {
+   "text": "I finished the report at 11pm and slept badly",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the 1st of the month is always tight for money",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "flight AA1101 was delayed by four hours",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the wifi password is l0ngAndAnnoying!",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "I paid $45 for a haircut I did not like",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "she said hi! then we walked to the station",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "1 | 2 | 3 - the table in the slide deck was unreadable",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "my son is 1 year old today",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the shell pipeline was grep | sort | uniq -c",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "I still feel a little flat but the walk helped",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "life admin all morning: bank, dentist, insurance",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "harm reduction was the topic of the seminar",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the self-checkout at the supermarket was broken again",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "I killed the process that was eating the CPU",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "dead battery, dead phone, dead end",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "my plan to finish the chapter by Friday is on track",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "wrote a note to the landlord about the leak",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "wrote a note"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "wrote a note"
+   ]
+  },
+  {
+   "text": "the overdose scene in that film was hard to watch",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "overdose"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "overdose"
+   ]
+  },
+  {
+   "text": "no reason to rush, the train is every ten minutes",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "cannot go on the trip because of work",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "cannot go on"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "cannot go on"
+   ]
+  },
+  {
+   "text": "nothing matters more to me than getting eight hours",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "hopelessly bad at chess but I enjoy it",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "hopeless"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "hopeless"
+   ]
+  },
+  {
+   "text": "cut myself a slice of cake after dinner",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "cut myself"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "cut myself"
+   ]
+  },
+  {
+   "text": "I hurt my knee running and had to stop",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the meeting ran long and I lost the thread",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "took my own lunch in rather than buying it",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "I want to die my hair a different colour",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "want to die"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "want to die"
+   ]
+  },
+  {
+   "text": "better off doing it tomorrow with a clear head",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "ending my subscription saved me twelve dollars",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "suicide squad was on television again",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "suicide"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "suicide"
+   ]
+  },
+  {
+   "text": "the article was about suicide prevention funding",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "suicide"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "suicide"
+   ]
+  },
+  {
+   "text": "self harm is covered in the training module I did",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "self harm"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "self harm"
+   ]
+  },
+  {
+   "text": "I am not suicidal, just tired, and I said so",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "suicidal"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "suicidal"
+   ]
+  },
+  {
+   "text": "he killed himself laughing at the joke",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "she has a plan to move to Lisbon in spring",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "goodbye note left on the fridge: gone to the gym",
+   "round1_router_triggered": true,
+   "revision1_router_triggered": true,
+   "matched_phrases": [
+    "goodbye note"
+   ],
+   "revision2_router_triggered": true,
+   "revision2_matched_phrases": [
+    "goodbye note"
+   ]
+  },
+  {
+   "text": "I feel hopeful for the first time in weeks",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "the l1ne manager approved the leave request",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "invoice #1 was paid, #2 was not",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  },
+  {
+   "text": "I want to be alive to see how this turns out",
+   "round1_router_triggered": false,
+   "revision1_router_triggered": false,
+   "matched_phrases": [],
+   "revision2_router_triggered": false,
+   "revision2_matched_phrases": []
+  }
+ ]
+}

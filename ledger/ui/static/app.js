@@ -379,7 +379,10 @@ el("wipe-form").addEventListener("submit", async (event) => {
 
 function renderSettings() {
   if (!state) return;
-  el("fact-store").textContent = state.store;
+  /* The server only tells a client that holds the session where the journal
+     lives (AUDR2-F-002). Before unlocking — and after a wipe — there is nothing
+     to show, and showing "undefined" would be worse than showing nothing. */
+  el("fact-store").textContent = state.store || "—";
   el("evidence-basis").textContent = state.evaluation_basis;
   el("contract").textContent = "Nothing you write here leaves this machine.";
   el("colophon-contract").textContent = state.contract;

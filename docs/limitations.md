@@ -565,3 +565,134 @@ The `Host` header is pinned and every `/api` call needs the per-run token, so a
 page on the open internet cannot reach the interface by pointing a name at
 127.0.0.1. Both are guarded in `tests/test_ui.py` and both are mutation-tested.
 
+
+### 7.7 The round-1 fix closed reading and left destruction open
+
+Round-2 audit finding **AUDR2-F-001** (HIGH). The session token added at revision
+round 1 guarded `/api/entries`, `/api/report` and `/api/entry` — everything that
+could *read* the journal — and nothing else. `/api/wipe` sat outside that set, so
+the same scraped per-run token was sufficient to overwrite and unlink the
+encrypted journal. The auditor did it: planted a sentence, let a legitimate
+client unlock, then acted as an unrelated local process — `GET /`, scrape the
+43-character token, `POST /api/wipe {"confirm":"WIPE"}` — and got
+`{"wiped": true, "bytes_overwritten": 440, "passes": 2}` with no passphrase at
+any point. §7.3 above is what makes that final: the overwrite is by design
+unrecoverable.
+
+**This is worth stating without softening: revision round 1 made the application
+less safe.** Closing a confidentiality finding opened an integrity one. The
+threat model was already written down — F-04 defined this exact adversary — and
+the fix was applied to the endpoints the finding named rather than to the class
+of endpoints the finding was about.
+
+**What changed.** `/api/wipe` now requires proof of ownership: either the session
+token, or the passphrase in the request body. It still does *not* require the
+journal to be open — someone who needs their journal gone should not have to read
+it first — and the passphrase is verified by deriving the key and discarding it,
+so wiping never leaves a key in memory. Refusals are uniform, so a caller who has
+neither learns nothing about whether a journal exists.
+
+**The residual, which is not closed.** `Journal.unlock` verifies a passphrase by
+decrypting record 0. A store that holds **no records authenticates every
+passphrase** — its own docstring says so. So on a journal with zero entries the
+gate does not bind, and a session gate would not either, since any passphrase can
+mint a session on the same store. What it costs is bounded and it is not the
+finding: zero entries are destroyed, and the file that goes is one holding
+nothing the user wrote. Closing it properly means a sealed sentinel record at
+creation time — an on-disk format change, which is not a change to make in a
+remediation pass, for the reason this section exists. Asserted, not hidden, by
+`tests/test_ui.py::TestTheRunTokenCannotDestroyOrEvict::test_an_empty_journal_still_cannot_authenticate_anyone`,
+and replayed in `audit/round2/remediation/replay_isolated_r2.json`.
+
+**And three smaller ones from the same finding class** (AUDR2-F-002), all closed:
+a failed unlock used to call `close_session()`, so any local process holding the
+run token could evict the legitimate user's key by guessing wrong once;
+`/api/lock` was likewise ungated, so the same process could lock the user out at
+will; and `/api/unlock` had no rate limit, giving an unlimited silent guessing
+oracle against the scrypt KDF. Failed passphrase attempts now back off
+exponentially from 1s to a 60s cap, shared with the `/api/wipe` passphrase path.
+
+**The trade that backoff creates, recorded rather than discovered.** The limit is
+per-process and global, so a local process that knows the run token can hold the
+legitimate user at the 60-second cap by guessing wrong. A bounded wait for the
+user is the lesser cost against an unbounded guessing rate for the attacker, and
+the CLI path is unaffected — but it is a denial of service that did not exist
+before, and it is here rather than in a footnote.
+
+Finally, `GET /api/state` used to disclose the absolute store path and whether a
+key was currently in memory to any caller holding the run token, which told an
+attacker exactly when a wipe would cost the most. Both are now behind the
+session. `unlocked` is reported as *unlocked for you*, which is also the truer
+answer. `store_exists` stays public: the page must choose between "create" and
+"open" before anyone has unlocked anything, and it discloses only what a `stat`
+of the documented default path already would.
+
+### 7.8 The crisis router's evasion fix closed the members, not the class
+
+Round-2 audit finding **AUDR2-F-008**. The round-1 fix (ambiguous glyphs expanded
+in the phrase rather than guessed at in the text) was correct and too narrow. The
+auditor ran 30 evasion probes at the shipped router and **18 walked through**:
+
+* Capital `I` for lowercase `l` — the commonest substitution there is — because
+  `normalise` lowercases before the glyph table is consulted, so `kiII myself`
+  became `kiii myself`.
+* Homoglyphs absent from the hand-maintained `_CONFUSABLES` table were deleted as
+  non-ASCII, which **splits the phrase they sit in** — the exact failure the
+  table was written to stop. U+0455 turned `ѕuicide` into `uicide`.
+* Letter elongation: `killl myself`, `suiciiide`, `diee`.
+* No modern euphemism: `unalive`, `kms`, `sewerslide`, `end it all`,
+  `off myself`, `delete myself` all passed an acute router in 2026.
+
+**What changed.** Capital `I` is folded to an existing ambiguous glyph before the
+lowercase. An unmapped non-ASCII letter is no longer deleted but carried as a
+wildcard any letter position may cross — bounded by `_MAX_WILDCARD_SHARE`,
+without which seven consecutive CJK characters would satisfy "suicide" and every
+rule would fire on any sentence of Chinese, Japanese, Korean or Russian. Runs of
+a repeated character are collapsed on both the text and the phrase. `9` joins the
+ambiguous glyphs as `{g, q}` rather than being guessed as `g`.
+
+Measured on the auditor's own 30 probes: **12 fired before, 30 fire after**, with
+the 40-entry ordinary-language control corpus firing **11 times both before and
+after** — the widening costs 0 additional false positives
+(`audit/revision1/fp_control_corpus.json`, and the auditor's independent
+30-entry benign corpus holds at 4).
+
+**What is added but not established.** The euphemism phrases came from the
+auditor's probe list in a remediation pass. They have **not been
+clinician-reviewed**, unlike the intent of every other phrase in `RULES`. They
+are shipped because a router that misses `unalive` in 2026 is worse than one
+carrying eight unreviewed literals, and the review is named here as outstanding
+rather than implied to have happened.
+
+`kms` is deliberately **elevated, not acute**. It is acute in meaning and
+ambiguous in form — it is also the plural of `km`, and "ran 10 kms" is an
+ordinary sentence in a wellbeing journal. The digit that would disambiguate it
+does not survive normalisation, because the leet table folds `5` to `s` and `0`
+to `o`, so a boundary rule cannot be written honestly here. Elevated surfaces the
+helplines without setting `blocks_model_output`, so a real `kms` is met with
+resources and a runner's entry is still scored. Ambiguity is answered with a
+lower severity rather than with silence.
+
+**The false-positive rate is now measured over a shipped denominator.** The
+README published 11/40 and the repository contained only the numerator: the test
+asserted `len(ACCEPTED) == 11` and that those eleven still fire, so a *twelfth*
+benign phrase beginning to fire was caught by nothing. The corpus is now at
+`audit/revision1/fp_control_corpus.json` and
+`tests/test_crisis_router.py::AcceptedFalsePositives` measures the rate over it.
+
+### 7.9 The passphrase is accepted from the environment
+
+Round-2 audit finding **AUDR2-F-012**. `ledger/app/cli.py` reads
+`LEDGER_PASSPHRASE`, which lets the CLI be driven non-interactively. Its own
+docstring reasons — correctly — that the passphrase is never taken as a
+command-line argument because `argv` is world-readable in `/proc` on this
+platform. Environment variables are strictly better than that: `/proc/PID/environ`
+is owner-readable rather than world-readable.
+
+But owner-readable is precisely the adversary F-04 established, and env vars are
+inherited by every child process the CLI spawns. §7.6's inventory of where the
+passphrase does and does not go — "never written to disk, to a log line, or to a
+URL" — did not mention the environment at all, and neither did the README. It
+does now: **the scripted path puts the passphrase in the process environment,
+where it is same-user readable and inherited by children. The interactive prompt
+is the recommended path.**

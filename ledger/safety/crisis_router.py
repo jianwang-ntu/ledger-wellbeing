@@ -42,13 +42,49 @@ _LEET_UNAMBIGUOUS = str.maketrans({"0": "o", "3": "e", "4": "a", "5": "s",
 #: A single-valued fold has to guess. The matcher below does not: it expands the
 #: PHRASE instead, so one glyph in the text can satisfy either letter and both
 #: readings of ``k1ll myse1f`` are caught by the same rule.
-_AMBIGUOUS_GLYPHS: dict[str, str] = {"1": "il", "!": "il", "|": "il"}
+#:
+#: ``9`` was added by the round-2 pass: it stands for ``g`` in ordinary leet
+#: ("no reason to 9o on") and for ``q`` about as often, so it goes here with the
+#: other glyphs that are not resolved rather than into the single-valued table
+#: above. Guessing ``g`` would have been right this time and wrong later.
+_AMBIGUOUS_GLYPHS: dict[str, str] = {"1": "il", "!": "il", "|": "il", "9": "gq"}
 
 #: Inverted: letter -> the glyphs that may appear in its place.
 _GLYPHS_FOR_LETTER: dict[str, str] = {}
 for _glyph, _letters in _AMBIGUOUS_GLYPHS.items():
     for _letter in _letters:
         _GLYPHS_FOR_LETTER[_letter] = _GLYPHS_FOR_LETTER.get(_letter, "") + _glyph
+
+#: Round-2 audit finding **AUDR2-F-008 (a)**. Capital ``I`` is the commonest
+#: stand-in for lowercase ``l`` there is, and it was invisible to the table above
+#: because ``normalise`` lowercases first: ``kiII myself`` became ``kiii myself``
+#: and missed, as did ``suicidaI``, ``seIf harm`` and ``end my Iife``.
+#:
+#: It is folded to ``!`` — an existing ambiguous glyph that already means
+#: "``i`` or ``l``" — *before* the lowercase, because that is the only point at
+#: which the case still exists to be read. Nothing new is needed in the matcher.
+_UPPERCASE_AMBIGUOUS = str.maketrans({"I": "!"})
+
+#: Round-2 audit finding **AUDR2-F-008 (b)**. ``_CONFUSABLES`` is a
+#: hand-maintained enumeration, and anything not in it was deleted as non-ASCII —
+#: which SPLITS the phrase it sits in, the exact failure the table was written to
+#: stop. U+0455 turned ``ѕuicide`` into ``uicide``; U+04CF turned ``kiӏӏ myself``
+#: into ``ki myself``.
+#:
+#: So an unmapped non-ASCII letter is no longer deleted. It becomes this
+#: wildcard, which any letter position in a rule phrase may cross. The
+#: enumeration above is kept because an exact letter beats a wildcard, but it is
+#: no longer the only thing standing between a homoglyph and a missed phrase.
+_WILDCARD = "�"
+
+#: How much of a match may be wildcard before it stops being evidence.
+#:
+#: Without this, a run of any unmapped script is a run of wildcards, and seven
+#: consecutive CJK characters would satisfy "suicide" — every rule would fire on
+#: any sentence of Chinese, Japanese or Russian. A homoglyph evasion substitutes
+#: one or two characters into an otherwise-Latin word; a foreign-script sentence
+#: substitutes all of them. The cap is what tells those apart.
+_MAX_WILDCARD_SHARE = 0.4
 
 # NFKD decomposes accents but NOT confusables: the dotless i (U+0131), the
 # Cyrillic lookalikes and the Latin stroked letters all survive it unchanged and
@@ -71,22 +107,43 @@ _CONFUSABLES = str.maketrans({
 # not pick - it matches against both readings. See normalise_variants().
 _SEPARATORS = re.compile(r"[\s._\-*+|/\\]+")
 _SEPARATORS_KEEPING_PIPE = re.compile(r"[\s._\-*+/\\]+")
-#: Ambiguous glyphs must survive this or the matcher below never sees them.
-_NON_ALNUM = re.compile(r"[^a-z0-9 !|]+")
+#: Ambiguous glyphs and the wildcard must survive this or the matcher below
+#: never sees them.
+_NON_ALNUM = re.compile(r"[^a-z0-9 !|" + _WILDCARD + r"]+")
+
+#: Two or more of the same character in a row. AUDR2-F-008 (c).
+_RUNS = re.compile(r"(.)\1+")
 
 
 def normalise(text: str, *, pipe_as_letter: bool = False) -> str:
     """Fold text to a matchable form. Lossy on purpose, never shown to the user.
 
     Ambiguous glyphs (``1``, ``!``, ``|``) are left in place; resolving them is
-    the matcher's job, not the normaliser's.
+    the matcher's job, not the normaliser's. An unmapped non-ASCII letter is left
+    in place too, as ``_WILDCARD``, for the same reason: deleting it would decide
+    that it meant nothing, and it usually means the letter it looks like.
     """
     folded = unicodedata.normalize("NFKD", text or "")
     folded = "".join(c for c in folded if not unicodedata.combining(c))
+    # Before the lowercase, because after it the capital I is gone. F-008 (a).
+    folded = folded.translate(_UPPERCASE_AMBIGUOUS)
     folded = folded.lower().translate(_CONFUSABLES).translate(_LEET_UNAMBIGUOUS)
+    # F-008 (b): what the enumeration did not name is now carried, not dropped.
+    folded = "".join(_WILDCARD if (not c.isascii() and c.isalpha()) else c
+                     for c in folded)
     folded = _NON_ALNUM.sub(" ", folded)
     separators = _SEPARATORS_KEEPING_PIPE if pipe_as_letter else _SEPARATORS
     return separators.sub(" ", folded).strip()
+
+
+def collapse_runs(text: str) -> str:
+    """Fold ``killl`` onto ``kil`` — and the rule phrase onto ``kil`` with it.
+
+    AUDR2-F-008 (c): elongation walked straight past the matcher. Collapsing only
+    the text would break every phrase containing a double letter, so both sides
+    are collapsed and the collapsed forms are matched against each other.
+    """
+    return _RUNS.sub(r"\1", text)
 
 
 def normalise_variants(text: str) -> tuple[str, ...]:
@@ -134,6 +191,32 @@ RULES: tuple[Rule, ...] = (
         "no reason to go on", "no point in going on", "cant go on",
         "cannot go on", "nothing matters anymore", "hopeless",
     ), "elevated"),
+    # AUDR2-F-008 (d). The list above reads like 2015: an acute router that does
+    # not know "unalive" in 2026 does not know the word people actually use,
+    # because the platforms that moderate the plain words are where the
+    # euphemisms were forced into existence.
+    #
+    # PROVENANCE, stated because it differs from every rule above: these were
+    # added by the round-2 remediation pass from the auditor's probe list. They
+    # have NOT been clinician-reviewed. They are here because shipping a router
+    # that misses them is worse than shipping them unreviewed, and the review is
+    # named as outstanding in docs/limitations.md §7.8 rather than implied.
+    Rule("R-ACUTE-EUPHEMISM", (
+        "unalive", "unaliving", "sewerslide", "off myself", "offing myself",
+        "delete myself", "end it all", "ending it all",
+    ), "acute"),
+    # "kms" is acute in meaning and ambiguous in form: it is also the plural of
+    # km, and "ran 10 kms" is an ordinary sentence in a wellbeing journal. The
+    # digit that would disambiguate it does not survive normalisation - the leet
+    # table folds "5" to "s" and "0" to "o" - so a boundary rule cannot be
+    # written honestly here.
+    #
+    # Elevated rather than acute is the deliberate choice: elevated surfaces the
+    # helplines but does NOT set blocks_model_output, so a real "kms" is met with
+    # resources and a runner's "10 kms" still gets its trend line. Ambiguity is
+    # answered with a lower severity, not with silence. Flagged for the same
+    # clinician pass.
+    Rule("R-ELEVATED-EUPHEMISM", ("kms",), "elevated"),
 )
 
 
@@ -143,21 +226,46 @@ def _pattern(phrase: str) -> re.Pattern[str]:
     "kill myself" becomes ``k[i1!|][l1!|][l1!|] mysel...`` - so ``k1ll``,
     ``ki11``, ``kil1`` and ``k!ll`` all match the one rule, and no reading of
     the glyph has to be guessed at normalisation time.
+
+    Every letter position also admits ``_WILDCARD``, so an unmapped homoglyph
+    crosses it (F-008 b). ``_hit`` then bounds how much of a match may be
+    wildcard, because a position that admits anything is only useful while the
+    positions around it do not.
     """
     out = []
     for ch in phrase:
-        glyphs = _GLYPHS_FOR_LETTER.get(ch)
-        out.append(f"[{re.escape(ch + glyphs)}]" if glyphs else re.escape(ch))
+        glyphs = _GLYPHS_FOR_LETTER.get(ch, "")
+        admits = ch + glyphs + (_WILDCARD if ch.isalpha() else "")
+        out.append(f"[{re.escape(admits)}]" if len(admits) > 1 else re.escape(ch))
     return re.compile("".join(out))
 
 
-#: (spaced, de-spaced) matcher per phrase, compiled once at import. Pure data:
-#: the phrase list stays the reviewable thing, and this is derived from it, so a
-#: clinician editing RULES cannot forget to update the matcher.
-_PHRASE_PATTERNS: dict[str, tuple[re.Pattern[str], re.Pattern[str]]] = {
-    phrase: (_pattern(phrase), _pattern(_despace(phrase)))
+#: Matchers per phrase, compiled once at import. Pure data: the phrase list stays
+#: the reviewable thing, and this is derived from it, so a clinician editing
+#: RULES cannot forget to update the matcher.
+#:
+#: Two families, matched against text folded the same two ways — spaced and
+#: de-spaced as before, and each of those collapsed for elongation (F-008 c).
+#: Collapsed patterns are matched only against collapsed text: ``kill`` collapses
+#: to ``kil``, so the two sides have to be folded together or neither.
+_PHRASE_PATTERNS: dict[str, tuple[tuple[re.Pattern[str], ...],
+                                  tuple[re.Pattern[str], ...]]] = {
+    phrase: ((_pattern(phrase), _pattern(_despace(phrase))),
+             (_pattern(collapse_runs(phrase)),
+              _pattern(collapse_runs(_despace(phrase)))))
     for rule in RULES for phrase in rule.phrases
 }
+
+
+def _hit(pattern: re.Pattern[str], form: str) -> bool:
+    """Search, then refuse a match that is mostly wildcard. See _MAX_WILDCARD_SHARE."""
+    found = pattern.search(form)
+    if found is None:
+        return False
+    matched = found.group()
+    if not matched:
+        return False
+    return matched.count(_WILDCARD) / len(matched) <= _MAX_WILDCARD_SHARE
 
 
 @dataclass(frozen=True)
@@ -181,14 +289,16 @@ class Decision:
 
 def route(text: str, region: str | None = None) -> Decision:
     """Classify one journal entry. Pure: no I/O, no model, no network."""
-    forms = [f for variant in normalise_variants(text)
+    plain = [f for variant in normalise_variants(text)
              for f in (variant, _despace(variant))]
+    collapsed = [collapse_runs(f) for f in plain]
 
     hits: list[tuple[Rule, str]] = []
     for rule in RULES:
         for phrase in rule.phrases:
-            spaced, dense = _PHRASE_PATTERNS[phrase]
-            if any(spaced.search(f) or dense.search(f) for f in forms):
+            patterns, collapsed_patterns = _PHRASE_PATTERNS[phrase]
+            if (any(_hit(p, f) for p in patterns for f in plain)
+                    or any(_hit(p, f) for p in collapsed_patterns for f in collapsed)):
                 hits.append((rule, phrase))
                 break
 

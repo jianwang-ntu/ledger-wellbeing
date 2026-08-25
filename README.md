@@ -74,7 +74,7 @@ it, written before the measurement.
 | A scorer that *does* separate held-out text | **found, and 6.3× too large to ship** | `artifacts/scorer_ablation.json`, `docs/limitations.md` §1a |
 | A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
 | CLI front-end (`python -m ledger.app.cli`) | **built** | `audit/runs/inc8_cli_demo_*.txt` |
-| Visual interface (`python -m ledger.ui`) | **built** — six views, served from 127.0.0.1, no third-party asset | `artifacts/a11y/screens/`, `tests/test_ui.py` (26 guards) |
+| Visual interface (`python -m ledger.ui`) | **built** — six views, served from 127.0.0.1, no third-party asset | `artifacts/a11y/screens/`, `tests/test_ui.py` (45 guards) |
 | Accessibility (plan.md C6) | **measured in a real browser**: axe-core **in default mode** 0 violations / 0 incomplete on all six views; **under emulated `forced-colors: active`** 0 violations / **3 incomplete** (`color-contrast` on `unlock`, `write`, `settings`) — "incomplete" in axe means *needs review*, never *fails*, and the rule is unreliable when author colours are overridden, so an independent computed-contrast pass is the better evidence: 13.99:1 minimum, 0 failures. Whole flow keyboard-only; focus verified optically | `artifacts/a11y_report.json` |
 | Screen-reader traversal | **not done, not claimed** — needs a human | `docs/limitations.md` §7.4 |
 | The listener is local and unreachable | **measured**: only bind `127.0.0.1`; port refused on all 9 non-loopback addresses | `artifacts/egress_audit_ui.json` |
@@ -170,9 +170,22 @@ has always had and had never quantified. It is **not fixed**: negation handling
 in an acute path is an evasion surface, and anything that learns "not" suppresses
 a match can be written past with "I would never say I want to kill myself". The
 asymmetry is chosen — a false positive costs a helpline card and a skipped trend
-line, a false negative costs a missed crisis — and the 11 are pinned in
-`tests/test_crisis_router.py::AcceptedFalsePositives` so the published rate
-cannot drift from the measured one.
+line, a false negative costs a missed crisis — and the rate is **measured over
+the corpus itself**, which ships at `audit/revision1/fp_control_corpus.json`.
+`tests/test_crisis_router.py::AcceptedFalsePositives` recomputes 11/40 on every
+run, so a *twelfth* benign phrase beginning to fire fails the suite. It used to
+assert only that the eleven named ones still fired, which measured nothing about
+drift in the other twenty-nine (round-2 audit AUDR2-F-008).
+
+**Round 2 found that this fix, too, closed the members and not the class.** An
+independent auditor ran 30 evasion probes at the shipped router and 18 walked
+through: capital `I` for lowercase `l`, homoglyphs absent from the hand-written
+confusables table (which were *deleted*, splitting the phrase they sat in),
+letter elongation, and the absence of any modern euphemism — `unalive`, `kms`,
+`sewerslide`. All four classes are now closed, 30 of 30 probes fire, and the
+false-positive rate is unchanged at 11/40. What that cost, what is shipped
+unreviewed, and why `kms` is elevated rather than acute are in
+`docs/limitations.md` §7.8.
 
 ```
 python3 -m pytest tests/test_crisis_router.py -v
@@ -654,3 +667,47 @@ After both fixes: **19 of 19 caught**.
   0.700 floor, labelled everywhere it appears.
 - **The packet-level capture is still owed**; the egress measurement is
   process-level and is described as such.
+
+## Revision round 2 — a remediation pass, and what it says about round 1
+
+An independent round-2 audit scored this artifact **65.38** against a 92.0 bar and
+returned `DO_NOT_SUBMIT`. That verdict stands; it is not what this section is
+about. What it is about is that the audit found the round-1 revision had made the
+application **less safe**, and that defect was published.
+
+**AUDR2-F-001 (HIGH).** Revision round 1 closed a confidentiality finding by
+adding a per-unlock session token to the three endpoints that could *read* the
+journal. `/api/wipe` was not one of them. The auditor planted a sentence, let a
+legitimate client unlock, then acted as an unrelated local process — `GET /`,
+scrape the per-run token out of the page, `POST /api/wipe` — and irrecoverably
+destroyed an encrypted mental-health journal without ever supplying the
+passphrase. The fix was applied to the endpoints the finding named rather than to
+the class of endpoints the finding was about.
+
+Closed: `/api/wipe` now requires the session token **or** the passphrase in the
+body — it still does not require the journal to be *open*, because someone who
+needs their journal gone should not have to read it first. `/api/lock` is
+session-gated, a failed unlock no longer evicts the session it does not hold,
+failed attempts back off exponentially, and `/api/state` no longer tells an
+unauthenticated caller where the journal lives or whether a key is in memory.
+
+**AUDR2-F-008.** The crisis router's round-1 evasion fix closed the members and
+not the class: 18 of 30 independent evasion probes walked through it — capital
+`I` for `l`, homoglyphs outside the hand-written table (which were *deleted*,
+splitting the phrase), elongation, and no modern euphemism. All four classes
+closed; **30 of 30 probes now fire** and the false-positive rate is unchanged.
+
+| | measured |
+|---|---|
+| Auditor's evasion probes firing | **12/30 → 30/30** |
+| Ordinary-language false positives | **11/40 → 11/40** (0 caused by the widening) |
+| Auditor's independent benign corpus | **4/30 → 4/30** |
+| Tests | 259 → **283 passed, 9 skipped** |
+| Mutation score on the new guards | **15/15** (7 server, 8 router) |
+
+Evidence: `audit/round2/remediation/replay_isolated_r2.json` replays each attack
+against the fixed server one control per server, so a 429 is never mistaken for a
+401. What is **not** closed is in `docs/limitations.md` §7.7–§7.9 — chiefly that a
+journal holding **zero entries** authenticates every passphrase, so the wipe gate
+does not bind on one; that the new rate limit is a denial of service an attacker
+can trigger; and that the eight euphemism phrases are **not clinician-reviewed**.
