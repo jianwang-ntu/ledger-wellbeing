@@ -4,12 +4,31 @@ plan.md criterion **C2** ("Feasibility & Safety") names this file. It exists to
 state, in the place a reader will actually look, what this tool has *not* shown.
 Everything here is a measurement in this repository, not a caveat written to
 sound careful.
+> **Reading the numbers in this file.** Measured figures for the build that
+> ships today are re-derived from their artifacts by
+> `python export/check_published_numbers.py`. Figures from earlier build
+> increments are kept as they were measured and tagged **SUPERSEDED**, because a
+> limitations document that quietly rewrites its own history is worth less than
+> one that shows it.
 
-Last updated: build increment 5, 2026-08-24.
+Last updated: build increment 9, 2026-08-25 (revision round 1).
 
 ---
 
 ## 1. The five-dimension score does not generalise. This is the headline.
+
+**What ships, stated before the history so it cannot be missed.** The body in
+`export/common.py` is `sentence-transformers/nli-distilroberta-base-v2`
+(`artifacts/torch/build_report.json`), and under the held-out protocol below it
+reaches **macro 0.880**, not the 0.504 this section opens with. 0.504 is the
+**SUPERSEDED** incumbent `all-MiniLM-L6-v2` figure, kept because the argument
+that forced the change is built on it. Read §1 as the record of *why the body
+changed*, and §1a for the number that describes what ships. Two things do not
+improve with the body: `activation` is still at 0.600, below the 0.70 usable
+threshold fixed in increment 3, and the whole protocol is 50 anchor sentences
+written for this project — not an evaluation set. The round-1 audit was right
+that this section had gone stale at its own headline (F-05); this paragraph is
+the correction, and none of the measurements below were altered.
 
 **Measured:** `artifacts/encoder_ablation.json`, reproducible with
 `python export/encoder_ablation.py`.
@@ -221,7 +240,11 @@ cost nothing: the row was unreadable on its own control regardless.
 by shrinking the scorer. plan.md **R-4** is therefore the answer, exactly as it
 was written before any of this was measured — *a local desktop app, where the
 zero-egress claim survives and the in-browser claim is dropped rather than
-fudged*. `export/common.py` is unchanged and still holds the incumbent.
+fudged*. `export/common.py` held the incumbent when this was written. **SUPERSEDED at
+increment 7**: it now pins `nli-distilroberta-base-v2` and `export/verify.py`
+exits 0 on the desktop target. The conclusion above — that option B does not
+close by shrinking the scorer, and that R-4's desktop fallback is the answer —
+is unchanged; only the sentence about `common.py` was overtaken.
 
 ### What is therefore not claimed anywhere
 
@@ -229,10 +252,17 @@ fudged*. `export/common.py` is unchanged and still holds the incumbent.
 - That a trajectory of these scores over time means anything.
 - That any of this is diagnostic, screening, or clinically validated. There has
   been no clinical validation of any kind and none is planned inside this event.
-- That the 0.880 in §1a is a property of anything that ships. It is a property of
-  a 201.68 MiB scorer that this project has **not** adopted, measured on 50
-  sentences written for it. It says the defect is fixable. It does not say it is
-  fixed.
+- That the 0.880 in §1a means the instrument works. **Corrected at revision
+  round 1 (F-05):** an earlier version of this bullet said the 0.880 was "a
+  property of a 201.68 MiB scorer that this project has not adopted". That
+  stopped being true at increment 7. `export/common.py` pins
+  `nli-distilroberta-base-v2`, `artifacts/torch/build_report.json` confirms it,
+  and `artifacts/verify_report.json` selects the `int8_embed` build made from
+  it — so the 0.880 *is* a property of the shipped body. What it is still not:
+  it is measured on 50 anchor sentences written for this project, under a
+  leave-one-pair-out protocol, with `activation` at 0.600 below the usable
+  threshold. It says the pole-separation defect is fixable and was fixed on
+  this anchor set. It does not say the score means anything about a person.
 
 `tests/test_encoder_ablation.py` fails if the README starts making those claims
 while the measurement stands.
@@ -311,12 +341,38 @@ independent of any size ceiling.
 
 Stated so the list above is not read as "nothing works":
 
-- **The attribution identity holds exactly.** `logit_k` equals the sum of its
-  per-token attributions plus bias to a measured residual of 2.4e-07 natively and
-  2.5e-07 under WASM, asserted on every build. Whatever the score is worth, the
-  explanation is arithmetically the score and not a saliency map fitted to it.
-- **In-browser inference runs.** `onnxruntime-web` WASM p95 is 124 ms for the
-  int8 build and 238 ms for fp32 at 256 tokens, both inside CEIL-4's 500 ms.
+- **The attribution identity holds exactly — and the residual is a regression
+  guard, not the evidence for it.** `logit_k` equals the sum of its per-token
+  attributions plus bias. The architectural claim is correct: mean pooling
+  followed by a linear head *is* a sum of per-token terms, so the explanation is
+  arithmetically the score and not a saliency map fitted to it. But
+  `LedgerScorer.forward` computes `logits = token_attr.sum(dim=1) + bias`, so in
+  PyTorch the identity holds **by construction** and the residual we report
+  cannot fail — round-1 audit finding F-06 was right that presenting it as
+  verification invited the wrong reading. What the residual actually measures is
+  whether the **export and quantization path** preserved an identity the source
+  enforces: ONNX conversion, int8 quantization and the WASM runtime each get a
+  chance to break it. Measured on the shipped `int8_embed` build:
+  **3.2e-07** natively (`artifacts/verify_report.json`) and **1.4e-07** in the
+  WASM runtime (`artifacts/wasm/bench_int8_embed.json`). An earlier revision of
+  this bullet quoted 2.4e-07 / 2.5e-07, which match neither artifact.
+- **What the identity is not: encoder-level faithfulness.** Token attributions
+  are computed from **contextual** embeddings, so token *i*'s vector already
+  depends on its neighbours. Exact additivity over the *pooling* layer therefore
+  says the score decomposes exactly into per-token terms; it does not say those
+  terms are what the encoder "used" for that token. Removing a word would change
+  the vectors of the words around it. This caveat was undisclosed before
+  revision round 1.
+- **In-browser inference runs**, but not within the latency ceiling on the
+  shipped body. The only WASM bench `export/verify.py` accepts is the shipped
+  `int8_embed` build, at **836.61 ms** p95 — *over* CEIL-4's 500 ms, which is one
+  of the four reasons the web target was dropped (§3). The two other bench files
+  in `artifacts/wasm/` (124 ms for `int8_full`, 238 ms for `fp32`) are
+  **SUPERSEDED**: `verify_report.json.wasm_benches_rejected_as_stale` rejects
+  both because they predate `DEFECT-INC6-001` and carry no `model_sha256`, so
+  they are not evidence for anything and are not quoted as such. An earlier
+  revision of this file cited them as though they were current and inside the
+  ceiling; that was wrong in both halves and is corrected here.
 - **The crisis router fires** on all 23 adversarial cases in the matrix,
   including one real evasion this suite caught (the dotless-i homoglyph
   `U+0131`, which survived NFKD normalisation).
@@ -458,13 +514,54 @@ came to pass: the sentence is **withdrawn**, not reinterpreted to mean "no
 
 What this costs, stated plainly: the passphrase is posted to `127.0.0.1` in a
 request body. It does not leave the host and it is never written to disk, to a
-log line, or to a URL — but it does cross a socket, which it did not before. Any
-process running as this user could already read the journal file and the process
-memory, so this does not widen the trust boundary; it does move where the secret
-appears inside it.
+log line, or to a URL — but it does cross a socket, which it did not before.
 
-The `Host` header is pinned and every `/api` call needs a per-run token embedded
-in the page, so a page on the open internet cannot reach the interface by
-pointing a name at 127.0.0.1. Both are guarded in `tests/test_ui.py` and both are
-mutation-tested.
+**The argument that used to sit here was wrong, and it was wrong in our own
+favour.** It said the listener "does not widen the trust boundary", because "any
+process running as this user could already read the journal file and the process
+memory". Round-1 audit finding **F-04** falsified both halves:
+
+* `journal.enc` is *ciphertext*. A process that reads the file without the
+  passphrase gets bytes it cannot decrypt. That is the whole point of the store.
+* This host runs `yama ptrace_scope=1` (`/proc/sys/kernel/yama/ptrace_scope`),
+  which blocks same-user process-memory reads outside a descendant. So the
+  derived key in the server's memory was not already readable either.
+
+And the listener really did widen the boundary. The auditor unlocked the journal
+in one browser, then acted as an unrelated local process: `GET /` (which cannot
+require a secret — the browser has to load it), scraped the per-run token out of
+the served HTML, and read the full decrypted journal with it, never supplying the
+passphrase. The store is mode `0600` precisely to exclude other local users, and
+the interface was undoing that for as long as anything was unlocked.
+
+**What changed at revision round 1.** Unlocking now mints a second secret,
+returned *only* in the body of the successful `/api/unlock` response and written
+nowhere else — not into the page, not into `localStorage`, not into a cookie.
+Every endpoint that can reach journal plaintext (`/api/entries`, `/api/report`,
+`/api/entry`) requires it in `X-Ledger-Session`. A local client that did not
+supply the passphrase has no way to obtain it. The derived key is also dropped
+after `IDLE_LOCK_SECONDS` (default 900) without an authenticated request, which
+answers the other half of the finding — the server used never to re-challenge.
+
+Measured, with a negative control, in
+`audit/revision1/probe_session_unlock.rerun.json`: against the **pre-fix** server
+at `git HEAD` the attack returns HTTP 200 and the planted entry text; against the
+revised server the same attack returns **401** on `/api/entries` and
+`/api/report` with no entry text in either body. Seven tests in
+`tests/test_ui.py::TestUnlockingOneClientDoesNotUnlockTheMachine` pin it,
+including the negative control that a client which *did* supply the passphrase
+still works.
+
+**What is still true and is not claimed away.** `GET /` remains unauthenticated
+and the per-run token remains scrapeable by any local process — that is asserted
+by a test rather than defended, because the browser must be able to load the
+page. The token was demoted from authenticator to same-origin guard; it is not
+the thing protecting the journal. And the transport is still loopback TCP with no
+UID restriction, so this is an application-layer fix, not the OS-enforced one a
+unix socket with filesystem permissions would give. That remains the better
+design and is not built.
+
+The `Host` header is pinned and every `/api` call needs the per-run token, so a
+page on the open internet cannot reach the interface by pointing a name at
+127.0.0.1. Both are guarded in `tests/test_ui.py` and both are mutation-tested.
 

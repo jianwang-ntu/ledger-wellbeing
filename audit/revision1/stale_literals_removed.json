@@ -1,0 +1,57 @@
+{
+ "what": "R1-3 supporting evidence: every stale published literal named by F-03, plus two more found by re-deriving rather than inheriting, no longer occurs in any governed document.",
+ "governed_documents": [
+  "README.md",
+  "export/SIZE_BUDGET.md",
+  "docs/limitations.md",
+  "data/MANIFEST.md"
+ ],
+ "literals": {
+  "92.91": {
+   "quantity": "int8_full cold MiB",
+   "occurrences": [],
+   "removed": true
+  },
+  "214.20": {
+   "quantity": "int8_embed cold MiB",
+   "occurrences": [],
+   "removed": true
+  },
+  "214.2": {
+   "quantity": "int8_embed cold MiB (1dp)",
+   "occurrences": [],
+   "removed": true
+  },
+  "224.98": {
+   "quantity": "int8_embed native p95 ms",
+   "occurrences": [],
+   "removed": true
+  },
+  "845.98": {
+   "quantity": "int8_embed WASM p95 ms",
+   "occurrences": [],
+   "removed": true
+  },
+  "228.15": {
+   "quantity": "CEIL-4 native p95 ms",
+   "occurrences": [],
+   "removed": true
+  },
+  "325.78": {
+   "quantity": "fp32 cold MiB (found by re-derivation, not among the auditor's 20)",
+   "occurrences": [],
+   "removed": true
+  },
+  "75.8 ms": {
+   "quantity": "int8_full native p95 ms",
+   "occurrences": [],
+   "removed": true
+  },
+  "226.41": {
+   "quantity": "fp32 native p95 ms",
+   "occurrences": [],
+   "removed": true
+  }
+ },
+ "all_removed": true
+}

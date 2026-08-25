@@ -1,0 +1,195 @@
+{
+  "verify_report_measured_at": "2026-08-24T22:57:32Z",
+  "wasm_benches_rejected_as_stale": {
+    "fp32": "bench predates DEFECT-INC6-001 and carries no model_sha256",
+    "int8_full": "bench predates DEFECT-INC6-001 and carries no model_sha256"
+  },
+  "rows": [
+    {
+      "quantity": "int8_full model MiB",
+      "README_states": 78.2,
+      "artifact_value": 78.1986665725708,
+      "artifact_source": "verify_report.candidate_builds.int8_full.bytes",
+      "match": true
+    },
+    {
+      "quantity": "int8_full cold MiB",
+      "README_states": 92.91,
+      "artifact_value": 90.99874782562256,
+      "artifact_source": "verify_report...cold_first_load_bytes",
+      "match": false
+    },
+    {
+      "quantity": "int8_full native p95 ms",
+      "README_states": 75.8,
+      "artifact_value": 75.92,
+      "artifact_source": "verify_report...latency_native.p95_ms",
+      "match": true
+    },
+    {
+      "quantity": "int8_full worst pearson r",
+      "README_states": 0.99282,
+      "artifact_value": 0.992823,
+      "artifact_source": "verify_report...vs_fp32_per_dimension",
+      "match": true
+    },
+    {
+      "quantity": "int8_full max score delta",
+      "README_states": 0.077,
+      "artifact_value": 0.077,
+      "artifact_source": "verify_report...vs_fp32_per_dimension",
+      "match": true
+    },
+    {
+      "quantity": "int8_embed model MiB",
+      "README_states": 199.49,
+      "artifact_value": 199.49088764190674,
+      "artifact_source": "verify_report...int8_embed.bytes",
+      "match": true
+    },
+    {
+      "quantity": "int8_embed cold MiB",
+      "README_states": 214.2,
+      "artifact_value": 212.2909688949585,
+      "artifact_source": "verify_report...cold_first_load_bytes",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed native p95 ms",
+      "README_states": 224.98,
+      "artifact_value": 230.392,
+      "artifact_source": "verify_report...latency_native.p95_ms",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed WASM p95 ms",
+      "README_states": 845.98,
+      "artifact_value": 836.612,
+      "artifact_source": "artifacts/wasm/bench_int8_embed.json.p95_ms",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed worst pearson r",
+      "README_states": 0.99995,
+      "artifact_value": 0.999948,
+      "artifact_source": "verify_report...vs_fp32_per_dimension",
+      "match": true
+    },
+    {
+      "quantity": "int8_embed max score delta",
+      "README_states": 0.00694,
+      "artifact_value": 0.006941,
+      "artifact_source": "verify_report...vs_fp32_per_dimension",
+      "match": true
+    },
+    {
+      "quantity": "fp32 model MiB",
+      "README_states": 311.07,
+      "artifact_value": 311.067006111145,
+      "artifact_source": "verify_report.reference_build.bytes",
+      "match": true
+    },
+    {
+      "quantity": "fp32 native p95 ms",
+      "README_states": 226.41,
+      "artifact_value": 227.001,
+      "artifact_source": "verify_report.reference_build.latency_native.p95_ms",
+      "match": true
+    },
+    {
+      "quantity": "inc7 prose: CEIL-4 native p95 ms",
+      "README_states": 228.15,
+      "artifact_value": 230.392,
+      "artifact_source": "verify_report...CEIL_4.measured",
+      "match": false
+    },
+    {
+      "quantity": "inc7 prose: tokenizer bytes",
+      "README_states": 1556504,
+      "artifact_value": 1556504,
+      "artifact_source": "verify_report.tokenizer_bytes",
+      "match": true
+    },
+    {
+      "quantity": "inc7 prose: additivity residual",
+      "README_states": 3.2e-07,
+      "artifact_value": 3.203749656677246e-07,
+      "artifact_source": "verify_report...attribution_identity_max_residual",
+      "match": true
+    },
+    {
+      "quantity": "limitations \u00a76: WASM p95 int8 build",
+      "README_states": 124.0,
+      "artifact_value": 123.782,
+      "artifact_source": "artifacts/wasm/bench_int8_full.json.p95_ms",
+      "match": true
+    },
+    {
+      "quantity": "limitations \u00a76: WASM p95 fp32",
+      "README_states": 238.0,
+      "artifact_value": 254.681,
+      "artifact_source": "artifacts/wasm/bench_fp32.json.p95_ms",
+      "match": false
+    },
+    {
+      "quantity": "limitations \u00a76: additivity residual native",
+      "README_states": 2.4e-07,
+      "artifact_value": 2.7567148208618164e-07,
+      "artifact_source": "verify_report.reference_build...",
+      "match": true
+    },
+    {
+      "quantity": "limitations \u00a73 / SIZE_BUDGET: WASM p95",
+      "README_states": 836.61,
+      "artifact_value": 836.612,
+      "artifact_source": "artifacts/wasm/bench_int8_embed.json.p95_ms",
+      "match": true
+    }
+  ],
+  "mismatches": [
+    {
+      "quantity": "int8_full cold MiB",
+      "README_states": 92.91,
+      "artifact_value": 90.99874782562256,
+      "artifact_source": "verify_report...cold_first_load_bytes",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed cold MiB",
+      "README_states": 214.2,
+      "artifact_value": 212.2909688949585,
+      "artifact_source": "verify_report...cold_first_load_bytes",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed native p95 ms",
+      "README_states": 224.98,
+      "artifact_value": 230.392,
+      "artifact_source": "verify_report...latency_native.p95_ms",
+      "match": false
+    },
+    {
+      "quantity": "int8_embed WASM p95 ms",
+      "README_states": 845.98,
+      "artifact_value": 836.612,
+      "artifact_source": "artifacts/wasm/bench_int8_embed.json.p95_ms",
+      "match": false
+    },
+    {
+      "quantity": "inc7 prose: CEIL-4 native p95 ms",
+      "README_states": 228.15,
+      "artifact_value": 230.392,
+      "artifact_source": "verify_report...CEIL_4.measured",
+      "match": false
+    },
+    {
+      "quantity": "limitations \u00a76: WASM p95 fp32",
+      "README_states": 238.0,
+      "artifact_value": 254.681,
+      "artifact_source": "artifacts/wasm/bench_fp32.json.p95_ms",
+      "match": false
+    }
+  ],
+  "n_checked": 20,
+  "n_mismatch": 6
+}

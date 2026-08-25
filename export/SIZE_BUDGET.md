@@ -7,6 +7,11 @@ and the export pipeline built before the UI.*").
 These ceilings were **fixed before the model was exported or measured**, so that
 the measurement in `../audit/runs/export_verify_*.json` is a test the pipeline
 can fail, not a description of whatever came out. Written 2026-08-24, build
+> **Reading the numbers in this file.** Ceiling *values* are budget constants
+> fixed before export and are not measurements. Measured figures for the build
+> that ships today are re-derived from their artifacts by
+> `python export/check_published_numbers.py`. Figures from earlier increments
+> are kept as measured and tagged **SUPERSEDED**.
 increment 2.
 
 ## The one number we do not control
@@ -160,9 +165,9 @@ at macro held-out AUC 0.880.
 
 | Build | Model | Cold | Native p95 | Pearson r (worst dim) | max Δ score | CEIL-5 |
 |---|---:|---:|---:|---:|---:|---|
-| `int8_full` | 78.20 MiB | 92.91 MiB | **75.8 ms** | 0.99282 | **0.0770** | **fail** |
-| `int8_embed` | 199.49 MiB | 214.20 MiB | 224.98 ms | 0.99995 | 0.00694 | pass |
-| `fp32` | 311.07 MiB | 325.78 MiB | 226.41 ms | 1.0 | 0.0 | pass (reference) |
+| `int8_full` | 78.20 MiB | 91.00 MiB | **75.92 ms** | 0.99282 | **0.0770** | **fail** |
+| `int8_embed` | 199.49 MiB | 212.29 MiB | 230.39 ms | 0.99995 | 0.00694 | pass |
+| `fp32` | 311.07 MiB | 323.87 MiB | 227.00 ms | 1.0 | 0.0 | pass (reference) |
 
 Three of the four pre-registered predictions held. Additivity survived the body
 swap at a residual of 2.8–3.2e-07 against a 1e-04 rule (R6-1). CEIL-5 selected
@@ -223,7 +228,7 @@ both directions on the same run.
 
 | | native ORT, 1 thread | WASM, 1 thread | CEIL-4 |
 |---|---:|---:|---|
-| `int8_embed` p95 | **224.98 ms** | **845.98 ms** | 500 ms |
+| `int8_embed` p95 | **230.39 ms** | **836.61 ms** | 500 ms |
 
 **On the original web basis CEIL-4 fails too, at 1.7× the ceiling.** This was
 pre-registered as the expected outcome, and it matters more than it looks: the
@@ -294,7 +299,7 @@ additivity identity.
 | `int8_embed`, desktop target | Measured | Ceiling | |
 |---|---:|---:|---|
 | CEIL-2 tokenizer bytes | 1,556,504 | 2,097,152 | pass |
-| CEIL-4 p95, native ORT 1 thread | 228.15 ms | 500 ms | pass |
+| CEIL-4 p95, native ORT 1 thread | 230.39 ms | 500 ms | pass |
 | CEIL-5 Pearson r, worst dimension | 0.999948 | 0.99 | pass |
 | CEIL-5 max abs score delta | 0.006941 | 0.02 | pass |
 | additivity residual | 3.20e-07 | 1e-04 | pass |

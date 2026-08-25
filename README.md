@@ -11,6 +11,16 @@ A client-side longitudinal well-being instrument, built for
 > As of build increment 7 there is a shippable model build. None of that makes
 > the score good — `docs/limitations.md` §1 is the thing to read before believing
 > any number this produces.
+>
+> **Reading the numbers in this README.** Every figure describing the build that
+> ships today is re-derived from its artifact by
+> `python export/check_published_numbers.py`, which exits non-zero if any
+> published figure and the artifact that produced it disagree. Figures from
+> earlier build increments are left as they were measured — rewriting them would
+> falsify the record — and each such block is tagged **SUPERSEDED** so a reader
+> can tell the current artifact from the history. Round-1 audit finding F-03
+> found six published figures that matched no artifact; that is why this check
+> exists and why it runs in CI-equivalent form as `tests/test_published_numbers.py`.
 
 ## What it is meant to be
 
@@ -41,7 +51,7 @@ claim does not.
 
 Increment 6 also settled that the browser was not lost on size alone. Re-measured
 on the new body, the web target fails **four** ceilings — model bytes, tokenizer
-bytes, cold payload, and latency at **845.98 ms in single-threaded WASM against a
+bytes, cold payload, and latency at **836.61 ms in single-threaded WASM against a
 500 ms ceiling**. And it did not end in a shippable build either: **CEIL-2 fails
 at 3.394 MiB against 2.000 MiB**, so no build was adopted. `export/SIZE_BUDGET.md`
 has both tables; `export/INCREMENT_6_PREREGISTRATION.md` has the rule that decided
@@ -54,7 +64,7 @@ it, written before the measurement.
 | `ledger/safety/` — deterministic crisis router | **built, tested** | `audit/runs/safety_tests_20260824T1350Z.txt` (8/8), `audit/runs/crisis_matrix_20260824T1350Z.json` (23/23) |
 | `ledger/model/` — encoder + additive attribution head | **built** | `artifacts/verify_report.json` |
 | `export/` — ONNX export, int8 quantization, verification | **built; clears every enforced ceiling since increment 7** | `artifacts/verify_report.json`, `artifacts/quant_sensitivity.json` |
-| In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — fails 4 of 6 ceilings on the current body, including latency at 845.98 ms | `artifacts/wasm/bench_int8_embed.json`, `export/SIZE_BUDGET.md` |
+| In-browser inference (`onnxruntime-web`, WASM) | **runs**, and **dropped as the target** — fails 4 of 6 ceilings on the current body, including latency at 836.61 ms | `artifacts/wasm/bench_int8_embed.json`, `export/SIZE_BUDGET.md` |
 | Desktop target with the 0.880 scorer | **built, measured and ADOPTED** since increment 7 — CEIL-2 met at 1.484 MiB vs 2.000 MiB, `verify.py` exits 0, `int8_embed` selected | `artifacts/verify_report.json`, `export/SIZE_BUDGET.md` |
 | `ledger/store/` — encrypted local journal, one-click wipe | **built, tested** | `tests/test_store.py` (25 guards), `docs/limitations.md` §7.2–7.3 |
 | `ledger/app/` — entry → route → score → per-span attribution → store → report | **built, runs end to end** | `audit/runs/inc8_cli_demo_*.txt`, `artifacts/span_additivity.json` |
@@ -65,7 +75,7 @@ it, written before the measurement.
 | A *small* scorer that separates **and** fits | **searched for, and does not exist at hidden ≤ 384** | `artifacts/size_feasible_scorer.json`, `docs/limitations.md` §1b |
 | CLI front-end (`python -m ledger.app.cli`) | **built** | `audit/runs/inc8_cli_demo_*.txt` |
 | Visual interface (`python -m ledger.ui`) | **built** — six views, served from 127.0.0.1, no third-party asset | `artifacts/a11y/screens/`, `tests/test_ui.py` (26 guards) |
-| Accessibility (plan.md C6) | **measured in a real browser**: axe-core 0 violations / 0 incomplete on all six views; whole flow keyboard-only; focus verified optically | `artifacts/a11y_report.json` |
+| Accessibility (plan.md C6) | **measured in a real browser**: axe-core **in default mode** 0 violations / 0 incomplete on all six views; **under emulated `forced-colors: active`** 0 violations / **3 incomplete** (`color-contrast` on `unlock`, `write`, `settings`) — "incomplete" in axe means *needs review*, never *fails*, and the rule is unreliable when author colours are overridden, so an independent computed-contrast pass is the better evidence: 13.99:1 minimum, 0 failures. Whole flow keyboard-only; focus verified optically | `artifacts/a11y_report.json` |
 | Screen-reader traversal | **not done, not claimed** — needs a human | `docs/limitations.md` §7.4 |
 | The listener is local and unreachable | **measured**: only bind `127.0.0.1`; port refused on all 9 non-loopback addresses | `artifacts/egress_audit_ui.json` |
 | 4-minute submission video | **not produced**, and will not be faked | — |
@@ -203,6 +213,11 @@ cleared rather than assumed.
 `export/SIZE_BUDGET.md` fixes five ceilings **before** anything was exported, so
 that `export/verify.py` is a test the pipeline can fail. It failed. Reported here
 rather than in a footnote:
+
+**SUPERSEDED — build increment 5, `sentence-transformers/all-MiniLM-L6-v2` body.**
+These are the numbers as measured then, kept because the rejection they record is
+part of the argument. The body changed at increment 6 and the shipped figures are
+in the increment-6 table further down; do not read this table as current.
 
 | Build | Size | Cold load | WASM p95 | Agreement with fp32 (max Δ on the 0–1 score) | Verdict |
 |---|---:|---:|---:|---:|---|
@@ -387,9 +402,9 @@ chance. `DELIVERY_TARGET` is `desktop`.
 
 | Build | Model | Cold | native p95 | WASM p95 | worst-dim r | max Δ score | CEIL-5 |
 |---|---:|---:|---:|---:|---:|---:|---|
-| `int8_full` | 78.20 MiB | 92.91 MiB | 75.8 ms | not measured | 0.99282 | **0.0770** | **fail** |
-| `int8_embed` | 199.49 MiB | 214.20 MiB | 224.98 ms | **845.98 ms** | 0.99995 | 0.00694 | pass |
-| `fp32` (reference) | 311.07 MiB | 325.78 MiB | 226.41 ms | not measured | 1.0 | 0.0 | pass |
+| `int8_full` | 78.20 MiB | 91.00 MiB | 75.92 ms | not measured | 0.99282 | **0.0770** | **fail** |
+| `int8_embed` | 199.49 MiB | 212.29 MiB | 230.39 ms | **836.61 ms** | 0.99995 | 0.00694 | pass |
+| `fp32` (reference) | 311.07 MiB | 323.87 MiB | 227.00 ms | not measured | 1.0 | 0.0 | pass |
 
 **No build was adopted.** `export/verify.py` exits 1 and `shippable_builds` is
 empty, because CEIL-2 — the tokenizer, at **3,559,258 B against a 2,097,152 B
@@ -443,7 +458,7 @@ vocab 50,265 and merges 50,000 both unchanged.
 
 `export/verify.py` exits **0** for the first time in this project.
 `shippable_builds` is `["int8_embed", "fp32"]` and `int8_embed` is selected at
-CEIL-4 228.15 ms (ceiling 500), CEIL-5 r 0.99995 / max Δ 0.00694 (ceilings 0.99 /
+CEIL-4 230.39 ms (ceiling 500), CEIL-5 r 0.99995 / max Δ 0.00694 (ceilings 0.99 /
 0.02), additivity residual 3.2e-07.
 
 Two things this does **not** retire, both published in `export/SIZE_BUDGET.md`
@@ -580,7 +595,7 @@ and committed **before** the interface existed.
 |---|---|
 | R9-1 keyboard completeness | The whole primary flow — create journal → write → attribution → history → report → decline the wipe — with **0 pointer events**. A keyboard-activated button fires `click` with `detail === 0`; a mouse one does not, so the counter can tell them apart. |
 | R9-2 visible focus, optically | **48 of 48** focusable elements. The element's own box is screenshotted focused and unfocused and diffed; minimum **1.9%** of pixels changed against a 0.5% rule. A `:focus { outline: none }` that repaints invisibly passes a style check and fails this one. |
-| R9-3 axe-core | **0 violations, 0 incomplete**, six views, `wcag2a, wcag2aa, wcag21a, wcag21aa`. |
+| R9-3 axe-core | **Default mode: 0 violations, 0 incomplete**, six views, `wcag2a, wcag2aa, wcag21a, wcag21aa`. **Forced-colours mode: 0 violations, 3 incomplete** — all `color-contrast`, on `unlock`, `write` and `settings`. Stated beside the headline because round-1 audit finding F-07 was right that quoting only the default-mode number is a disclosure gap. It is not a failure: axe reports `incomplete` for *needs review*, and its `color-contrast` rule cannot judge a page whose author colours the OS has replaced — it reads the override as a 1:1 ratio against the background. The independent in-harness computed-contrast pass over every text-bearing element is the evidence that carries: **13.99:1 minimum, 0 failures** in that same mode. The round-1 auditor reproduced the direction independently (19.56:1 minimum, 0 failures) and also found the axe result is harness-configuration-dependent — pairing forced colours with a dark colour-scheme gave them 6 violations / 0 incomplete where this harness gets 0 / 3. That the number moves with the harness is itself worth stating, and is why the computed-contrast pass exists. |
 | R9-4 contrast + forced colours | axe's `color-contrast` **ran** (it needs real layout — this is why a browser, not jsdom) and passed on every view. An independent pass over every text-bearing element measures **7.38:1 minimum** by default and **13.99:1** under `forced-colors: active`, where the flow completes again unchanged. |
 | R9-5 reduced motion | **744 elements** enumerated in the live DOM, every one reporting `0s` animation and transition. |
 | R9-6 announcements | The live region carries the scored result and the crisis routing, and it **is** a live region — `aria-live="polite"`, `role="status"`, crisis panel `role="alert"`. |

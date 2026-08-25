@@ -19,6 +19,14 @@
 
 const TOKEN = document.querySelector('meta[name="ledger-token"]').content;
 
+/* The run token above is in the page, so any local process can read it. It is a
+   same-origin guard, not an authenticator. SESSION is minted by the server on a
+   successful unlock and returned only in that response body — it is held in this
+   closure, never written to the DOM, localStorage, sessionStorage or a cookie,
+   so a second local client that did not supply the passphrase cannot obtain it.
+   Round-1 audit finding F-04 is what this exists for. */
+let SESSION = null;
+
 const VIEWS = ["unlock", "write", "entry", "history", "report", "settings"];
 
 const el = (id) => document.getElementById(id);
@@ -32,14 +40,30 @@ let latest = null;
 async function api(path, options = {}) {
   const response = await fetch(path, {
     ...options,
-    headers: { "X-Ledger-Token": TOKEN, "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: {
+      "X-Ledger-Token": TOKEN,
+      "Content-Type": "application/json",
+      ...(SESSION ? { "X-Ledger-Session": SESSION } : {}),
+      ...(options.headers || {}),
+    },
     /* Same-origin by construction: there is no other origin this page may reach.
        Stated explicitly so a later edit has to argue with it. */
     credentials: "omit",
     cache: "no-store",
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || `request failed (${response.status})`);
+  if (!response.ok) {
+    /* 401 on a journal endpoint means the server dropped the key — either the
+       idle timer fired or this client never had a session. Forget ours and send
+       the user back to the passphrase rather than leaving a dead interface. */
+    if (response.status === 401 && SESSION !== null) {
+      SESSION = null;
+      state = null;
+      showView("unlock");
+      announce("The journal locked itself. Enter the passphrase to reopen it.");
+    }
+    throw new Error(payload.error || `request failed (${response.status})`);
+  }
   return payload;
 }
 
@@ -292,6 +316,7 @@ el("unlock-form").addEventListener("submit", async (event) => {
   try {
     const result = await post("/api/unlock", { passphrase: el("passphrase").value });
     el("passphrase").value = "";
+    SESSION = result.session || null;
     state = await api("/api/state");
     renderSettings();
     showView("write");
@@ -337,6 +362,7 @@ el("wipe-form").addEventListener("submit", async (event) => {
   try {
     const result = await post("/api/wipe", { confirm: el("wipe-confirm").value });
     el("wipe-confirm").value = "";
+    SESSION = null;   /* the server dropped the key; do not keep a stale handle */
     state = await api("/api/state");
     renderSettings();
     showView("unlock");

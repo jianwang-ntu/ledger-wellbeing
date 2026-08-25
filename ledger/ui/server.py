@@ -22,6 +22,26 @@ browser send our ``Host``.
 no cross-origin document can read the HTML back — there is no CORS header on any
 response, deliberately.
 
+**A per-unlock session token, which is never in the page.** The run token above
+is a same-origin guard, not an authenticator: ``GET /`` is unauthenticated by
+necessity (the browser has to be able to load the page), so *any* local process
+can fetch the HTML and scrape the run token out of it. Round-1 audit finding
+**F-04** demonstrated exactly that — a second local client that never supplied
+the passphrase read the decrypted journal. The fix is that unlocking now mints a
+second secret, ``session``, returned **only in the body of the successful
+``/api/unlock`` response**, and every endpoint that can reach journal plaintext
+(``/api/entries``, ``/api/report``, ``/api/entry``) requires it in
+``X-Ledger-Session``. A client that did not supply the passphrase never sees that
+value, because it was never written anywhere it could be read from. The store is
+mode 0600 to exclude other local users; this is what stops the listener from
+undoing that while unlocked.
+
+**An idle key drop.** ``IDLE_LOCK_SECONDS`` (default 900) bounds how long the
+derived key stays in memory after the last authenticated request. On expiry the
+journal handle and the session token are both dropped and the passphrase is
+required again. This is the second half of F-04: "the server retains the derived
+key and never re-challenges".
+
 **A content policy that forbids leaving.** Every response carries
 ``connect-src 'self'`` and ``default-src 'self'``, so the browser itself refuses
 an external request even if the page asked for one. R9-8(b) then measures that
@@ -39,6 +59,7 @@ import os
 import secrets
 import socket
 import threading
+import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -73,6 +94,15 @@ CONTENT_TYPES = {
 
 MAX_BODY_BYTES = 256 * 1024
 
+#: How long an unlocked journal stays unlocked without an authenticated request.
+#: Configurable downward for tests; there is deliberately no way to disable it.
+IDLE_LOCK_SECONDS = float(os.environ.get("LEDGER_IDLE_LOCK_SECONDS", 900))
+
+#: Endpoints that can reach journal plaintext. These need the session token that
+#: only a client which supplied the passphrase has ever seen — not just the run
+#: token, which any local process can scrape out of the served page (F-04).
+PLAINTEXT_PATHS = frozenset({"/api/entries", "/api/report", "/api/entry"})
+
 
 class UIState:
     """What the server holds between requests.
@@ -87,8 +117,45 @@ class UIState:
         self.region = region
         self.token = secrets.token_urlsafe(32)
         self.journal: Journal | None = None
+        #: Minted on a successful unlock and returned only to the client that
+        #: supplied the passphrase. Never rendered into the page.
+        self.session: str | None = None
+        self.unlocked_at: float | None = None
+        self.last_seen: float | None = None
         self._engine = None
         self._lock = threading.Lock()
+
+    def open_session(self) -> str:
+        self.session = secrets.token_urlsafe(32)
+        self.unlocked_at = time.monotonic()
+        self.last_seen = self.unlocked_at
+        return self.session
+
+    def close_session(self) -> None:
+        self.journal = None
+        self.session = None
+        self.unlocked_at = None
+        self.last_seen = None
+
+    def expire_if_idle(self) -> bool:
+        """Drop the derived key if nothing authenticated has happened lately.
+
+        Returns True if this call locked the journal.
+        """
+        if self.journal is None or self.last_seen is None:
+            return False
+        if time.monotonic() - self.last_seen < IDLE_LOCK_SECONDS:
+            return False
+        self.close_session()
+        return True
+
+    def session_ok(self, presented: str | None) -> bool:
+        if self.session is None:
+            return False
+        if not secrets.compare_digest(presented or "", self.session):
+            return False
+        self.last_seen = time.monotonic()
+        return True
 
     def engine(self):
         # Deferred and cached: ~200 MB of model, loaded on first score, never on
@@ -168,6 +235,9 @@ class LedgerHandler(BaseHTTPRequestHandler):
         if path.startswith("/api/"):
             if not self._token_ok():
                 return self._error(HTTPStatus.FORBIDDEN, "missing or wrong token")
+            self.state.expire_if_idle()
+            if path in PLAINTEXT_PATHS and not self._session_ok():
+                return self._locked()
             return self._api_get(path)
         return self._static(path)
 
@@ -180,15 +250,30 @@ class LedgerHandler(BaseHTTPRequestHandler):
             return self._error(HTTPStatus.NOT_FOUND, "no such endpoint")
         if not self._token_ok():
             return self._error(HTTPStatus.FORBIDDEN, "missing or wrong token")
+        self.state.expire_if_idle()
+        path = self.path.split("?", 1)[0]
+        if path in PLAINTEXT_PATHS and not self._session_ok():
+            return self._locked()
         try:
             body = self._read_json()
         except (ValueError, json.JSONDecodeError):
             return self._error(HTTPStatus.BAD_REQUEST, "malformed request")
-        return self._api_post(self.path.split("?", 1)[0], body)
+        return self._api_post(path, body)
 
     def _token_ok(self) -> bool:
         return secrets.compare_digest(
             self.headers.get("X-Ledger-Token") or "", self.state.token)
+
+    def _session_ok(self) -> bool:
+        """The run token is not enough to reach plaintext. See F-04."""
+        return self.state.session_ok(self.headers.get("X-Ledger-Session"))
+
+    def _locked(self) -> None:
+        # 401, not 403: the correct remedy is to supply the passphrase. The body
+        # never says whether a journal exists or how many entries it holds.
+        return self._error(HTTPStatus.UNAUTHORIZED,
+                           "this journal is locked for this client; unlock it "
+                           "with the passphrase")
 
     # -- static ------------------------------------------------------------
 
@@ -236,7 +321,7 @@ class LedgerHandler(BaseHTTPRequestHandler):
             if path == "/api/unlock":
                 return self._unlock(body)
             if path == "/api/lock":
-                self.state.journal = None
+                self.state.close_session()
                 return self._send_json({"unlocked": False})
             if path == "/api/entry":
                 return self._entry(body)
@@ -252,6 +337,7 @@ class LedgerHandler(BaseHTTPRequestHandler):
             "store": str(self.state.store),
             "store_exists": self.state.store.exists(),
             "unlocked": self.state.journal is not None,
+            "idle_lock_seconds": IDLE_LOCK_SECONDS,
             "region": self.state.region,
             "contract": REPORT_CONTRACT,
             "evaluation_basis": EVALUATION_BASIS,
@@ -274,12 +360,18 @@ class LedgerHandler(BaseHTTPRequestHandler):
         try:
             self.state.journal = journal.create() if create else journal.unlock()
         except StoreError as exc:
-            self.state.journal = None
+            self.state.close_session()
             # The message from the store layer never contains plaintext; it is
             # forwarded rather than replaced so the user learns which failure.
             return self._error(HTTPStatus.UNAUTHORIZED, str(exc))
+        # Minted here and returned here. This response body is the only place the
+        # session token is ever written, which is what makes it unavailable to a
+        # local client that did not supply the passphrase (F-04).
+        session = self.state.open_session()
         return self._send_json({"unlocked": True, "created": create,
-                                "entries": self.state.journal.count()})
+                                "entries": self.state.journal.count(),
+                                "session": session,
+                                "idle_lock_seconds": IDLE_LOCK_SECONDS})
 
     def _entry(self, body: dict) -> None:
         text = (body.get("text") or "").strip()
@@ -306,7 +398,7 @@ class LedgerHandler(BaseHTTPRequestHandler):
         # As in the CLI: wipe does not require the passphrase. Someone who needs
         # their journal gone should not have to open it first.
         result = Journal(self.state.store, "unused").wipe()
-        self.state.journal = None
+        self.state.close_session()
         return self._send_json(result)
 
 

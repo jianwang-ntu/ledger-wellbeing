@@ -11,9 +11,22 @@ score, it *is* the score:
 
 Mean pooling followed by a linear head is a sum of per-token terms, so the
 per-token contributions add up to the logit exactly, to floating-point error.
-`tests/test_attribution_identity.py` asserts that identity on every build,
-including the int8 one, so a regression in the export pipeline cannot quietly
-turn the explanation into a decoration.
+`tests/test_export_pipeline.py` and `tests/test_delivery_target.py` assert that
+identity on every build, including the int8 one, so a regression in the export
+pipeline cannot quietly turn the explanation into a decoration.
+
+Two things the residual those tests report is *not*, stated here because the
+round-1 audit was right that the presentation invited the wrong reading (F-06).
+`forward` below computes `logits = token_attr.sum(dim=1) + bias`, so the
+identity holds *by construction* in PyTorch and the measured residual — 3.2e-07
+on the shipped int8_embed build — cannot fail as long as the arithmetic is the
+arithmetic. What it actually guards is the **export and quantization** path: it
+is the check that ONNX conversion, int8 quantization and the WASM runtime did
+not break an identity the source enforces. Read it as a regression guard, not as
+evidence for additivity. And the attributions are over *contextual* embeddings,
+so exact additivity over the pooling layer is not attribution faithfulness with
+respect to the encoder's own computation — token i's vector already depends on
+its neighbours. See `docs/limitations.md` §6.
 
 The head itself is *zero-shot* in this build: each row is the difference of two
 anchor-phrase centroids from `dimensions.ANCHORS`, affinely calibrated so the

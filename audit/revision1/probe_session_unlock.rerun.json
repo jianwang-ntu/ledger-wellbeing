@@ -1,0 +1,79 @@
+{
+  "what": "F-04 negative control and fix verification, revision round 1",
+  "plaintext_planted": "I lay awake until nearly four again, watching the ceiling.",
+  "control_is": "ledger/ui/server.py and static/app.js as at git HEAD (pre-fix), everything else current",
+  "cases": [
+    {
+      "tree": "PRE-FIX (git HEAD)",
+      "legitimate_unlock": {
+        "unlock_status": 200,
+        "has_session": false
+      },
+      "auditor_probe_unmodified": {
+        "GET_/_status": 200,
+        "token_scraped_from_page": true,
+        "token_prefix": "ft4vefPy...",
+        "api_state_status": 404,
+        "api_state_body": "{\"error\": \"no such endpoint\"}",
+        "api_entries_status": 404,
+        "api_entries_body_head": "{\"error\": \"no such endpoint\"}",
+        "NO_PASSPHRASE_WAS_SUPPLIED": true,
+        "entries_returned": 0,
+        "plaintext_visible_in_entries": false
+      },
+      "auditor_probe_rc": 0,
+      "attack_as_described_GET": {
+        "GET_/_status": 200,
+        "token_scraped_from_page": true,
+        "GET /api/entries": {
+          "status": 200,
+          "body_head": "{\"entries\": [{\"entry_id\": \"e1\", \"written_at\": \"2026-08-25T00:00:00Z\", \"text\": \"I lay awake until nearly four again, watching the ceiling.\", \"analysis\": {\"routed\": \"ordinary\", \"scored\": false}}]}"
+        },
+        "plaintext_in /api/entries": true,
+        "GET /api/report": {
+          "status": -1,
+          "body_head": "TRANSPORT_ERROR: RemoteDisconnected: Remote end closed connection without response"
+        },
+        "plaintext_in /api/report": false,
+        "NO_PASSPHRASE_WAS_SUPPLIED": true,
+        "plaintext_recovered": true
+      }
+    },
+    {
+      "tree": "REVISED (working tree)",
+      "legitimate_unlock": {
+        "unlock_status": 200,
+        "has_session": true
+      },
+      "auditor_probe_unmodified": {
+        "GET_/_status": 200,
+        "token_scraped_from_page": true,
+        "token_prefix": "Ju9pVbGh...",
+        "api_state_status": 404,
+        "api_state_body": "{\"error\": \"no such endpoint\"}",
+        "api_entries_status": 401,
+        "api_entries_body_head": "{\"error\": \"this journal is locked for this client; unlock it with the passphrase\"}",
+        "NO_PASSPHRASE_WAS_SUPPLIED": true,
+        "entries_returned": 0,
+        "plaintext_visible_in_entries": false
+      },
+      "auditor_probe_rc": 0,
+      "attack_as_described_GET": {
+        "GET_/_status": 200,
+        "token_scraped_from_page": true,
+        "GET /api/entries": {
+          "status": 401,
+          "body_head": "{\"error\": \"this journal is locked for this client; unlock it with the passphrase\"}"
+        },
+        "plaintext_in /api/entries": false,
+        "GET /api/report": {
+          "status": 401,
+          "body_head": "{\"error\": \"this journal is locked for this client; unlock it with the passphrase\"}"
+        },
+        "plaintext_in /api/report": false,
+        "NO_PASSPHRASE_WAS_SUPPLIED": true,
+        "plaintext_recovered": false
+      }
+    }
+  ]
+}

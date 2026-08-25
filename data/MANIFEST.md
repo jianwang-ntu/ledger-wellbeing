@@ -19,7 +19,7 @@ increments 1–5 produced and those runs are still in `../audit/runs/`.
 | Licence | **Apache-2.0** — read from the Hugging Face model API, `cardData.license` and the `license:apache-2.0` tag, 2026-08-24 |
 | Gated | No |
 | Parameters | 82,118,400 (6 layers, hidden 768, vocab 50,265 byte-level BPE) |
-| Tokenizer on disk | 3,559,258 B — **over CEIL-2's 2 MiB**, which is why increment 6 adopted no build. See `export/SIZE_BUDGET.md`. |
+| Tokenizer on disk | **1,556,504 B** as shipped (`artifacts/verify_report.json:tokenizer_bytes`), inside CEIL-2's 2,097,152 B. The upstream `tokenizer.json` is 3,559,258 B; increment 7 re-serialized the *same document* compactly and `export/tokenizer_parity.py` showed `encode()`/`decode()` elementwise identical over the 64 probe entries and all 50 anchor sentences, vocab and merges unchanged. The 3,559,258 B figure is **SUPERSEDED** — it is why increment 6 adopted no build, and increment 7 is why that stopped being true. See `export/SIZE_BUDGET.md`. |
 | Used for | The encoder. Its weights are frozen — no gradient step is taken on them anywhere in this repository. |
 | Why | Increment 4 measured it at macro held-out AUC **0.880** where the checkpoint below sits at 0.504, which is chance; increment 5 measured that nothing at hidden ≤ 384 does better. |
 | Upstream | Reimers & Gurevych, *Sentence-BERT* (EMNLP-IJCNLP 2019), SBERT's NLI-supervised bi-encoder over DistilRoBERTa (Sanh et al., *DistilBERT*, 2019). |

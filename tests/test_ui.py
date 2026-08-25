@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import re
 import socket
+import time
 import urllib.error
 import urllib.request
 from http import HTTPStatus
@@ -62,11 +63,25 @@ def live(tmp_path_factory):
         server.shutdown_now()
 
 
-def call(server, path, body=None, *, token=None, headers=None, method=None):
+def call(server, path, body=None, *, token=None, headers=None, method=None,
+         session=None):
+    """Speak to the server the way the shipped page does.
+
+    Round-1 audit F-04 added a second secret: the run token is a same-origin
+    guard, and the per-unlock session token is the thing that actually stands
+    between a local process and journal plaintext. The real client sends both
+    once it has unlocked, so this helper does too. Pass ``session=False`` to
+    behave like a client that never supplied the passphrase — that is the shape
+    the F-04 tests need.
+    """
     url = server.url.rstrip("/") + path
     request = urllib.request.Request(url, method=method or ("POST" if body is not None else "GET"))
     request.add_header("X-Ledger-Token",
                        server.state.token if token is None else token)
+    if session is not False:
+        held = server.state.session if session is None else session
+        if held:
+            request.add_header("X-Ledger-Session", held)
     for key, value in (headers or {}).items():
         request.add_header(key, value)
     if body is not None:
@@ -265,11 +280,21 @@ class TestTheEndToEndPath:
         assert status == 200 and json.loads(body)["wiped"] is True
         assert not store.exists()
 
-    def test_reading_a_locked_journal_is_a_conflict_not_a_leak(self, live):
+    def test_reading_a_locked_journal_is_refused_not_leaked(self, live):
+        """The status changed at revision round 1; the property did not.
+
+        Before F-04 this returned 409 CONFLICT from the store layer, because the
+        request reached the store and the store said "locked". Now the request
+        is refused earlier, at 401, because a locked journal has no session token
+        and no client can present one. 401 is the right code: the remedy is to
+        supply the passphrase. What is asserted here is what was always asserted
+        — the response says "locked" and carries no entry text.
+        """
         server, _ = live
         status, body, _ = call(server, "/api/entries")
-        assert status == HTTPStatus.CONFLICT
+        assert status == HTTPStatus.UNAUTHORIZED
         assert b"locked" in body
+        assert b"entries" not in body
 
 
 class TestTheServerHoldsNothingItShouldNot:
@@ -292,5 +317,124 @@ class TestTheServerHoldsNothingItShouldNot:
             call(server, "/api/entry", {"text": ORDINARY})
             held = json.dumps({k: repr(v) for k, v in vars(server.state).items()})
             assert "dragged through the whole day" not in held
+        finally:
+            server.shutdown_now()
+
+
+class TestUnlockingOneClientDoesNotUnlockTheMachine:
+    """Round-1 audit finding **F-04**, closed at revision round 1.
+
+    The auditor unlocked the journal in a Chromium context, then acted as an
+    unrelated local process: `GET /` (unauthenticated by necessity — the browser
+    must be able to load the page), scraped the run token out of the served
+    HTML, and read the full decrypted journal with it. No passphrase at any
+    point. The store is mode 0600 precisely to keep other local users out, and
+    the listener was undoing that for as long as anything was unlocked.
+
+    These tests are the shape of that attack, and the shape of the second half of
+    the finding: the server used to hold the derived key indefinitely.
+    """
+
+    def test_the_page_still_serves_the_run_token_to_anyone(self, live):
+        """Not fixed, and not fixable — asserted so the fix is not misread.
+
+        `GET /` cannot require a secret; the browser has to load it. So the run
+        token remains scrapeable by any local process. That is why it was
+        demoted from authenticator to same-origin guard rather than defended.
+        """
+        server, _ = live
+        status, body, _ = call(server, "/", method="GET")
+        assert status == 200
+        assert server.state.token.encode() in body
+
+    def test_the_session_token_is_never_in_the_page(self, live, tmp_path):
+        server = serve_in_thread(store=tmp_path / "f04a.enc", region="SG")
+        try:
+            status, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            assert status == 200
+            session = json.loads(body)["session"]
+            assert session and session != server.state.token
+
+            _, page, _ = call(server, "/", method="GET")
+            assert session.encode() not in page, "the session token leaked into the HTML"
+
+            for asset in ("/app.js", "/app.css"):
+                _, served, _ = call(server, asset, method="GET")
+                assert session.encode() not in served
+        finally:
+            server.shutdown_now()
+
+    def test_a_client_with_only_the_run_token_cannot_read_plaintext(self, live, tmp_path):
+        """The auditor's attack, executed against the revised server."""
+        server = serve_in_thread(store=tmp_path / "f04b.enc", region="SG")
+        try:
+            status, _, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            assert status == 200, "the legitimate client must be unlocked first"
+            assert server.state.journal is not None
+
+            for path in ("/api/entries", "/api/report"):
+                status, body, _ = call(server, path, method="GET", session=False)
+                assert status == HTTPStatus.UNAUTHORIZED, f"{path} answered {status}"
+                assert b"locked" in body
+
+            status, body, _ = call(server, "/api/entry",
+                                   {"text": ORDINARY}, session=False)
+            assert status == HTTPStatus.UNAUTHORIZED
+        finally:
+            server.shutdown_now()
+
+    def test_the_legitimate_client_still_works(self, live, tmp_path):
+        """The negative control: without it, a server that refused everything
+        would pass the test above."""
+        server = serve_in_thread(store=tmp_path / "f04c.enc", region="SG")
+        try:
+            status, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            status, body, _ = call(server, "/api/entries", method="GET",
+                                   session=session)
+            assert status == 200, body
+            assert "entries" in json.loads(body)
+        finally:
+            server.shutdown_now()
+
+    def test_a_wrong_session_token_is_refused(self, live, tmp_path):
+        server = serve_in_thread(store=tmp_path / "f04d.enc", region="SG")
+        try:
+            call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            status, _, _ = call(server, "/api/entries", method="GET",
+                                session="x" * 43)
+            assert status == HTTPStatus.UNAUTHORIZED
+        finally:
+            server.shutdown_now()
+
+    def test_the_key_is_dropped_after_an_idle_period(self, live, tmp_path, monkeypatch):
+        """The second half of F-04: the server never used to re-challenge."""
+        monkeypatch.setattr(ui_server, "IDLE_LOCK_SECONDS", 0.05)
+        server = serve_in_thread(store=tmp_path / "f04e.enc", region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            assert server.state.journal is not None
+
+            status, _, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == 200, "should still be open before the timer fires"
+
+            time.sleep(0.2)
+            status, body, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == HTTPStatus.UNAUTHORIZED
+            assert server.state.journal is None, "the derived key was not dropped"
+            assert server.state.session is None
+        finally:
+            server.shutdown_now()
+
+    def test_locking_invalidates_the_session(self, live, tmp_path):
+        server = serve_in_thread(store=tmp_path / "f04f.enc", region="SG")
+        try:
+            _, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            session = json.loads(body)["session"]
+            status, _, _ = call(server, "/api/lock", {})
+            assert status == 200
+            status, _, _ = call(server, "/api/entries", method="GET", session=session)
+            assert status == HTTPStatus.UNAUTHORIZED
         finally:
             server.shutdown_now()
