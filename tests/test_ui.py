@@ -248,7 +248,17 @@ class TestTheEndToEndPath:
         assert store.exists()
 
     def test_an_empty_entry_is_refused(self, live):
-        server, _ = live
+        """Self-sufficient, because a clean clone caught it borrowing an unlock.
+
+        F-04 made `/api/entry` require the per-unlock session token, so this test
+        stopped being about empty text on a clone: it inherited its unlock from
+        the end-to-end test above, which SKIPS when the ONNX build is absent, and
+        then got 401 instead of 400. That is exactly the F-02 defect class — a
+        test standing on state a skippable test happened to leave behind. Found
+        by cloning the published repository and running it, not on this machine.
+        """
+        server, store = live
+        self._ensure_unlocked(server, store)
         status, _, _ = call(server, "/api/entry", {"text": "   "})
         assert status == HTTPStatus.BAD_REQUEST
 
@@ -260,10 +270,11 @@ class TestTheEndToEndPath:
         clone these two would fail for a reason that has nothing to do with what
         they assert. Unlocking needs no model.
         """
-        if not store.exists():
+        if server.state.journal is None:
             status, _, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
             assert status == 200, status
         assert store.exists()
+        assert server.state.session, "the caller needs an authenticated session"
 
     def test_wipe_needs_the_exact_word(self, live):
         server, store = live
