@@ -24,8 +24,31 @@ from .resources import Helpline, for_region
 # is done BEFORE matching, so "k i l l  m y s e l f" and "k1ll myself" are the
 # same string to the matcher.
 
-_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s",
-                       "7": "t", "@": "a", "$": "s", "!": "i"})
+# Glyphs that stand for exactly one letter are folded here, during
+# normalisation, because there is nothing to decide about them.
+_LEET_UNAMBIGUOUS = str.maketrans({"0": "o", "3": "e", "4": "a", "5": "s",
+                                   "7": "t", "@": "a", "$": "s"})
+
+#: Glyphs that could stand for MORE THAN ONE letter, and the letters they could
+#: stand for. These are deliberately **not** folded during normalisation.
+#:
+#: Folding them to a single letter is the defect an independent audit found in
+#: round 1 (F-01): the old table mapped ``1 -> i`` only, so ``1`` standing in
+#: for ``l`` was never folded and every phrase in RULES containing an ``l`` -
+#: "kill myself", "end my life", "self harm", "suicidal" - could be written
+#: straight past the router. ``k1ll myse1f`` normalised to ``kill myseif`` and
+#: missed. Ten of the auditor's twelve probes evaded that way.
+#:
+#: A single-valued fold has to guess. The matcher below does not: it expands the
+#: PHRASE instead, so one glyph in the text can satisfy either letter and both
+#: readings of ``k1ll myse1f`` are caught by the same rule.
+_AMBIGUOUS_GLYPHS: dict[str, str] = {"1": "il", "!": "il", "|": "il"}
+
+#: Inverted: letter -> the glyphs that may appear in its place.
+_GLYPHS_FOR_LETTER: dict[str, str] = {}
+for _glyph, _letters in _AMBIGUOUS_GLYPHS.items():
+    for _letter in _letters:
+        _GLYPHS_FOR_LETTER[_letter] = _GLYPHS_FOR_LETTER.get(_letter, "") + _glyph
 
 # NFKD decomposes accents but NOT confusables: the dotless i (U+0131), the
 # Cyrillic lookalikes and the Latin stroked letters all survive it unchanged and
@@ -43,17 +66,37 @@ _CONFUSABLES = str.maketrans({
     "\u03bf": "o", "\u03b1": "a", "\u03b5": "e", "\u03c1": "p",
     "\u03c5": "y", "\u03ba": "k", "\u03c4": "t", "\u03b9": "i",
 })
+# "|" is genuinely two things at once: a separator in "kill|myself" and a
+# stand-in for "l" in "k|ll". One normalisation has to pick, so the router does
+# not pick - it matches against both readings. See normalise_variants().
 _SEPARATORS = re.compile(r"[\s._\-*+|/\\]+")
-_NON_ALNUM = re.compile(r"[^a-z0-9 ]+")
+_SEPARATORS_KEEPING_PIPE = re.compile(r"[\s._\-*+/\\]+")
+#: Ambiguous glyphs must survive this or the matcher below never sees them.
+_NON_ALNUM = re.compile(r"[^a-z0-9 !|]+")
 
 
-def normalise(text: str) -> str:
-    """Fold text to a matchable form. Lossy on purpose, never shown to the user."""
+def normalise(text: str, *, pipe_as_letter: bool = False) -> str:
+    """Fold text to a matchable form. Lossy on purpose, never shown to the user.
+
+    Ambiguous glyphs (``1``, ``!``, ``|``) are left in place; resolving them is
+    the matcher's job, not the normaliser's.
+    """
     folded = unicodedata.normalize("NFKD", text or "")
     folded = "".join(c for c in folded if not unicodedata.combining(c))
-    folded = folded.lower().translate(_CONFUSABLES).translate(_LEET)
+    folded = folded.lower().translate(_CONFUSABLES).translate(_LEET_UNAMBIGUOUS)
     folded = _NON_ALNUM.sub(" ", folded)
-    return _SEPARATORS.sub(" ", folded).strip()
+    separators = _SEPARATORS_KEEPING_PIPE if pipe_as_letter else _SEPARATORS
+    return separators.sub(" ", folded).strip()
+
+
+def normalise_variants(text: str) -> tuple[str, ...]:
+    """Every reading of the text the matcher must be satisfied by none of.
+
+    Two, because "|" is a separator in ``kill|myself`` and a letter in
+    ``k|ll``. Reading it one way loses the other, so both are matched.
+    """
+    both = (normalise(text), normalise(text, pipe_as_letter=True))
+    return both if both[0] != both[1] else both[:1]
 
 
 def _despace(text: str) -> str:
@@ -94,6 +137,29 @@ RULES: tuple[Rule, ...] = (
 )
 
 
+def _pattern(phrase: str) -> re.Pattern[str]:
+    """Compile one rule phrase so an ambiguous glyph satisfies the letter it mimics.
+
+    "kill myself" becomes ``k[i1!|][l1!|][l1!|] mysel...`` - so ``k1ll``,
+    ``ki11``, ``kil1`` and ``k!ll`` all match the one rule, and no reading of
+    the glyph has to be guessed at normalisation time.
+    """
+    out = []
+    for ch in phrase:
+        glyphs = _GLYPHS_FOR_LETTER.get(ch)
+        out.append(f"[{re.escape(ch + glyphs)}]" if glyphs else re.escape(ch))
+    return re.compile("".join(out))
+
+
+#: (spaced, de-spaced) matcher per phrase, compiled once at import. Pure data:
+#: the phrase list stays the reviewable thing, and this is derived from it, so a
+#: clinician editing RULES cannot forget to update the matcher.
+_PHRASE_PATTERNS: dict[str, tuple[re.Pattern[str], re.Pattern[str]]] = {
+    phrase: (_pattern(phrase), _pattern(_despace(phrase)))
+    for rule in RULES for phrase in rule.phrases
+}
+
+
 @dataclass(frozen=True)
 class Decision:
     triggered: bool
@@ -115,13 +181,14 @@ class Decision:
 
 def route(text: str, region: str | None = None) -> Decision:
     """Classify one journal entry. Pure: no I/O, no model, no network."""
-    norm = normalise(text)
-    dense = _despace(norm)
+    forms = [f for variant in normalise_variants(text)
+             for f in (variant, _despace(variant))]
 
     hits: list[tuple[Rule, str]] = []
     for rule in RULES:
         for phrase in rule.phrases:
-            if phrase in norm or _despace(phrase) in dense:
+            spaced, dense = _PHRASE_PATTERNS[phrase]
+            if any(spaced.search(f) or dense.search(f) for f in forms):
                 hits.append((rule, phrase))
                 break
 
