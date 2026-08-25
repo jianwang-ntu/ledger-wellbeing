@@ -237,8 +237,22 @@ class TestTheEndToEndPath:
         status, _, _ = call(server, "/api/entry", {"text": "   "})
         assert status == HTTPStatus.BAD_REQUEST
 
+    def _ensure_unlocked(self, server, store):
+        """The wipe tests are about wiping, not about scoring.
+
+        They used to inherit an unlocked journal from the end-to-end test above.
+        That test now skips when the ONNX build is absent (F-02), so on a fresh
+        clone these two would fail for a reason that has nothing to do with what
+        they assert. Unlocking needs no model.
+        """
+        if not store.exists():
+            status, _, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
+            assert status == 200, status
+        assert store.exists()
+
     def test_wipe_needs_the_exact_word(self, live):
         server, store = live
+        self._ensure_unlocked(server, store)
         for wrong in ("wipe", "WIPE ", "yes", ""):
             status, _, _ = call(server, "/api/wipe", {"confirm": wrong})
             assert status == HTTPStatus.BAD_REQUEST, wrong
@@ -246,6 +260,7 @@ class TestTheEndToEndPath:
 
     def test_wipe_removes_the_store(self, live):
         server, store = live
+        self._ensure_unlocked(server, store)
         status, body, _ = call(server, "/api/wipe", {"confirm": "WIPE"})
         assert status == 200 and json.loads(body)["wiped"] is True
         assert not store.exists()
