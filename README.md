@@ -117,10 +117,17 @@ bash export/run_all.sh                             # downloads the encoder, expo
 
 **Two true sentences replacing "All tests pass offline":**
 
-1. `python3 -m pytest -q` on a fresh clone **exits 0** — **230 passed, 24
-   skipped**, measured at revision 1 and recorded verbatim in
+1. `python3 -m pytest -q` on a fresh clone **exits 0** — **268 passed, 24
+   skipped**, measured at commit `45e1c13` and recorded verbatim in
    `audit/revision1/clean_clone_pytest.txt`. On a machine that has run
-   `export/run_all.sh` the same command gives 245 passed, 9 skipped.
+   `export/run_all.sh` the same command gives **283 passed, 9 skipped**.
+
+   Both numbers were wrong before this line was rewritten. Round-2 audit
+   **AUDR2-F-003** found the published pair (230/24 and 245/9) did not match the
+   published HEAD, and **AUDR2-F-004/F-005** found the file cited as their source
+   was not in the repository at all. The file is here now, it is the verbatim
+   output rather than a transcription, and it names the commit it was taken at —
+   a clone number that does not say which commit it measured cannot be checked.
 2. **15 of those 24 skips** are the tests that need the weights, and each names
    the command that produces them (`run `bash export/run_all.sh``). The other 9
    are pre-existing conditional guards that do not apply to the selected build.
@@ -702,7 +709,7 @@ closed; **30 of 30 probes now fire** and the false-positive rate is unchanged.
 | Auditor's evasion probes firing | **12/30 → 30/30** |
 | Ordinary-language false positives | **11/40 → 11/40** (0 caused by the widening) |
 | Auditor's independent benign corpus | **4/30 → 4/30** |
-| Tests | 259 → **283 passed, 9 skipped** |
+| Tests | 259 → **283 passed, 9 skipped** (fresh clone: **268 passed, 24 skipped**) |
 | Mutation score on the new guards | **15/15** (7 server, 8 router) |
 
 Evidence: `audit/round2/remediation/replay_isolated_r2.json` replays each attack
