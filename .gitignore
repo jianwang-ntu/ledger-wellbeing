@@ -5,8 +5,8 @@ node_modules/
 
 # Build outputs: regenerate with `bash export/run_all.sh`. Hashes and every
 # measured number are recorded in artifacts/*.json, which ARE tracked.
+# artifacts/tokenizer/ is deliberately NOT here - see artifacts/.gitignore.
 artifacts/onnx/
 artifacts/torch/
-artifacts/tokenizer/
 artifacts/bench_input.json
 web/node_modules/

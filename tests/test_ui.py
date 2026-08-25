@@ -27,8 +27,17 @@ from pathlib import Path
 
 import pytest
 
+from ledger.app.engine import BUILD_FILES, selected_build
 from ledger.ui import server as ui_server
 from ledger.ui.server import CSP, STATIC, serve_in_thread
+
+#: Round-1 audit F-02. The ONNX build is a 900 MiB output of
+#: `bash export/run_all.sh` and is not in the repository, so the two tests that
+#: score an entry end to end SKIP on a fresh clone rather than fail - and skip
+#: rather than pass, so a green run never means less than it says.
+needs_model = pytest.mark.skipif(
+    not BUILD_FILES[selected_build()].exists(),
+    reason="ONNX build absent - run `bash export/run_all.sh` (see README, Install)")
 
 PASSPHRASE = "a test passphrase for the interface"
 
@@ -187,6 +196,7 @@ class TestStaticServing:
 
 
 class TestTheEndToEndPath:
+    @needs_model
     def test_unlock_then_entry_then_report_then_wipe(self, live):
         server, store = live
         status, body, _ = call(server, "/api/unlock", {"passphrase": PASSPHRASE})
@@ -258,6 +268,7 @@ class TestTheServerHoldsNothingItShouldNot:
         finally:
             server.shutdown_now()
 
+    @needs_model
     def test_no_entry_text_is_cached_on_the_server_object(self, live, tmp_path):
         """Every read goes back through the encrypted store, by construction."""
         server = serve_in_thread(store=tmp_path / "k.enc", region="SG")

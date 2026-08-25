@@ -110,6 +110,7 @@ class TestTheModelIsNotInTheCrisisPath:
             assert helplines, "crisis path must never return an empty resource list"
             assert all(h["contact"] for h in helplines)
 
+    @needs_model
     def test_an_elevated_entry_is_still_scored(self):
         """Only *acute* blocks. Elevated routes to help and keeps the trend line."""
         engine = LedgerEngine(region="SG")

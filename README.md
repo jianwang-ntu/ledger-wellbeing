@@ -70,9 +70,52 @@ it, written before the measurement.
 | The listener is local and unreachable | **measured**: only bind `127.0.0.1`; port refused on all 9 non-loopback addresses | `artifacts/egress_audit_ui.json` |
 | 4-minute submission video | **not produced**, and will not be faked | — |
 
-All tests pass offline: `python3 -m pytest tests/`. What they assert is that the
-numbers in this README are re-derivable from the artifacts, and — since increment
-8 — that the application's own behaviour matches what is claimed for it.
+## Install, and what a clone can and cannot do
+
+Read this before the quickstarts below. A round-1 audit cloned this repository
+and found that it did not run, while the README said "All tests pass offline".
+That sentence has been replaced by the two true ones.
+
+```bash
+git clone https://github.com/jianwang-ntu/ledger-wellbeing && cd ledger-wellbeing
+python3 -m pip install -r requirements.txt      # ~120 MiB: onnxruntime, numpy, tokenizers, cryptography
+python3 -m pytest -q                            # exits 0 offline
+```
+
+**What ships in the clone**: all source, all `artifacts/*.json` reports, and the
+1,556,504-byte compacted tokenizer — so a clone can tokenize, run the crisis
+router, run the store and run every test that does not need model weights.
+
+**What does not ship**: the ONNX and PyTorch weights. `artifacts/onnx/` is
+900 MiB and `artifacts/torch/` is 314 MiB; the selected build alone,
+`ledger_scorer_int8embed.onnx`, is 209,181,357 bytes. Putting them in git would
+make a `git clone` of a $100 hackathon entry a 1.2 GiB download.
+
+**So scoring an entry needs one build step**, and its true cost is:
+
+```bash
+python3 -m pip install -r requirements-build.txt   # adds torch + transformers, ~2.5 GiB
+bash export/run_all.sh                             # downloads the encoder, exports, quantizes, verifies
+```
+
+| | cost |
+|---|---|
+| downloaded | ~2.5 GiB of build-only wheels, plus the ~330 MiB encoder from HuggingFace |
+| peak disk under `artifacts/` | ~1.2 GiB |
+| wall clock | tens of minutes on CPU, dominated by the fp32 ONNX export |
+| network | **only here.** The build is the one step that touches the network; nothing at runtime does, and that is measured in `artifacts/egress_audit.json` |
+
+**Two true sentences replacing "All tests pass offline":**
+
+1. `python3 -m pytest -q` on a fresh clone **exits 0** — 245 passed, 12 skipped
+   at revision 1, measured in `audit/revision1/clean_clone_pytest.txt`.
+2. The 12 skips are the tests that need the weights. They **skip, never pass**,
+   and each skip names the command that produces what it needs — so a green run
+   on a clone never means more than it says.
+
+What the tests assert is that the numbers in this README are re-derivable from
+the artifacts, and — since increment 8 — that the application's own behaviour
+matches what is claimed for it.
 
 ## The safety layer
 
@@ -87,6 +130,35 @@ That suite has already caught one real evasion in this code: the dotless-i
 homoglyph `U+0131` survived NFKD normalisation, so `suıcıde` routed past an
 earlier version of the normaliser. The fix is the `_CONFUSABLES` table in
 `ledger/safety/crisis_router.py`; the case is now a permanent test.
+
+**It also missed one, and an independent audit found it.** The leetspeak table
+mapped `1 → i` and nothing else, so `1` standing in for the letter `l` was never
+folded — and every rule phrase containing an `l` (`kill myself`, `end my life`,
+`self harm`, `suicidal`) could be written straight past the router. Ten of the
+auditor's twelve probes evaded that way; `k1ll myse1f` normalised to
+`kill myseif` and scored as an ordinary entry. This is exactly the failure the
+suite existed to prevent, and the suite's single leetspeak case happened to be
+the one direction where `1 → i` is correct.
+
+The fix does not guess. Ambiguous glyphs (`1`, `!`, `|`) are no longer folded at
+all; the *phrase* is expanded instead, so one glyph satisfies either letter it
+could stand for. The matrix that guards it is generated from `RULES` itself —
+every phrase × every ambiguous glyph × every letter that glyph can mean — so a
+clinician adding a phrase cannot forget to test its evasions.
+
+**And measuring it turned up something the audit did not find.** A 40-entry
+ordinary-language control corpus fires **11 times**: `RULES` matches literal
+substrings with no negation or topic handling, so "the article was about suicide
+prevention funding" and "I am not suicidal, just tired" both route to a helpline.
+The same 11 fired on the pre-fix router — 0 of them are caused by the widening
+(`audit/revision1/fp_control_corpus.json`) — so this is a property the project
+has always had and had never quantified. It is **not fixed**: negation handling
+in an acute path is an evasion surface, and anything that learns "not" suppresses
+a match can be written past with "I would never say I want to kill myself". The
+asymmetry is chosen — a false positive costs a helpline card and a skipped trend
+line, a false negative costs a missed crisis — and the 11 are pinned in
+`tests/test_crisis_router.py::AcceptedFalsePositives` so the published rate
+cannot drift from the measured one.
 
 ```
 python3 -m pytest tests/test_crisis_router.py -v

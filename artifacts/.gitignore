@@ -1,5 +1,8 @@
 # Track the reports, not the weights.
 onnx/
 torch/
-tokenizer/
 bench_input.json
+
+# tokenizer/ is NOT ignored. It is 1,556,504 B after increment 7's compact
+# re-serialization - it already meets CEIL-2 - and shipping it is what lets a
+# clone tokenize without a 900 MiB build. Round-1 audit F-02.
