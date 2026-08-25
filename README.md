@@ -107,11 +107,15 @@ bash export/run_all.sh                             # downloads the encoder, expo
 
 **Two true sentences replacing "All tests pass offline":**
 
-1. `python3 -m pytest -q` on a fresh clone **exits 0** — 245 passed, 12 skipped
-   at revision 1, measured in `audit/revision1/clean_clone_pytest.txt`.
-2. The 12 skips are the tests that need the weights. They **skip, never pass**,
-   and each skip names the command that produces what it needs — so a green run
-   on a clone never means more than it says.
+1. `python3 -m pytest -q` on a fresh clone **exits 0** — **230 passed, 24
+   skipped**, measured at revision 1 and recorded verbatim in
+   `audit/revision1/clean_clone_pytest.txt`. On a machine that has run
+   `export/run_all.sh` the same command gives 245 passed, 9 skipped.
+2. **15 of those 24 skips** are the tests that need the weights, and each names
+   the command that produces them (`run `bash export/run_all.sh``). The other 9
+   are pre-existing conditional guards that do not apply to the selected build.
+   They **skip, never pass** — a green run on a clone never means more than it
+   says.
 
 What the tests assert is that the numbers in this README are re-derivable from
 the artifacts, and — since increment 8 — that the application's own behaviour
